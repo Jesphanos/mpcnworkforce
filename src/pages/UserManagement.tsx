@@ -18,6 +18,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -27,31 +34,50 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Users, Search, Trash2, Shield } from "lucide-react";
+import { Loader2, Users, Search, Trash2, Shield, Mail } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
+
+type AppRole = Database["public"]["Enums"]["app_role"];
 
 interface UserWithRole {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
   created_at: string;
-  role: string | null;
+  role: AppRole | null;
 }
 
+const ALL_ROLES: AppRole[] = ["employee", "report_admin", "finance_hr_admin", "investment_admin", "user_admin", "general_overseer"];
+
 export default function UserManagement() {
-  const { user, hasRole } = useAuth();
+  const { user, hasRole, role: currentUserRole } = useAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [updatingRoleUserId, setUpdatingRoleUserId] = useState<string | null>(null);
+  const [pendingApprovals, setPendingApprovals] = useState<string[]>([]);
 
   const isAdmin = hasRole("user_admin") || hasRole("general_overseer");
 
   useEffect(() => {
     if (isAdmin) {
       fetchUsers();
+      fetchPendingApprovals();
     }
   }, [isAdmin]);
+
+  const fetchPendingApprovals = async () => {
+    const { data } = await supabase
+      .from("pending_role_approvals")
+      .select("target_user_id")
+      .eq("status", "pending");
+    
+    if (data) {
+      setPendingApprovals(data.map(d => d.target_user_id));
+    }
+  };
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -87,12 +113,84 @@ export default function UserManagement() {
       const userRole = roles?.find((r) => r.user_id === profile.id);
       return {
         ...profile,
-        role: userRole?.role || "employee",
+        role: (userRole?.role as AppRole) || "employee",
       };
     });
 
     setUsers(usersWithRoles);
     setIsLoading(false);
+  };
+
+  const handleRoleChange = async (userId: string, newRole: AppRole, userName: string | null) => {
+    // Special handling for general_overseer role - requires email approval
+    if (newRole === "general_overseer") {
+      setUpdatingRoleUserId(userId);
+      
+      const { data, error } = await supabase.functions.invoke("request-role-approval", {
+        body: { targetUserId: userId, targetUserName: userName },
+      });
+
+      if (error || !data?.success) {
+        toast({
+          title: "Error",
+          description: data?.error || "Failed to send approval request",
+          variant: "destructive",
+        });
+        setUpdatingRoleUserId(null);
+        return;
+      }
+
+      toast({
+        title: "Approval Request Sent",
+        description: "An email has been sent to the current General Overseer for approval.",
+      });
+      
+      fetchPendingApprovals();
+      setUpdatingRoleUserId(null);
+      return;
+    }
+
+    // Direct role update for non-general_overseer roles
+    setUpdatingRoleUserId(userId);
+
+    // Check if user already has a role entry
+    const { data: existingRole } = await supabase
+      .from("user_roles")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    let error;
+    if (existingRole) {
+      const result = await supabase
+        .from("user_roles")
+        .update({ role: newRole })
+        .eq("user_id", userId);
+      error = result.error;
+    } else {
+      const result = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role: newRole });
+      error = result.error;
+    }
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update user role",
+        variant: "destructive",
+      });
+      setUpdatingRoleUserId(null);
+      return;
+    }
+
+    toast({
+      title: "Role Updated",
+      description: `User role has been updated to ${getRoleLabel(newRole)}`,
+    });
+
+    fetchUsers();
+    setUpdatingRoleUserId(null);
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -249,9 +347,39 @@ export default function UserManagement() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={getRoleBadgeVariant(u.role)}>
-                            {getRoleLabel(u.role)}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            {u.id === user?.id || u.role === "general_overseer" ? (
+                              <Badge variant={getRoleBadgeVariant(u.role)}>
+                                {getRoleLabel(u.role)}
+                              </Badge>
+                            ) : (
+                              <Select
+                                value={u.role || "employee"}
+                                onValueChange={(value) => handleRoleChange(u.id, value as AppRole, u.full_name)}
+                                disabled={updatingRoleUserId === u.id}
+                              >
+                                <SelectTrigger className="w-[160px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {ALL_ROLES.map((role) => (
+                                    <SelectItem key={role} value={role}>
+                                      {getRoleLabel(role)}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                            {pendingApprovals.includes(u.id) && (
+                              <Badge variant="outline" className="text-amber-600 border-amber-300 gap-1">
+                                <Mail className="h-3 w-3" />
+                                Pending
+                              </Badge>
+                            )}
+                            {updatingRoleUserId === u.id && (
+                              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {new Date(u.created_at).toLocaleDateString()}

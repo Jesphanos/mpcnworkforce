@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      pending_role_approvals: {
+        Row: {
+          approval_token: string
+          created_at: string
+          expires_at: string
+          id: string
+          processed_at: string | null
+          requested_role: Database["public"]["Enums"]["app_role"]
+          requester_email: string
+          requester_user_id: string
+          status: string
+          target_email: string
+          target_user_id: string
+        }
+        Insert: {
+          approval_token?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          processed_at?: string | null
+          requested_role?: Database["public"]["Enums"]["app_role"]
+          requester_email: string
+          requester_user_id: string
+          status?: string
+          target_email: string
+          target_user_id: string
+        }
+        Update: {
+          approval_token?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          processed_at?: string | null
+          requested_role?: Database["public"]["Enums"]["app_role"]
+          requester_email?: string
+          requester_user_id?: string
+          status?: string
+          target_email?: string
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -67,6 +109,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_general_overseer_email: { Args: never; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
