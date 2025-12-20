@@ -1,11 +1,13 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function AppHeader() {
   const { profile } = useAuth();
+  const navigate = useNavigate();
 
   const getInitials = (name: string | null) => {
     if (!name) return "U";
@@ -36,7 +38,10 @@ export function AppHeader() {
           </span>
         </Button>
         
-        <Avatar className="h-9 w-9 sm:hidden">
+        <Avatar 
+          className="h-9 w-9 sm:hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+          onClick={() => navigate("/profile")}
+        >
           <AvatarImage src={profile?.avatar_url || undefined} />
           <AvatarFallback className="bg-primary text-primary-foreground text-sm">
             {getInitials(profile?.full_name)}
