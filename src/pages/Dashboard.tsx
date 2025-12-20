@@ -75,7 +75,7 @@ const adminCards = [
     icon: Users,
     role: "user_admin",
     color: "text-primary",
-    url: "/user-management",
+    url: "/users",
   },
 ];
 
