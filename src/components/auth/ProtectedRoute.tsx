@@ -2,12 +2,14 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
+type AppRole = "employee" | "report_admin" | "finance_hr_admin" | "investment_admin" | "user_admin" | "general_overseer";
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: "employee" | "report_admin" | "finance_hr_admin" | "investment_admin" | "user_admin" | "general_overseer";
+  allowedRoles?: AppRole[];
 }
 
-export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, loading, hasRole } = useAuth();
   const location = useLocation();
 
@@ -23,8 +25,11 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  if (requiredRole && !hasRole(requiredRole)) {
-    return <Navigate to="/dashboard" replace />;
+  if (allowedRoles && allowedRoles.length > 0) {
+    const hasAccess = allowedRoles.some(role => hasRole(role));
+    if (!hasAccess) {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return <>{children}</>;
