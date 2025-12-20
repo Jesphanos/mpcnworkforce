@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -50,6 +51,7 @@ const adminCards = [
     icon: FileText,
     role: "report_admin",
     color: "text-info",
+    url: "/reports",
   },
   {
     title: "Finance & HR",
@@ -57,6 +59,7 @@ const adminCards = [
     icon: DollarSign,
     role: "finance_hr_admin",
     color: "text-success",
+    url: "/finance-hr",
   },
   {
     title: "Investments",
@@ -64,6 +67,7 @@ const adminCards = [
     icon: TrendingUp,
     role: "investment_admin",
     color: "text-warning",
+    url: "/investments",
   },
   {
     title: "User Administration",
@@ -71,11 +75,13 @@ const adminCards = [
     icon: Users,
     role: "user_admin",
     color: "text-primary",
+    url: "/user-management",
   },
 ];
 
 export default function Dashboard() {
   const { profile, role, hasRole } = useAuth();
+  const navigate = useNavigate();
 
   const getRoleLabel = (role: string | null) => {
     if (!role) return "Employee";
@@ -138,6 +144,7 @@ export default function Dashboard() {
                 <Card 
                   key={card.title} 
                   className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+                  onClick={() => navigate(card.url)}
                 >
                   <CardHeader>
                     <div className={`h-10 w-10 rounded-lg bg-muted flex items-center justify-center mb-2`}>

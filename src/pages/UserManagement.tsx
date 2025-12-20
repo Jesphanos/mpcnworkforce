@@ -47,7 +47,7 @@ interface UserWithRole {
   role: AppRole | null;
 }
 
-const ALL_ROLES: AppRole[] = ["employee", "report_admin", "finance_hr_admin", "investment_admin", "user_admin", "general_overseer"];
+const ALL_ROLES: AppRole[] = ["employee", "report_admin", "finance_hr_admin", "investment_admin", "user_admin"];
 
 export default function UserManagement() {
   const { user, hasRole, role: currentUserRole } = useAuth();
