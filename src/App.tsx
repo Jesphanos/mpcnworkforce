@@ -13,6 +13,7 @@ import Reports from "./pages/Reports";
 import FinanceHR from "./pages/FinanceHR";
 import Investments from "./pages/Investments";
 import NotFound from "./pages/NotFound";
+import AccessDenied from "./pages/AccessDenied";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/access-denied" element={<AccessDenied />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

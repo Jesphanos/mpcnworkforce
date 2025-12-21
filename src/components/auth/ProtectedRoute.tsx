@@ -28,7 +28,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   if (allowedRoles && allowedRoles.length > 0) {
     const hasAccess = allowedRoles.some(role => hasRole(role));
     if (!hasAccess) {
-      return <Navigate to="/dashboard" replace />;
+      return <Navigate to="/access-denied" replace />;
     }
   }
 
