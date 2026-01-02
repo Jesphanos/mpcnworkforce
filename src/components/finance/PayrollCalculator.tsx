@@ -4,9 +4,115 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useSalaryPeriods } from "@/hooks/useSalaryPeriods";
-import { usePayrollCalculation } from "@/hooks/usePayrollCalculation";
-import { Calculator, DollarSign, Clock, FileText, Users } from "lucide-react";
+import { usePayrollCalculation, EmployeePayroll } from "@/hooks/usePayrollCalculation";
+import { Calculator, DollarSign, Clock, FileText, Users, Download } from "lucide-react";
+import { toast } from "sonner";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+function exportToCSV(
+  data: EmployeePayroll[],
+  periodName: string,
+  startDate: string,
+  endDate: string,
+  totals: { employees: number; hours: number; earnings: number; reports: number }
+) {
+  const headers = ["Employee", "Reports", "Hours", "Earnings", "Avg/Hour"];
+  const rows = data.map((emp) => [
+    emp.full_name || "Unknown Employee",
+    emp.approved_reports.toString(),
+    emp.total_hours.toFixed(1),
+    `$${emp.total_earnings.toFixed(2)}`,
+    `$${emp.total_hours > 0 ? (emp.total_earnings / emp.total_hours).toFixed(2) : "0.00"}`,
+  ]);
+
+  // Add totals row
+  rows.push([
+    "TOTAL",
+    totals.reports.toString(),
+    totals.hours.toFixed(1),
+    `$${totals.earnings.toFixed(2)}`,
+    "",
+  ]);
+
+  const csvContent = [
+    `Payroll Report: ${periodName}`,
+    `Period: ${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}`,
+    "",
+    headers.join(","),
+    ...rows.map((row) => row.join(",")),
+  ].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `payroll-${periodName.replace(/\s+/g, "-").toLowerCase()}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+  toast.success("CSV exported successfully");
+}
+
+function exportToPDF(
+  data: EmployeePayroll[],
+  periodName: string,
+  startDate: string,
+  endDate: string,
+  totals: { employees: number; hours: number; earnings: number; reports: number }
+) {
+  const doc = new jsPDF();
+
+  // Title
+  doc.setFontSize(18);
+  doc.text("Payroll Report", 14, 22);
+
+  // Period info
+  doc.setFontSize(12);
+  doc.text(`Period: ${periodName}`, 14, 32);
+  doc.text(
+    `Date Range: ${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}`,
+    14,
+    40
+  );
+
+  // Summary
+  doc.setFontSize(10);
+  doc.text(`Total Employees: ${totals.employees}`, 14, 52);
+  doc.text(`Total Hours: ${totals.hours.toFixed(1)}`, 14, 58);
+  doc.text(`Total Earnings: $${totals.earnings.toFixed(2)}`, 14, 64);
+  doc.text(`Approved Reports: ${totals.reports}`, 14, 70);
+
+  // Table
+  const tableData = data.map((emp) => [
+    emp.full_name || "Unknown Employee",
+    emp.approved_reports.toString(),
+    `${emp.total_hours.toFixed(1)}h`,
+    `$${emp.total_earnings.toFixed(2)}`,
+    `$${emp.total_hours > 0 ? (emp.total_earnings / emp.total_hours).toFixed(2) : "0.00"}/h`,
+  ]);
+
+  // Add totals row
+  tableData.push([
+    "TOTAL",
+    totals.reports.toString(),
+    `${totals.hours.toFixed(1)}h`,
+    `$${totals.earnings.toFixed(2)}`,
+    "",
+  ]);
+
+  autoTable(doc, {
+    startY: 78,
+    head: [["Employee", "Reports", "Hours", "Earnings", "Avg/Hour"]],
+    body: tableData,
+    theme: "striped",
+    headStyles: { fillColor: [59, 130, 246] },
+    footStyles: { fillColor: [229, 231, 235], textColor: [0, 0, 0], fontStyle: "bold" },
+  });
+
+  doc.save(`payroll-${periodName.replace(/\s+/g, "-").toLowerCase()}.pdf`);
+  toast.success("PDF exported successfully");
+}
 
 export function PayrollCalculator() {
   const { data: periods, isLoading: periodsLoading } = useSalaryPeriods();
@@ -38,6 +144,16 @@ export function PayrollCalculator() {
     );
   }, [payrollData]);
 
+  const handleExportCSV = () => {
+    if (!payrollData || !selectedPeriod) return;
+    exportToCSV(payrollData, selectedPeriod.name, selectedPeriod.start_date, selectedPeriod.end_date, totals);
+  };
+
+  const handleExportPDF = () => {
+    if (!payrollData || !selectedPeriod) return;
+    exportToPDF(payrollData, selectedPeriod.name, selectedPeriod.start_date, selectedPeriod.end_date, totals);
+  };
+
   if (periodsLoading) {
     return <Skeleton className="h-96" />;
   }
@@ -55,30 +171,45 @@ export function PayrollCalculator() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="max-w-sm">
-            <label className="text-sm font-medium mb-2 block">Select Salary Period</label>
-            <Select value={selectedPeriodId} onValueChange={setSelectedPeriodId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a salary period" />
-              </SelectTrigger>
-              <SelectContent>
-                {periods?.map((period) => (
-                  <SelectItem key={period.id} value={period.id}>
-                    <div className="flex items-center gap-2">
-                      <span>{period.name}</span>
-                      <Badge variant={period.status === "open" ? "default" : "secondary"} className="text-xs">
-                        {period.status}
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {selectedPeriod && (
-              <p className="text-sm text-muted-foreground mt-2">
-                {new Date(selectedPeriod.start_date).toLocaleDateString()} -{" "}
-                {new Date(selectedPeriod.end_date).toLocaleDateString()}
-              </p>
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+            <div className="flex-1 max-w-sm">
+              <label className="text-sm font-medium mb-2 block">Select Salary Period</label>
+              <Select value={selectedPeriodId} onValueChange={setSelectedPeriodId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a salary period" />
+                </SelectTrigger>
+                <SelectContent>
+                  {periods?.map((period) => (
+                    <SelectItem key={period.id} value={period.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{period.name}</span>
+                        <Badge variant={period.status === "open" ? "default" : "secondary"} className="text-xs">
+                          {period.status}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedPeriod && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  {new Date(selectedPeriod.start_date).toLocaleDateString()} -{" "}
+                  {new Date(selectedPeriod.end_date).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+
+            {selectedPeriodId && payrollData && payrollData.length > 0 && (
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={handleExportCSV}>
+                  <Download className="h-4 w-4 mr-2" />
+                  CSV
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleExportPDF}>
+                  <Download className="h-4 w-4 mr-2" />
+                  PDF
+                </Button>
+              </div>
             )}
           </div>
 
