@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ReportSubmissionForm } from "@/components/reports/ReportSubmissionForm";
 import { ReportsTable } from "@/components/reports/ReportsTable";
 import { ReportsStats } from "@/components/reports/ReportsStats";
+import { ReportsCharts } from "@/components/reports/ReportsCharts";
 import { useWorkReports } from "@/hooks/useWorkReports";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -42,6 +43,8 @@ export default function Reports() {
         </div>
 
         <ReportsStats reports={myReports} />
+
+        <ReportsCharts reports={myReports} />
 
         <Tabs defaultValue={isAdmin ? "review" : "my-reports"} className="space-y-4">
           <TabsList>

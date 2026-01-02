@@ -3,6 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { InvestmentForm } from "@/components/investments/InvestmentForm";
 import { InvestmentsTable } from "@/components/investments/InvestmentsTable";
 import { InvestmentStats } from "@/components/investments/InvestmentStats";
+import { InvestmentCharts } from "@/components/investments/InvestmentCharts";
 import { useInvestments } from "@/hooks/useInvestments";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -38,6 +39,8 @@ export default function Investments() {
         </div>
 
         <InvestmentStats investments={investments || []} />
+
+        <InvestmentCharts investments={investments || []} />
 
         {canManage && <InvestmentForm />}
 
