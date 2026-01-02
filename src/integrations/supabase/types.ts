@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      investments: {
+        Row: {
+          created_at: string
+          created_by: string
+          current_value: number
+          id: string
+          initial_amount: number
+          investment_type: string
+          name: string
+          notes: string | null
+          platform: string
+          purchase_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          current_value: number
+          id?: string
+          initial_amount: number
+          investment_type: string
+          name: string
+          notes?: string | null
+          platform: string
+          purchase_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          current_value?: number
+          id?: string
+          initial_amount?: number
+          investment_type?: string
+          name?: string
+          notes?: string | null
+          platform?: string
+          purchase_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pending_role_approvals: {
         Row: {
           approval_token: string
@@ -83,6 +128,45 @@ export type Database = {
         }
         Relationships: []
       }
+      salary_periods: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          created_by: string
+          end_date: string
+          id: string
+          name: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          created_by: string
+          end_date: string
+          id?: string
+          name: string
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          created_by?: string
+          end_date?: string
+          id?: string
+          name?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -101,6 +185,54 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      work_reports: {
+        Row: {
+          created_at: string
+          description: string | null
+          earnings: number
+          hours_worked: number
+          id: string
+          platform: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          work_date: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          earnings?: number
+          hours_worked?: number
+          id?: string
+          platform: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          work_date: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          earnings?: number
+          hours_worked?: number
+          id?: string
+          platform?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          work_date?: string
         }
         Relationships: []
       }
