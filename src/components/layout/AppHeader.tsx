@@ -1,9 +1,8 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Bell } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export function AppHeader() {
   const { profile } = useAuth();
@@ -31,12 +30,7 @@ export function AppHeader() {
       </div>
       
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5 text-muted-foreground" />
-          <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
-            3
-          </span>
-        </Button>
+        <NotificationBell />
         
         <Avatar 
           className="h-9 w-9 sm:hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all"
