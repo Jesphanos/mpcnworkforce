@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SalaryPeriodForm } from "@/components/finance/SalaryPeriodForm";
 import { SalaryPeriodsTable } from "@/components/finance/SalaryPeriodsTable";
 import { EmployeeDirectory } from "@/components/finance/EmployeeDirectory";
+import { PayrollCalculator } from "@/components/finance/PayrollCalculator";
 import { useSalaryPeriods } from "@/hooks/useSalaryPeriods";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,12 +84,17 @@ export default function FinanceHR() {
         <Tabs defaultValue="periods" className="space-y-4">
           <TabsList>
             <TabsTrigger value="periods">Salary Periods</TabsTrigger>
+            <TabsTrigger value="payroll">Payroll Calculator</TabsTrigger>
             <TabsTrigger value="employees">Employees</TabsTrigger>
           </TabsList>
 
           <TabsContent value="periods" className="space-y-4">
             {canManage && <SalaryPeriodForm />}
             <SalaryPeriodsTable periods={periods || []} />
+          </TabsContent>
+
+          <TabsContent value="payroll" className="space-y-4">
+            <PayrollCalculator />
           </TabsContent>
 
           <TabsContent value="employees" className="space-y-4">
