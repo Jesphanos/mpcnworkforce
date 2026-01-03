@@ -20,6 +20,7 @@ const statsCards = [
     description: "+2 from yesterday",
     icon: Clock,
     trend: "up",
+    url: "/tasks",
   },
   {
     title: "Completed",
@@ -27,6 +28,7 @@ const statsCards = [
     description: "This month",
     icon: CheckCircle2,
     trend: "up",
+    url: "/tasks",
   },
   {
     title: "Pending Reviews",
@@ -34,6 +36,7 @@ const statsCards = [
     description: "Awaiting approval",
     icon: AlertCircle,
     trend: "neutral",
+    url: "/reports",
   },
   {
     title: "Team Members",
@@ -41,6 +44,7 @@ const statsCards = [
     description: "Active users",
     icon: Users,
     trend: "up",
+    url: "/team",
   },
 ];
 
@@ -113,7 +117,14 @@ export default function Dashboard() {
         {/* Stats Grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {statsCards.map((stat) => (
-            <Card key={stat.title} className="hover:shadow-md transition-shadow">
+            <Card 
+              key={stat.title} 
+              className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              onClick={() => navigate(stat.url)}
+              tabIndex={0}
+              onKeyDown={(e) => e.key === "Enter" && navigate(stat.url)}
+              role="button"
+            >
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {stat.title}
@@ -143,8 +154,11 @@ export default function Dashboard() {
               {visibleAdminCards.map((card) => (
                 <Card 
                   key={card.title} 
-                  className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+                  className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                   onClick={() => navigate(card.url)}
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === "Enter" && navigate(card.url)}
+                  role="button"
                 >
                   <CardHeader>
                     <div className={`h-10 w-10 rounded-lg bg-muted flex items-center justify-center mb-2`}>
