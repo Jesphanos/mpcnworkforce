@@ -26,15 +26,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const roleHierarchy: AppRole[] = [
-  "general_overseer",
-  "user_admin",
-  "investment_admin",
-  "finance_hr_admin",
-  "report_admin",
-  "team_lead",
-  "employee",
-];
+// Domain-based role access - each admin has specific module access
+// General Overseer has access to everything
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -138,11 +131,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
+  // Domain-based access check - exact role match or general_overseer
   const hasRole = (requiredRole: AppRole): boolean => {
     if (!role) return false;
-    const userRoleIndex = roleHierarchy.indexOf(role);
-    const requiredRoleIndex = roleHierarchy.indexOf(requiredRole);
-    return userRoleIndex <= requiredRoleIndex;
+    // General Overseer has access to everything
+    if (role === "general_overseer") return true;
+    // Otherwise, exact role match required
+    return role === requiredRole;
   };
 
   return (
