@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { formatDistanceToNow } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -18,42 +19,6 @@ import {
   ClipboardList,
   ArrowRight
 } from "lucide-react";
-
-const statsCards = [
-  {
-    title: "Active Tasks",
-    value: "12",
-    description: "+2 from yesterday",
-    icon: Clock,
-    trend: "up",
-    url: "/tasks",
-  },
-  {
-    title: "Completed",
-    value: "48",
-    description: "This month",
-    icon: CheckCircle2,
-    trend: "up",
-    url: "/tasks",
-  },
-  {
-    title: "Pending Reviews",
-    value: "5",
-    description: "Awaiting approval",
-    icon: AlertCircle,
-    trend: "neutral",
-    url: "/reports",
-  },
-  {
-    title: "Team Members",
-    value: "24",
-    description: "Active users",
-    icon: Users,
-    trend: "up",
-    url: "/team",
-  },
-];
-
 const adminCards = [
   {
     title: "Reports Management",
@@ -179,6 +144,39 @@ function RecentActivitySection({ navigate }: { navigate: (path: string) => void 
 export default function Dashboard() {
   const { profile, role, hasRole } = useAuth();
   const navigate = useNavigate();
+  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const isAdmin = hasRole("user_admin") || hasRole("general_overseer") || hasRole("team_lead");
+
+  const statsCards = [
+    {
+      title: "Active Tasks",
+      value: stats?.activeTasks ?? 0,
+      description: "Currently in progress",
+      icon: Clock,
+      url: "/tasks",
+    },
+    {
+      title: "Completed",
+      value: stats?.completedTasks ?? 0,
+      description: "Approved tasks",
+      icon: CheckCircle2,
+      url: "/tasks",
+    },
+    {
+      title: "Pending Reviews",
+      value: stats?.pendingReviews ?? 0,
+      description: "Awaiting approval",
+      icon: AlertCircle,
+      url: "/reports",
+    },
+    ...(isAdmin ? [{
+      title: "Team Members",
+      value: stats?.teamMembers ?? 0,
+      description: "Active users",
+      icon: Users,
+      url: "/team",
+    }] : []),
+  ];
 
   const getRoleLabel = (role: string | null) => {
     if (!role) return "Employee";
@@ -225,11 +223,12 @@ export default function Dashboard() {
                 <stat.icon className="h-5 w-5 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  {stat.trend === "up" && (
-                    <ArrowUpRight className="h-3 w-3 text-success" />
-                  )}
+                {statsLoading ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                )}
+                <p className="text-xs text-muted-foreground">
                   {stat.description}
                 </p>
               </CardContent>
