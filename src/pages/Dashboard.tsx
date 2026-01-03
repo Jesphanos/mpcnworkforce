@@ -2,6 +2,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRecentActivity } from "@/hooks/useRecentActivity";
+import { formatDistanceToNow } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Users, 
   FileText, 
@@ -10,7 +13,8 @@ import {
   Clock, 
   CheckCircle2,
   AlertCircle,
-  ArrowUpRight
+  ArrowUpRight,
+  ClipboardList
 } from "lucide-react";
 
 const statsCards = [
@@ -82,6 +86,82 @@ const adminCards = [
     url: "/users",
   },
 ];
+
+function RecentActivitySection({ navigate }: { navigate: (path: string) => void }) {
+  const { data: activities, isLoading } = useRecentActivity(5);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "approved": return "bg-success";
+      case "rejected": return "bg-destructive";
+      case "pending": return "bg-warning";
+      default: return "bg-primary";
+    }
+  };
+
+  const getActivityIcon = (type: string) => {
+    return type === "task" ? ClipboardList : FileText;
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Recent Activity</CardTitle>
+        <CardDescription>Your latest updates and notifications</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-1/3" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+                <Skeleton className="h-3 w-16" />
+              </div>
+            ))
+          ) : activities && activities.length > 0 ? (
+            activities.map((activity) => {
+              const Icon = getActivityIcon(activity.type);
+              return (
+                <div
+                  key={activity.id}
+                  className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  onClick={() => navigate(activity.url)}
+                  onKeyDown={(e) => e.key === "Enter" && navigate(activity.url)}
+                  tabIndex={0}
+                  role="button"
+                >
+                  <div className={`h-8 w-8 rounded-full flex items-center justify-center bg-muted-foreground/10`}>
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {activity.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <span className={`h-1.5 w-1.5 rounded-full ${getStatusColor(activity.status)}`} />
+                      {activity.description}
+                    </p>
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                  </span>
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-center py-6 text-muted-foreground">
+              <p className="text-sm">No recent activity</p>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function Dashboard() {
   const { profile, role, hasRole } = useAuth();
@@ -173,34 +253,8 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Recent Activity Placeholder */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your latest updates and notifications</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-4 p-3 rounded-lg bg-muted/50"
-                >
-                  <div className="h-2 w-2 rounded-full bg-primary" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-foreground">
-                      Activity placeholder {i}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      This will show real activity data in future updates
-                    </p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">Just now</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Recent Activity */}
+        <RecentActivitySection navigate={navigate} />
       </div>
     </DashboardLayout>
   );
