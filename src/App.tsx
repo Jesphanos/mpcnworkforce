@@ -14,6 +14,7 @@ import FinanceHR from "./pages/FinanceHR";
 import Investments from "./pages/Investments";
 import Tasks from "./pages/Tasks";
 import TeamDashboard from "./pages/TeamDashboard";
+import ActivityHistory from "./pages/ActivityHistory";
 import NotFound from "./pages/NotFound";
 import AccessDenied from "./pages/AccessDenied";
 
@@ -90,6 +91,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={["team_lead", "report_admin", "general_overseer"]}>
                   <TeamDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/activity"
+              element={
+                <ProtectedRoute>
+                  <ActivityHistory />
                 </ProtectedRoute>
               }
             />
