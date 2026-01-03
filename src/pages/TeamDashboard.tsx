@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { TeamStats } from "@/components/team/TeamStats";
 import { TeamMembersCard } from "@/components/team/TeamMembersCard";
@@ -7,14 +8,18 @@ import { OverseerStats } from "@/components/team/OverseerStats";
 import { MemberPerformanceTable } from "@/components/team/MemberPerformanceTable";
 import { PeriodEarningsTable } from "@/components/team/PeriodEarningsTable";
 import { TeamPerformanceCharts } from "@/components/team/TeamPerformanceCharts";
+import { TeamGroupsView } from "@/components/team/TeamGroupsView";
+import { OverseerFilters } from "@/components/team/OverseerFilters";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClipboardList, FileText, Users, BarChart3, DollarSign } from "lucide-react";
+import { ClipboardList, FileText, Users, BarChart3, DollarSign, Building2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { OverseerFilters as FilterType } from "@/hooks/useOverseerData";
 
 export default function TeamDashboard() {
   const { role } = useAuth();
   const isOverseer = role === "general_overseer";
+  const [filters, setFilters] = useState<FilterType>({});
 
   if (isOverseer) {
     return (
@@ -27,13 +32,19 @@ export default function TeamDashboard() {
             </p>
           </div>
 
-          <OverseerStats />
+          <OverseerFilters filters={filters} onFiltersChange={setFilters} />
 
-          <Tabs defaultValue="performance" className="space-y-4">
+          <OverseerStats filters={filters} />
+
+          <Tabs defaultValue="teams" className="space-y-4">
             <TabsList className="flex-wrap">
+              <TabsTrigger value="teams" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Teams
+              </TabsTrigger>
               <TabsTrigger value="performance" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Team Performance
+                Individual Performance
               </TabsTrigger>
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
@@ -53,12 +64,16 @@ export default function TeamDashboard() {
               </TabsTrigger>
             </TabsList>
 
+            <TabsContent value="teams">
+              <TeamGroupsView filters={filters} />
+            </TabsContent>
+
             <TabsContent value="performance">
-              <MemberPerformanceTable />
+              <MemberPerformanceTable filters={filters} />
             </TabsContent>
 
             <TabsContent value="analytics">
-              <TeamPerformanceCharts />
+              <TeamPerformanceCharts filters={filters} />
             </TabsContent>
 
             <TabsContent value="salary">

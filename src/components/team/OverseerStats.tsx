@@ -1,10 +1,14 @@
-import { useOverseerStats } from "@/hooks/useOverseerData";
+import { useOverseerStats, OverseerFilters } from "@/hooks/useOverseerData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, ClipboardList, FileText, Clock, DollarSign, TrendingUp, Timer } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function OverseerStats() {
-  const { data: stats, isLoading } = useOverseerStats();
+interface OverseerStatsProps {
+  filters?: OverseerFilters;
+}
+
+export function OverseerStats({ filters }: OverseerStatsProps) {
+  const { data: stats, isLoading } = useOverseerStats(filters);
 
   if (isLoading) {
     return (
@@ -32,7 +36,7 @@ export function OverseerStats() {
       icon: Users,
       description: "Active users",
       color: "text-blue-600",
-      bgColor: "bg-blue-100",
+      bgColor: "bg-blue-100 dark:bg-blue-900/50",
     },
     {
       title: "Pending Reviews",
@@ -40,7 +44,7 @@ export function OverseerStats() {
       icon: Clock,
       description: "Tasks & reports awaiting review",
       color: "text-amber-600",
-      bgColor: "bg-amber-100",
+      bgColor: "bg-amber-100 dark:bg-amber-900/50",
     },
     {
       title: "Total Hours",
@@ -48,7 +52,7 @@ export function OverseerStats() {
       icon: Timer,
       description: "Hours worked",
       color: "text-purple-600",
-      bgColor: "bg-purple-100",
+      bgColor: "bg-purple-100 dark:bg-purple-900/50",
     },
     {
       title: "Total Earnings",
@@ -56,7 +60,7 @@ export function OverseerStats() {
       icon: DollarSign,
       description: "Approved earnings",
       color: "text-green-600",
-      bgColor: "bg-green-100",
+      bgColor: "bg-green-100 dark:bg-green-900/50",
     },
     {
       title: "Total Tasks",
@@ -64,7 +68,7 @@ export function OverseerStats() {
       icon: ClipboardList,
       description: "All submitted tasks",
       color: "text-indigo-600",
-      bgColor: "bg-indigo-100",
+      bgColor: "bg-indigo-100 dark:bg-indigo-900/50",
     },
     {
       title: "Total Reports",
@@ -72,7 +76,7 @@ export function OverseerStats() {
       icon: FileText,
       description: "All submitted reports",
       color: "text-cyan-600",
-      bgColor: "bg-cyan-100",
+      bgColor: "bg-cyan-100 dark:bg-cyan-900/50",
     },
     {
       title: "Approval Rate",
@@ -80,7 +84,7 @@ export function OverseerStats() {
       icon: TrendingUp,
       description: "Overall approval rate",
       color: "text-emerald-600",
-      bgColor: "bg-emerald-100",
+      bgColor: "bg-emerald-100 dark:bg-emerald-900/50",
     },
   ];
 

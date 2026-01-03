@@ -17,6 +17,7 @@ export interface MemberPerformance {
   pending_reports: number;
   total_hours: number;
   total_earnings: number;
+  platforms: string[];
 }
 
 export interface TeamOverview {
@@ -40,43 +41,90 @@ export interface PeriodEarnings {
   member_count: number;
 }
 
-export function useOverseerStats() {
+export interface TeamGroup {
+  role: string;
+  members: MemberPerformance[];
+  total_members: number;
+  total_tasks: number;
+  total_reports: number;
+  total_hours: number;
+  total_earnings: number;
+  approval_rate: number;
+}
+
+export interface OverseerFilters {
+  role?: string;
+  platform?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export function useOverseerStats(filters?: OverseerFilters) {
   const { user, role } = useAuth();
   const isOverseer = role === "general_overseer";
 
   return useQuery({
-    queryKey: ["overseer-stats"],
+    queryKey: ["overseer-stats", filters],
     queryFn: async (): Promise<TeamOverview> => {
       // Get all tasks
-      const { data: tasks } = await supabase.from("tasks").select("final_status, hours_worked, calculated_earnings");
+      let tasksQuery = supabase.from("tasks").select("final_status, hours_worked, calculated_earnings, platform, work_date");
+      let reportsQuery = supabase.from("work_reports").select("final_status, hours_worked, earnings, platform, work_date");
       
-      // Get all reports
-      const { data: reports } = await supabase.from("work_reports").select("final_status, hours_worked, earnings");
+      if (filters?.platform) {
+        tasksQuery = tasksQuery.eq("platform", filters.platform);
+        reportsQuery = reportsQuery.eq("platform", filters.platform);
+      }
+      if (filters?.dateFrom) {
+        tasksQuery = tasksQuery.gte("work_date", filters.dateFrom);
+        reportsQuery = reportsQuery.gte("work_date", filters.dateFrom);
+      }
+      if (filters?.dateTo) {
+        tasksQuery = tasksQuery.lte("work_date", filters.dateTo);
+        reportsQuery = reportsQuery.lte("work_date", filters.dateTo);
+      }
+
+      const { data: tasks } = await tasksQuery;
+      const { data: reports } = await reportsQuery;
       
       // Get all members with roles
-      const { data: roles } = await supabase.from("user_roles").select("user_id");
+      const { data: roles } = await supabase.from("user_roles").select("user_id, role");
       
-      const totalTasks = tasks?.length || 0;
-      const approvedTasks = tasks?.filter((t) => t.final_status === "approved").length || 0;
-      const pendingTasks = tasks?.filter((t) => t.final_status === "pending").length || 0;
+      let filteredTasks = tasks || [];
+      let filteredReports = reports || [];
       
-      const totalReports = reports?.length || 0;
-      const approvedReports = reports?.filter((r) => r.final_status === "approved").length || 0;
-      const pendingReports = reports?.filter((r) => r.final_status === "pending").length || 0;
+      if (filters?.status) {
+        filteredTasks = filteredTasks.filter((t) => t.final_status === filters.status);
+        filteredReports = filteredReports.filter((r) => r.final_status === filters.status);
+      }
+
+      const totalTasks = filteredTasks.length;
+      const approvedTasks = filteredTasks.filter((t) => t.final_status === "approved").length;
+      const pendingTasks = filteredTasks.filter((t) => t.final_status === "pending").length;
+      
+      const totalReports = filteredReports.length;
+      const approvedReports = filteredReports.filter((r) => r.final_status === "approved").length;
+      const pendingReports = filteredReports.filter((r) => r.final_status === "pending").length;
       
       const totalHours = 
-        (tasks?.reduce((sum, t) => sum + (t.hours_worked || 0), 0) || 0) +
-        (reports?.reduce((sum, r) => sum + (r.hours_worked || 0), 0) || 0);
+        filteredTasks.reduce((sum, t) => sum + (t.hours_worked || 0), 0) +
+        filteredReports.reduce((sum, r) => sum + (r.hours_worked || 0), 0);
       
       const totalEarnings = 
-        (tasks?.filter((t) => t.final_status === "approved").reduce((sum, t) => sum + (t.calculated_earnings || 0), 0) || 0) +
-        (reports?.filter((r) => r.final_status === "approved").reduce((sum, r) => sum + (r.earnings || 0), 0) || 0);
+        filteredTasks.filter((t) => t.final_status === "approved").reduce((sum, t) => sum + (t.calculated_earnings || 0), 0) +
+        filteredReports.filter((r) => r.final_status === "approved").reduce((sum, r) => sum + (r.earnings || 0), 0);
 
       const totalDecided = totalTasks + totalReports - pendingTasks - pendingReports;
       const totalApproved = approvedTasks + approvedReports;
 
+      // Filter by role if specified
+      let memberCount = roles?.length || 0;
+      if (filters?.role) {
+        memberCount = roles?.filter((r) => r.role === filters.role).length || 0;
+      }
+
       return {
-        total_members: roles?.length || 0,
+        total_members: memberCount,
         total_tasks: totalTasks,
         total_reports: totalReports,
         pending_reviews: pendingTasks + pendingReports,
@@ -89,12 +137,12 @@ export function useOverseerStats() {
   });
 }
 
-export function useMemberPerformance() {
+export function useMemberPerformance(filters?: OverseerFilters) {
   const { user, role } = useAuth();
   const isOverseer = role === "general_overseer";
 
   return useQuery({
-    queryKey: ["member-performance"],
+    queryKey: ["member-performance", filters],
     queryFn: async (): Promise<MemberPerformance[]> => {
       // Get all profiles
       const { data: profiles } = await supabase.from("profiles").select("id, full_name, avatar_url");
@@ -102,20 +150,45 @@ export function useMemberPerformance() {
       // Get all roles
       const { data: roles } = await supabase.from("user_roles").select("user_id, role");
       
-      // Get all tasks
-      const { data: tasks } = await supabase.from("tasks").select("user_id, final_status, hours_worked, calculated_earnings");
+      // Get all tasks with filters
+      let tasksQuery = supabase.from("tasks").select("user_id, final_status, hours_worked, calculated_earnings, platform, work_date");
+      let reportsQuery = supabase.from("work_reports").select("user_id, final_status, hours_worked, earnings, platform, work_date");
       
-      // Get all reports
-      const { data: reports } = await supabase.from("work_reports").select("user_id, final_status, hours_worked, earnings");
+      if (filters?.platform) {
+        tasksQuery = tasksQuery.eq("platform", filters.platform);
+        reportsQuery = reportsQuery.eq("platform", filters.platform);
+      }
+      if (filters?.dateFrom) {
+        tasksQuery = tasksQuery.gte("work_date", filters.dateFrom);
+        reportsQuery = reportsQuery.gte("work_date", filters.dateFrom);
+      }
+      if (filters?.dateTo) {
+        tasksQuery = tasksQuery.lte("work_date", filters.dateTo);
+        reportsQuery = reportsQuery.lte("work_date", filters.dateTo);
+      }
+
+      const { data: tasks } = await tasksQuery;
+      const { data: reports } = await reportsQuery;
 
       const roleMap = new Map(roles?.map((r) => [r.user_id, r.role]) || []);
 
-      return (profiles || []).map((profile) => {
-        const userTasks = tasks?.filter((t) => t.user_id === profile.id) || [];
-        const userReports = reports?.filter((r) => r.user_id === profile.id) || [];
+      let members = (profiles || []).map((profile) => {
+        let userTasks = tasks?.filter((t) => t.user_id === profile.id) || [];
+        let userReports = reports?.filter((r) => r.user_id === profile.id) || [];
+
+        if (filters?.status) {
+          userTasks = userTasks.filter((t) => t.final_status === filters.status);
+          userReports = userReports.filter((r) => r.final_status === filters.status);
+        }
 
         const approvedTasks = userTasks.filter((t) => t.final_status === "approved");
         const approvedReports = userReports.filter((r) => r.final_status === "approved");
+
+        // Get unique platforms
+        const platforms = [...new Set([
+          ...userTasks.map((t) => t.platform),
+          ...userReports.map((r) => r.platform),
+        ])];
 
         return {
           id: profile.id,
@@ -136,8 +209,158 @@ export function useMemberPerformance() {
           total_earnings:
             approvedTasks.reduce((sum, t) => sum + (t.calculated_earnings || 0), 0) +
             approvedReports.reduce((sum, r) => sum + (r.earnings || 0), 0),
+          platforms,
         };
       }).filter((m) => m.total_tasks > 0 || m.total_reports > 0);
+
+      // Filter by role if specified
+      if (filters?.role) {
+        members = members.filter((m) => m.role === filters.role);
+      }
+
+      return members;
+    },
+    enabled: !!user && isOverseer,
+  });
+}
+
+export function useTeamGroups(filters?: OverseerFilters) {
+  const { user, role } = useAuth();
+  const isOverseer = role === "general_overseer";
+
+  return useQuery({
+    queryKey: ["team-groups", filters],
+    queryFn: async (): Promise<TeamGroup[]> => {
+      // Get all profiles
+      const { data: profiles } = await supabase.from("profiles").select("id, full_name, avatar_url");
+      
+      // Get all roles
+      const { data: roles } = await supabase.from("user_roles").select("user_id, role");
+      
+      // Get all tasks with filters
+      let tasksQuery = supabase.from("tasks").select("user_id, final_status, hours_worked, calculated_earnings, platform, work_date");
+      let reportsQuery = supabase.from("work_reports").select("user_id, final_status, hours_worked, earnings, platform, work_date");
+      
+      if (filters?.platform) {
+        tasksQuery = tasksQuery.eq("platform", filters.platform);
+        reportsQuery = reportsQuery.eq("platform", filters.platform);
+      }
+      if (filters?.dateFrom) {
+        tasksQuery = tasksQuery.gte("work_date", filters.dateFrom);
+        reportsQuery = reportsQuery.gte("work_date", filters.dateFrom);
+      }
+      if (filters?.dateTo) {
+        tasksQuery = tasksQuery.lte("work_date", filters.dateTo);
+        reportsQuery = reportsQuery.lte("work_date", filters.dateTo);
+      }
+
+      const { data: tasks } = await tasksQuery;
+      const { data: reports } = await reportsQuery;
+
+      const roleMap = new Map(roles?.map((r) => [r.user_id, r.role]) || []);
+
+      // Group members by role
+      const roleGroups = new Map<string, MemberPerformance[]>();
+
+      (profiles || []).forEach((profile) => {
+        const memberRole = roleMap.get(profile.id) || "employee";
+        
+        let userTasks = tasks?.filter((t) => t.user_id === profile.id) || [];
+        let userReports = reports?.filter((r) => r.user_id === profile.id) || [];
+
+        if (filters?.status) {
+          userTasks = userTasks.filter((t) => t.final_status === filters.status);
+          userReports = userReports.filter((r) => r.final_status === filters.status);
+        }
+
+        if (userTasks.length === 0 && userReports.length === 0) return;
+
+        const approvedTasks = userTasks.filter((t) => t.final_status === "approved");
+        const approvedReports = userReports.filter((r) => r.final_status === "approved");
+
+        const platforms = [...new Set([
+          ...userTasks.map((t) => t.platform),
+          ...userReports.map((r) => r.platform),
+        ])];
+
+        const member: MemberPerformance = {
+          id: profile.id,
+          full_name: profile.full_name,
+          avatar_url: profile.avatar_url,
+          role: memberRole,
+          total_tasks: userTasks.length,
+          approved_tasks: approvedTasks.length,
+          rejected_tasks: userTasks.filter((t) => t.final_status === "rejected").length,
+          pending_tasks: userTasks.filter((t) => t.final_status === "pending").length,
+          total_reports: userReports.length,
+          approved_reports: approvedReports.length,
+          rejected_reports: userReports.filter((r) => r.final_status === "rejected").length,
+          pending_reports: userReports.filter((r) => r.final_status === "pending").length,
+          total_hours:
+            userTasks.reduce((sum, t) => sum + (t.hours_worked || 0), 0) +
+            userReports.reduce((sum, r) => sum + (r.hours_worked || 0), 0),
+          total_earnings:
+            approvedTasks.reduce((sum, t) => sum + (t.calculated_earnings || 0), 0) +
+            approvedReports.reduce((sum, r) => sum + (r.earnings || 0), 0),
+          platforms,
+        };
+
+        const existing = roleGroups.get(memberRole) || [];
+        existing.push(member);
+        roleGroups.set(memberRole, existing);
+      });
+
+      // Convert to array and calculate team stats
+      const teamGroups: TeamGroup[] = [];
+      roleGroups.forEach((members, roleName) => {
+        const totalTasks = members.reduce((sum, m) => sum + m.total_tasks, 0);
+        const approvedTasks = members.reduce((sum, m) => sum + m.approved_tasks, 0);
+        const totalReports = members.reduce((sum, m) => sum + m.total_reports, 0);
+        const approvedReports = members.reduce((sum, m) => sum + m.approved_reports, 0);
+        const pendingTasks = members.reduce((sum, m) => sum + m.pending_tasks, 0);
+        const pendingReports = members.reduce((sum, m) => sum + m.pending_reports, 0);
+
+        const totalDecided = totalTasks + totalReports - pendingTasks - pendingReports;
+        const totalApproved = approvedTasks + approvedReports;
+
+        teamGroups.push({
+          role: roleName,
+          members: members.sort((a, b) => b.total_earnings - a.total_earnings),
+          total_members: members.length,
+          total_tasks: totalTasks,
+          total_reports: totalReports,
+          total_hours: members.reduce((sum, m) => sum + m.total_hours, 0),
+          total_earnings: members.reduce((sum, m) => sum + m.total_earnings, 0),
+          approval_rate: totalDecided > 0 ? (totalApproved / totalDecided) * 100 : 0,
+        });
+      });
+
+      // Filter by role if specified
+      if (filters?.role) {
+        return teamGroups.filter((g) => g.role === filters.role);
+      }
+
+      return teamGroups.sort((a, b) => b.total_earnings - a.total_earnings);
+    },
+    enabled: !!user && isOverseer,
+  });
+}
+
+export function useAvailablePlatforms() {
+  const { user, role } = useAuth();
+  const isOverseer = role === "general_overseer";
+
+  return useQuery({
+    queryKey: ["available-platforms"],
+    queryFn: async (): Promise<string[]> => {
+      const { data: tasks } = await supabase.from("tasks").select("platform");
+      const { data: reports } = await supabase.from("work_reports").select("platform");
+
+      const platforms = new Set<string>();
+      tasks?.forEach((t) => platforms.add(t.platform));
+      reports?.forEach((r) => platforms.add(r.platform));
+
+      return Array.from(platforms).sort();
     },
     enabled: !!user && isOverseer,
   });
