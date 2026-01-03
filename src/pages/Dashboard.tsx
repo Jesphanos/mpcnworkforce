@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useRecentActivity } from "@/hooks/useRecentActivity";
 import { formatDistanceToNow } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { 
   Users, 
   FileText, 
@@ -14,7 +15,8 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowUpRight,
-  ClipboardList
+  ClipboardList,
+  ArrowRight
 } from "lucide-react";
 
 const statsCards = [
@@ -105,9 +107,20 @@ function RecentActivitySection({ navigate }: { navigate: (path: string) => void 
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
-        <CardDescription>Your latest updates and notifications</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>Your latest updates and notifications</CardDescription>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/activity")}
+          className="text-primary hover:text-primary/80"
+        >
+          View All
+          <ArrowRight className="h-4 w-4 ml-1" />
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
