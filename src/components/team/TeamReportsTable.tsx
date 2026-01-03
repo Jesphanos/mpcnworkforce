@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { sendTaskNotification } from "@/lib/notifications";
 import {
   Table,
   TableBody,
@@ -36,16 +37,16 @@ import { Check, X, Shield, Search } from "lucide-react";
 
 export function TeamReportsTable() {
   const { data: reports, isLoading } = useTeamReports();
-  const { hasRole, user } = useAuth();
+  const { hasRole, user, profile } = useAuth();
   const queryClient = useQueryClient();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [rejectDialog, setRejectDialog] = useState<{
     open: boolean;
-    reportId: string;
+    report: TeamReport | null;
     isOverride: boolean;
-  }>({ open: false, reportId: "", isOverride: false });
+  }>({ open: false, report: null, isOverride: false });
   const [rejectReason, setRejectReason] = useState("");
 
   const isTeamLead = hasRole("team_lead");
@@ -69,7 +70,7 @@ export function TeamReportsTable() {
     return <Badge variant="secondary">Pending</Badge>;
   };
 
-  const handleApprove = async (reportId: string) => {
+  const handleApprove = async (report: TeamReport) => {
     const { error } = await supabase
       .from("work_reports")
       .update({
@@ -78,17 +79,32 @@ export function TeamReportsTable() {
         team_lead_reviewed_at: new Date().toISOString(),
         final_status: "approved",
       })
-      .eq("id", reportId);
+      .eq("id", report.id);
 
     if (error) {
       toast.error("Failed to approve report");
     } else {
       toast.success("Report approved");
       queryClient.invalidateQueries({ queryKey: ["team-reports"] });
+      
+      // Send email notification
+      sendTaskNotification({
+        type: "report",
+        action: "approved",
+        userId: report.user_id,
+        itemTitle: report.platform,
+        platform: report.platform,
+        workDate: report.work_date,
+        reviewerName: profile?.full_name || "Team Lead",
+        isOverride: false,
+      });
     }
   };
 
   const handleReject = async () => {
+    const report = rejectDialog.report;
+    if (!report) return;
+    
     if (rejectDialog.isOverride) {
       const { error } = await supabase
         .from("work_reports")
@@ -99,13 +115,26 @@ export function TeamReportsTable() {
           reviewed_at: new Date().toISOString(),
           final_status: "rejected",
         })
-        .eq("id", rejectDialog.reportId);
+        .eq("id", report.id);
 
       if (error) {
         toast.error("Failed to reject report");
       } else {
         toast.success("Report rejected (override)");
         queryClient.invalidateQueries({ queryKey: ["team-reports"] });
+        
+        // Send email notification
+        sendTaskNotification({
+          type: "report",
+          action: "rejected",
+          userId: report.user_id,
+          itemTitle: report.platform,
+          platform: report.platform,
+          workDate: report.work_date,
+          reason: rejectReason,
+          reviewerName: profile?.full_name || "Admin",
+          isOverride: true,
+        });
       }
     } else {
       const { error } = await supabase
@@ -116,20 +145,33 @@ export function TeamReportsTable() {
           team_lead_reviewed_by: user?.id,
           team_lead_reviewed_at: new Date().toISOString(),
         })
-        .eq("id", rejectDialog.reportId);
+        .eq("id", report.id);
 
       if (error) {
         toast.error("Failed to reject report");
       } else {
         toast.success("Report rejected by team lead");
         queryClient.invalidateQueries({ queryKey: ["team-reports"] });
+        
+        // Send email notification
+        sendTaskNotification({
+          type: "report",
+          action: "rejected",
+          userId: report.user_id,
+          itemTitle: report.platform,
+          platform: report.platform,
+          workDate: report.work_date,
+          reason: rejectReason,
+          reviewerName: profile?.full_name || "Team Lead",
+          isOverride: false,
+        });
       }
     }
-    setRejectDialog({ open: false, reportId: "", isOverride: false });
+    setRejectDialog({ open: false, report: null, isOverride: false });
     setRejectReason("");
   };
 
-  const handleOverrideApprove = async (reportId: string) => {
+  const handleOverrideApprove = async (report: TeamReport) => {
     const { error } = await supabase
       .from("work_reports")
       .update({
@@ -139,13 +181,25 @@ export function TeamReportsTable() {
         reviewed_at: new Date().toISOString(),
         final_status: "approved",
       })
-      .eq("id", reportId);
+      .eq("id", report.id);
 
     if (error) {
       toast.error("Failed to override report");
     } else {
       toast.success("Report approved (override)");
       queryClient.invalidateQueries({ queryKey: ["team-reports"] });
+      
+      // Send email notification
+      sendTaskNotification({
+        type: "report",
+        action: "approved",
+        userId: report.user_id,
+        itemTitle: report.platform,
+        platform: report.platform,
+        workDate: report.work_date,
+        reviewerName: profile?.full_name || "Admin",
+        isOverride: true,
+      });
     }
   };
 
@@ -246,7 +300,7 @@ export function TeamReportsTable() {
                             size="sm"
                             variant="ghost"
                             className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            onClick={() => handleApprove(report.id)}
+                            onClick={() => handleApprove(report)}
                           >
                             <Check className="h-4 w-4" />
                           </Button>
@@ -255,7 +309,7 @@ export function TeamReportsTable() {
                             variant="ghost"
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                             onClick={() =>
-                              setRejectDialog({ open: true, reportId: report.id, isOverride: false })
+                              setRejectDialog({ open: true, report, isOverride: false })
                             }
                           >
                             <X className="h-4 w-4" />
@@ -268,7 +322,7 @@ export function TeamReportsTable() {
                             size="sm"
                             variant="ghost"
                             className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                            onClick={() => handleOverrideApprove(report.id)}
+                            onClick={() => handleOverrideApprove(report)}
                             title="Override: Approve"
                           >
                             <Shield className="h-4 w-4" />
@@ -279,7 +333,7 @@ export function TeamReportsTable() {
                             variant="ghost"
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                             onClick={() =>
-                              setRejectDialog({ open: true, reportId: report.id, isOverride: true })
+                              setRejectDialog({ open: true, report, isOverride: true })
                             }
                             title="Override: Reject"
                           >
@@ -321,7 +375,7 @@ export function TeamReportsTable() {
             className="min-h-[100px]"
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectDialog({ open: false, reportId: "", isOverride: false })}>
+            <Button variant="outline" onClick={() => setRejectDialog({ open: false, report: null, isOverride: false })}>
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleReject} disabled={!rejectReason.trim()}>

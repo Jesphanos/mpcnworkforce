@@ -42,9 +42,9 @@ export function TeamTasksTable() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [rejectDialog, setRejectDialog] = useState<{
     open: boolean;
-    taskId: string;
+    task: TeamTask | null;
     isOverride: boolean;
-  }>({ open: false, taskId: "", isOverride: false });
+  }>({ open: false, task: null, isOverride: false });
   const [rejectReason, setRejectReason] = useState("");
 
   const isTeamLead = hasRole("team_lead");
@@ -68,30 +68,43 @@ export function TeamTasksTable() {
     return <Badge variant="secondary">Pending</Badge>;
   };
 
-  const handleApprove = (taskId: string) => {
-    teamLeadReview.mutate({ taskId, status: "approved" });
+  const handleApprove = (task: TeamTask) => {
+    teamLeadReview.mutate({ 
+      taskId: task.id, 
+      status: "approved",
+      task: task as any,
+    });
   };
 
   const handleReject = () => {
+    const task = rejectDialog.task;
+    if (!task) return;
     if (rejectDialog.isOverride) {
       adminOverride.mutate({
-        taskId: rejectDialog.taskId,
+        taskId: task.id,
         status: "rejected",
         overrideReason: rejectReason,
+        task: task as any,
       });
     } else {
       teamLeadReview.mutate({
-        taskId: rejectDialog.taskId,
+        taskId: task.id,
         status: "rejected",
         rejectionReason: rejectReason,
+        task: task as any,
       });
     }
-    setRejectDialog({ open: false, taskId: "", isOverride: false });
+    setRejectDialog({ open: false, task: null, isOverride: false });
     setRejectReason("");
   };
 
-  const handleOverrideApprove = (taskId: string) => {
-    adminOverride.mutate({ taskId, status: "approved", overrideReason: "Admin override approval" });
+  const handleOverrideApprove = (task: TeamTask) => {
+    adminOverride.mutate({ 
+      taskId: task.id, 
+      status: "approved", 
+      overrideReason: "Admin override approval",
+      task: task as any,
+    });
   };
 
   const filteredTasks = tasks?.filter((task) => {
@@ -196,7 +209,7 @@ export function TeamTasksTable() {
                             size="sm"
                             variant="ghost"
                             className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            onClick={() => handleApprove(task.id)}
+                            onClick={() => handleApprove(task)}
                           >
                             <Check className="h-4 w-4" />
                           </Button>
@@ -205,7 +218,7 @@ export function TeamTasksTable() {
                             variant="ghost"
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                             onClick={() =>
-                              setRejectDialog({ open: true, taskId: task.id, isOverride: false })
+                              setRejectDialog({ open: true, task, isOverride: false })
                             }
                           >
                             <X className="h-4 w-4" />
@@ -218,7 +231,7 @@ export function TeamTasksTable() {
                             size="sm"
                             variant="ghost"
                             className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                            onClick={() => handleOverrideApprove(task.id)}
+                            onClick={() => handleOverrideApprove(task)}
                             title="Override: Approve"
                           >
                             <Shield className="h-4 w-4" />
@@ -229,7 +242,7 @@ export function TeamTasksTable() {
                             variant="ghost"
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                             onClick={() =>
-                              setRejectDialog({ open: true, taskId: task.id, isOverride: true })
+                              setRejectDialog({ open: true, task, isOverride: true })
                             }
                             title="Override: Reject"
                           >
@@ -271,7 +284,7 @@ export function TeamTasksTable() {
             className="min-h-[100px]"
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectDialog({ open: false, taskId: "", isOverride: false })}>
+            <Button variant="outline" onClick={() => setRejectDialog({ open: false, task: null, isOverride: false })}>
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleReject} disabled={!rejectReason.trim()}>
