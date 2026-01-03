@@ -1,16 +1,31 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useRecentActivity } from "@/hooks/useRecentActivity";
+import { usePaginatedActivity } from "@/hooks/usePaginatedActivity";
 import { formatDistanceToNow, format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { FileText, ClipboardList, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+const PAGE_SIZE = 10;
 
 export default function ActivityHistory() {
   const navigate = useNavigate();
-  const { data: activities, isLoading } = useRecentActivity(50);
+  const [currentPage, setCurrentPage] = useState(0);
+  const { data, isLoading } = usePaginatedActivity(currentPage, PAGE_SIZE);
+
+  const activities = data?.activities || [];
+  const totalPages = data?.totalPages || 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -23,6 +38,28 @@ export default function ActivityHistory() {
 
   const getActivityIcon = (type: string) => {
     return type === "task" ? ClipboardList : FileText;
+  };
+
+  const handlePageChange = (page: number) => {
+    if (page >= 0 && page < totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const getVisiblePages = () => {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let start = Math.max(0, currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(totalPages, start + maxVisible);
+    
+    if (end - start < maxVisible) {
+      start = Math.max(0, end - maxVisible);
+    }
+    
+    for (let i = start; i < end; i++) {
+      pages.push(i);
+    }
+    return pages;
   };
 
   return (
@@ -48,12 +85,13 @@ export default function ActivityHistory() {
             <CardTitle>All Activity</CardTitle>
             <CardDescription>
               Complete history of your tasks and reports
+              {data && ` (${data.totalCount} total)`}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {isLoading ? (
-                Array.from({ length: 10 }).map((_, i) => (
+                Array.from({ length: PAGE_SIZE }).map((_, i) => (
                   <div key={i} className="flex items-center gap-4 p-4 rounded-lg border">
                     <Skeleton className="h-10 w-10 rounded-full" />
                     <div className="flex-1 space-y-2">
@@ -63,7 +101,7 @@ export default function ActivityHistory() {
                     <Skeleton className="h-6 w-20" />
                   </div>
                 ))
-              ) : activities && activities.length > 0 ? (
+              ) : activities.length > 0 ? (
                 activities.map((activity) => {
                   const Icon = getActivityIcon(activity.type);
                   return (
@@ -113,6 +151,40 @@ export default function ActivityHistory() {
                 </div>
               )}
             </div>
+
+            {totalPages > 1 && (
+              <div className="mt-6">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        className={currentPage === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {getVisiblePages().map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => handlePageChange(page)}
+                          isActive={page === currentPage}
+                          className="cursor-pointer"
+                        >
+                          {page + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        className={currentPage >= totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
