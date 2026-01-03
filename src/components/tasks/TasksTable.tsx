@@ -46,27 +46,27 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
   const adminOverride = useAdminOverride();
   const updateRate = useUpdateTaskRate();
 
-  const handleTeamLeadApprove = async (taskId: string) => {
-    await teamLeadReview.mutateAsync({ taskId, status: "approved" });
+  const handleTeamLeadApprove = async (task: Task) => {
+    await teamLeadReview.mutateAsync({ taskId: task.id, status: "approved", task });
   };
 
-  const handleTeamLeadReject = async () => {
-    if (selectedTask) {
-      await teamLeadReview.mutateAsync({
-        taskId: selectedTask,
-        status: "rejected",
-        rejectionReason,
-      });
-      setSelectedTask(null);
-      setRejectionReason("");
-    }
+  const handleTeamLeadReject = async (task: Task) => {
+    await teamLeadReview.mutateAsync({
+      taskId: task.id,
+      status: "rejected",
+      rejectionReason,
+      task,
+    });
+    setSelectedTask(null);
+    setRejectionReason("");
   };
 
-  const handleAdminOverride = async (taskId: string, status: "approved" | "rejected") => {
+  const handleAdminOverride = async (task: Task, status: "approved" | "rejected") => {
     await adminOverride.mutateAsync({
-      taskId,
+      taskId: task.id,
       status,
       overrideReason,
+      task,
     });
     setOverrideReason("");
   };
@@ -187,7 +187,7 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
                                 size="sm"
                                 variant="outline"
                                 className="text-success hover:bg-success/10 h-7 w-7 p-0"
-                                onClick={() => handleTeamLeadApprove(task.id)}
+                                onClick={() => handleTeamLeadApprove(task)}
                                 disabled={teamLeadReview.isPending}
                                 title="Approve"
                               >
@@ -223,7 +223,7 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
                                     </Button>
                                     <Button
                                       variant="destructive"
-                                      onClick={handleTeamLeadReject}
+                                      onClick={() => handleTeamLeadReject(task)}
                                       disabled={!rejectionReason || teamLeadReview.isPending}
                                     >
                                       Reject
@@ -275,14 +275,14 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
                                 <DialogFooter className="gap-2">
                                   <Button
                                     variant="destructive"
-                                    onClick={() => handleAdminOverride(task.id, "rejected")}
+                                    onClick={() => handleAdminOverride(task, "rejected")}
                                     disabled={adminOverride.isPending}
                                   >
                                     Confirm Rejection
                                   </Button>
                                   <Button
                                     variant="default"
-                                    onClick={() => handleAdminOverride(task.id, "approved")}
+                                    onClick={() => handleAdminOverride(task, "approved")}
                                     disabled={adminOverride.isPending}
                                   >
                                     Override & Approve

@@ -2,3 +2,6 @@ project_id = "hewxiwbjloccgzpxsvuh"
 
 [functions.process-role-approval]
 verify_jwt = false
+
+[functions.send-task-notification]
+verify_jwt = true

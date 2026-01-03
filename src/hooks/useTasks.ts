@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { sendTaskNotification } from "@/lib/notifications";
 
 export interface Task {
   id: string;
@@ -114,17 +115,19 @@ export function useUpdateTaskRate() {
 
 export function useTeamLeadReview() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return useMutation({
     mutationFn: async ({
       taskId,
       status,
       rejectionReason,
+      task,
     }: {
       taskId: string;
       status: "approved" | "rejected";
       rejectionReason?: string;
+      task: Task;
     }) => {
       if (!user) throw new Error("Not authenticated");
 
@@ -149,10 +152,25 @@ export function useTeamLeadReview() {
         .single();
 
       if (error) throw error;
+
+      // Send email notification
+      sendTaskNotification({
+        type: "task",
+        action: status,
+        userId: task.user_id,
+        itemTitle: task.title,
+        platform: task.platform,
+        workDate: task.work_date,
+        reason: rejectionReason,
+        reviewerName: profile?.full_name || "Team Lead",
+        isOverride: false,
+      });
+
       return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["team-tasks"] });
       toast.success(`Task ${variables.status} by team lead`);
     },
     onError: (error) => {
@@ -163,17 +181,19 @@ export function useTeamLeadReview() {
 
 export function useAdminOverride() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return useMutation({
     mutationFn: async ({
       taskId,
       status,
       overrideReason,
+      task,
     }: {
       taskId: string;
       status: "approved" | "rejected";
       overrideReason?: string;
+      task: Task;
     }) => {
       if (!user) throw new Error("Not authenticated");
 
@@ -191,10 +211,25 @@ export function useAdminOverride() {
         .single();
 
       if (error) throw error;
+
+      // Send email notification
+      sendTaskNotification({
+        type: "task",
+        action: status,
+        userId: task.user_id,
+        itemTitle: task.title,
+        platform: task.platform,
+        workDate: task.work_date,
+        reason: overrideReason,
+        reviewerName: profile?.full_name || "Admin",
+        isOverride: true,
+      });
+
       return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["team-tasks"] });
       toast.success(`Task ${variables.status} by admin (override)`);
     },
     onError: (error) => {
