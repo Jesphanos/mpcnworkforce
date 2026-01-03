@@ -5,7 +5,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, Download } from "lucide-react";
+import { exportMembersToCSV, exportMembersToPDF } from "@/lib/teamExport";
 
 const roleLabels: Record<string, string> = {
   employee: "Employee",
@@ -71,14 +73,28 @@ export function MemberPerformanceTable({ filters }: MemberPerformanceTableProps)
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Individual Performance
-        </CardTitle>
-        <CardDescription>
-          Individual member performance and earnings overview
-        </CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Individual Performance
+          </CardTitle>
+          <CardDescription>
+            Individual member performance and earnings overview
+          </CardDescription>
+        </div>
+        {members && members.length > 0 && (
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportMembersToCSV(members, filters || {})}>
+              <Download className="h-4 w-4 mr-2" />
+              CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => exportMembersToPDF(members, filters || {})}>
+              <Download className="h-4 w-4 mr-2" />
+              PDF
+            </Button>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
