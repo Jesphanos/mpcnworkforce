@@ -1,12 +1,16 @@
-import { useMemberPerformance, usePeriodEarnings } from "@/hooks/useOverseerData";
+import { useMemberPerformance, usePeriodEarnings, OverseerFilters } from "@/hooks/useOverseerData";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { BarChart3, PieChart as PieChartIcon } from "lucide-react";
 
 const COLORS = ["#22c55e", "#f59e0b", "#ef4444", "#6366f1"];
 
-export function TeamPerformanceCharts() {
-  const { data: members } = useMemberPerformance();
+interface TeamPerformanceChartsProps {
+  filters?: OverseerFilters;
+}
+
+export function TeamPerformanceCharts({ filters }: TeamPerformanceChartsProps) {
+  const { data: members } = useMemberPerformance(filters);
   const { data: periods } = usePeriodEarnings();
 
   // Top performers by earnings

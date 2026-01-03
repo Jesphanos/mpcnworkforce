@@ -1,4 +1,4 @@
-import { useMemberPerformance } from "@/hooks/useOverseerData";
+import { useMemberPerformance, OverseerFilters } from "@/hooks/useOverseerData";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,17 +18,21 @@ const roleLabels: Record<string, string> = {
 };
 
 const roleColors: Record<string, string> = {
-  employee: "bg-slate-100 text-slate-800",
-  team_lead: "bg-blue-100 text-blue-800",
-  report_admin: "bg-purple-100 text-purple-800",
-  finance_hr_admin: "bg-amber-100 text-amber-800",
-  investment_admin: "bg-emerald-100 text-emerald-800",
-  user_admin: "bg-rose-100 text-rose-800",
-  general_overseer: "bg-indigo-100 text-indigo-800",
+  employee: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200",
+  team_lead: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  report_admin: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  finance_hr_admin: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
+  investment_admin: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+  user_admin: "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200",
+  general_overseer: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
 };
 
-export function MemberPerformanceTable() {
-  const { data: members, isLoading } = useMemberPerformance();
+interface MemberPerformanceTableProps {
+  filters?: OverseerFilters;
+}
+
+export function MemberPerformanceTable({ filters }: MemberPerformanceTableProps) {
+  const { data: members, isLoading } = useMemberPerformance(filters);
 
   const getInitials = (name: string | null) => {
     if (!name) return "U";
@@ -70,7 +74,7 @@ export function MemberPerformanceTable() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users className="h-5 w-5" />
-          Team Performance
+          Individual Performance
         </CardTitle>
         <CardDescription>
           Individual member performance and earnings overview
@@ -83,6 +87,7 @@ export function MemberPerformanceTable() {
               <TableRow>
                 <TableHead>Member</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Platforms</TableHead>
                 <TableHead className="text-center">Tasks</TableHead>
                 <TableHead className="text-center">Reports</TableHead>
                 <TableHead>Task Approval</TableHead>
@@ -95,10 +100,6 @@ export function MemberPerformanceTable() {
                 const taskApprovalRate = getApprovalRate(
                   member.approved_tasks,
                   member.total_tasks - member.pending_tasks
-                );
-                const reportApprovalRate = getApprovalRate(
-                  member.approved_reports,
-                  member.total_reports - member.pending_reports
                 );
 
                 return (
@@ -123,6 +124,20 @@ export function MemberPerformanceTable() {
                       >
                         {roleLabels[member.role] || member.role}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {member.platforms.slice(0, 2).map((platform) => (
+                          <Badge key={platform} variant="outline" className="text-xs">
+                            {platform}
+                          </Badge>
+                        ))}
+                        {member.platforms.length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{member.platforms.length - 2}
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex flex-col items-center gap-1">
@@ -164,7 +179,7 @@ export function MemberPerformanceTable() {
               })}
               {(!members || members.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     No member activity data available
                   </TableCell>
                 </TableRow>
