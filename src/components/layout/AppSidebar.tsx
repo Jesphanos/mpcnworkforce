@@ -23,6 +23,7 @@ import {
   Building2,
   LogOut,
   ClipboardList,
+  UsersRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -49,6 +50,12 @@ const menuItems = [
 ];
 
 const adminMenuItems = [
+  {
+    title: "Team Dashboard",
+    url: "/team",
+    icon: UsersRound,
+    roles: ["team_lead", "report_admin", "general_overseer"],
+  },
   {
     title: "Tasks",
     url: "/tasks",
