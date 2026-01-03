@@ -3,11 +3,102 @@ import { TeamStats } from "@/components/team/TeamStats";
 import { TeamMembersCard } from "@/components/team/TeamMembersCard";
 import { TeamTasksTable } from "@/components/team/TeamTasksTable";
 import { TeamReportsTable } from "@/components/team/TeamReportsTable";
+import { OverseerStats } from "@/components/team/OverseerStats";
+import { MemberPerformanceTable } from "@/components/team/MemberPerformanceTable";
+import { PeriodEarningsTable } from "@/components/team/PeriodEarningsTable";
+import { TeamPerformanceCharts } from "@/components/team/TeamPerformanceCharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClipboardList, FileText } from "lucide-react";
+import { ClipboardList, FileText, Users, BarChart3, DollarSign } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function TeamDashboard() {
+  const { role } = useAuth();
+  const isOverseer = role === "general_overseer";
+
+  if (isOverseer) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Organization Overview</h1>
+            <p className="text-muted-foreground">
+              Complete view of all teams, members, performance, and financials
+            </p>
+          </div>
+
+          <OverseerStats />
+
+          <Tabs defaultValue="performance" className="space-y-4">
+            <TabsList className="flex-wrap">
+              <TabsTrigger value="performance" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Team Performance
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Analytics
+              </TabsTrigger>
+              <TabsTrigger value="salary" className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                Salary Periods
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="flex items-center gap-2">
+                <ClipboardList className="h-4 w-4" />
+                All Tasks
+              </TabsTrigger>
+              <TabsTrigger value="reports" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                All Reports
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="performance">
+              <MemberPerformanceTable />
+            </TabsContent>
+
+            <TabsContent value="analytics">
+              <TeamPerformanceCharts />
+            </TabsContent>
+
+            <TabsContent value="salary">
+              <PeriodEarningsTable />
+            </TabsContent>
+
+            <TabsContent value="tasks">
+              <Card>
+                <CardHeader>
+                  <CardTitle>All Team Tasks</CardTitle>
+                  <CardDescription>
+                    Review and manage all tasks across the organization
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TeamTasksTable />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="reports">
+              <Card>
+                <CardHeader>
+                  <CardTitle>All Team Reports</CardTitle>
+                  <CardDescription>
+                    Review and manage all work reports across the organization
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TeamReportsTable />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Team Lead view (original)
   return (
     <DashboardLayout>
       <div className="space-y-6">
