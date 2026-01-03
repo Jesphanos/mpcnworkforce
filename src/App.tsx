@@ -12,6 +12,7 @@ import UserManagement from "./pages/UserManagement";
 import Reports from "./pages/Reports";
 import FinanceHR from "./pages/FinanceHR";
 import Investments from "./pages/Investments";
+import Tasks from "./pages/Tasks";
 import NotFound from "./pages/NotFound";
 import AccessDenied from "./pages/AccessDenied";
 
@@ -54,7 +55,7 @@ const App = () => (
             <Route
               path="/reports"
               element={
-                <ProtectedRoute allowedRoles={["report_admin", "general_overseer"]}>
+                <ProtectedRoute allowedRoles={["employee", "team_lead", "report_admin", "general_overseer"]}>
                   <Reports />
                 </ProtectedRoute>
               }
@@ -72,6 +73,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={["investment_admin", "general_overseer"]}>
                   <Investments />
+              </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tasks"
+              element={
+                <ProtectedRoute allowedRoles={["team_lead", "report_admin", "general_overseer"]}>
+                  <Tasks />
                 </ProtectedRoute>
               }
             />

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type AppRole = "employee" | "report_admin" | "finance_hr_admin" | "investment_admin" | "user_admin" | "general_overseer";
+type AppRole = "employee" | "team_lead" | "report_admin" | "finance_hr_admin" | "investment_admin" | "user_admin" | "general_overseer";
 
 interface Profile {
   id: string;
@@ -32,6 +32,7 @@ const roleHierarchy: AppRole[] = [
   "investment_admin",
   "finance_hr_admin",
   "report_admin",
+  "team_lead",
   "employee",
 ];
 
