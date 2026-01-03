@@ -5,9 +5,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Users, ChevronDown, ChevronRight, DollarSign, TrendingUp } from "lucide-react";
+import { Users, ChevronDown, ChevronRight, DollarSign, TrendingUp, Download } from "lucide-react";
 import { useState } from "react";
+import { exportTeamsToCSV, exportTeamsToPDF } from "@/lib/teamExport";
 
 const roleLabels: Record<string, string> = {
   employee: "Employee",
@@ -79,14 +81,28 @@ export function TeamGroupsView({ filters }: TeamGroupsViewProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Teams Overview
-        </CardTitle>
-        <CardDescription>
-          All teams grouped by role with performance metrics
-        </CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Teams Overview
+          </CardTitle>
+          <CardDescription>
+            All teams grouped by role with performance metrics
+          </CardDescription>
+        </div>
+        {teamGroups && teamGroups.length > 0 && (
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportTeamsToCSV(teamGroups, filters)}>
+              <Download className="h-4 w-4 mr-2" />
+              CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => exportTeamsToPDF(teamGroups, filters)}>
+              <Download className="h-4 w-4 mr-2" />
+              PDF
+            </Button>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {teamGroups?.map((team) => (
