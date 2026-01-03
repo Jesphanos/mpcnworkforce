@@ -9,12 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
-import { WorkReport, useUpdateReportStatus, useTeamLeadReportReview, useAdminReportOverride, useUpdateReportRate } from "@/hooks/useWorkReports";
+import { Task, useTeamLeadReview, useAdminOverride, useUpdateTaskRate } from "@/hooks/useTasks";
 import { useAuth } from "@/contexts/AuthContext";
-import { ReportAuditDialog } from "./ReportAuditDialog";
+import { TaskAuditDialog } from "./TaskAuditDialog";
 
-interface ReportsTableProps {
-  reports: WorkReport[];
+interface TasksTableProps {
+  tasks: Task[];
   showActions?: boolean;
   showRateEdit?: boolean;
 }
@@ -31,54 +31,40 @@ const statusIcons: Record<string, React.ComponentType<{ className?: string }>> =
   rejected: X,
 };
 
-export function ReportsTable({ reports, showActions = false, showRateEdit = false }: ReportsTableProps) {
+export function TasksTable({ tasks, showActions = false, showRateEdit = false }: TasksTableProps) {
   const { hasRole, role } = useAuth();
   const isTeamLead = hasRole("team_lead");
-  const canOverride = hasRole("report_admin");
-  const canReview = hasRole("report_admin");
+  const canOverride = hasRole("report_admin"); // Any role above team_lead can override
   
   const [rejectionReason, setRejectionReason] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
-  const [selectedReport, setSelectedReport] = useState<string | null>(null);
-  const [editingRate, setEditingRate] = useState<{ reportId: string; rate: string } | null>(null);
-  const [auditReportId, setAuditReportId] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<string | null>(null);
+  const [editingRate, setEditingRate] = useState<{ taskId: string; rate: string } | null>(null);
+  const [auditTaskId, setAuditTaskId] = useState<string | null>(null);
   
-  const updateStatus = useUpdateReportStatus();
-  const teamLeadReview = useTeamLeadReportReview();
-  const adminOverride = useAdminReportOverride();
-  const updateRate = useUpdateReportRate();
+  const teamLeadReview = useTeamLeadReview();
+  const adminOverride = useAdminOverride();
+  const updateRate = useUpdateTaskRate();
 
-  const handleApprove = async (reportId: string) => {
-    if (isTeamLead && !canReview) {
-      await teamLeadReview.mutateAsync({ reportId, status: "approved" });
-    } else {
-      await updateStatus.mutateAsync({ reportId, status: "approved" });
-    }
+  const handleTeamLeadApprove = async (taskId: string) => {
+    await teamLeadReview.mutateAsync({ taskId, status: "approved" });
   };
 
-  const handleReject = async () => {
-    if (selectedReport) {
-      if (isTeamLead && !canReview) {
-        await teamLeadReview.mutateAsync({
-          reportId: selectedReport,
-          status: "rejected",
-          rejectionReason,
-        });
-      } else {
-        await updateStatus.mutateAsync({
-          reportId: selectedReport,
-          status: "rejected",
-          rejectionReason,
-        });
-      }
-      setSelectedReport(null);
+  const handleTeamLeadReject = async () => {
+    if (selectedTask) {
+      await teamLeadReview.mutateAsync({
+        taskId: selectedTask,
+        status: "rejected",
+        rejectionReason,
+      });
+      setSelectedTask(null);
       setRejectionReason("");
     }
   };
 
-  const handleAdminOverride = async (reportId: string, status: "approved" | "rejected") => {
+  const handleAdminOverride = async (taskId: string, status: "approved" | "rejected") => {
     await adminOverride.mutateAsync({
-      reportId,
+      taskId,
       status,
       overrideReason,
     });
@@ -88,19 +74,19 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
   const handleRateSave = async () => {
     if (editingRate) {
       await updateRate.mutateAsync({
-        reportId: editingRate.reportId,
+        taskId: editingRate.taskId,
         newRate: parseFloat(editingRate.rate),
       });
       setEditingRate(null);
     }
   };
 
-  if (reports.length === 0) {
+  if (tasks.length === 0) {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-10">
           <Eye className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">No reports found</p>
+          <p className="text-muted-foreground">No tasks found</p>
         </CardContent>
       </Card>
     );
@@ -110,9 +96,9 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Work Reports</CardTitle>
+          <CardTitle>Tasks</CardTitle>
           <CardDescription>
-            {showActions ? "Review and approve employee reports" : "Your submitted work reports"}
+            {showActions ? "Review and manage tasks with approval workflow" : "Your submitted tasks"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -120,94 +106,89 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
+                <TableHead>Title</TableHead>
                 <TableHead>Platform</TableHead>
                 <TableHead>Hours</TableHead>
+                <TableHead>Rate</TableHead>
                 <TableHead>Earnings</TableHead>
-                {showRateEdit && <TableHead>Rate</TableHead>}
                 <TableHead>TL Status</TableHead>
                 <TableHead>Final Status</TableHead>
-                <TableHead>Description</TableHead>
                 {(showActions || showRateEdit) && <TableHead>Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {reports.map((report) => {
-                const FinalStatusIcon = statusIcons[report.final_status] || Clock;
-                const TLStatusIcon = report.team_lead_status ? statusIcons[report.team_lead_status] : Clock;
-                const needsTeamLeadReview = !report.team_lead_status && report.final_status === "pending";
-                const canBeOverridden = report.team_lead_status === "rejected" && report.final_status === "pending";
-                const isPending = report.status === "pending" && report.final_status === "pending";
+              {tasks.map((task) => {
+                const FinalStatusIcon = statusIcons[task.final_status] || Clock;
+                const TLStatusIcon = task.team_lead_status ? statusIcons[task.team_lead_status] : Clock;
+                const needsTeamLeadReview = !task.team_lead_status && task.final_status === "pending";
+                const canBeOverridden = task.team_lead_status === "rejected" && task.final_status === "pending";
                 
                 return (
-                  <TableRow key={report.id}>
+                  <TableRow key={task.id}>
                     <TableCell className="font-medium">
-                      {format(new Date(report.work_date), "MMM d, yyyy")}
+                      {format(new Date(task.work_date), "MMM d, yyyy")}
                     </TableCell>
-                    <TableCell>{report.platform}</TableCell>
-                    <TableCell>{report.hours_worked}h</TableCell>
-                    <TableCell>${Number(report.earnings).toFixed(2)}</TableCell>
-                    {showRateEdit && (
-                      <TableCell>
-                        {report.final_status === "pending" ? (
-                          editingRate?.reportId === report.id ? (
-                            <div className="flex items-center gap-1">
-                              <Input
-                                type="number"
-                                value={editingRate.rate}
-                                onChange={(e) => setEditingRate({ ...editingRate, rate: e.target.value })}
-                                className="w-20 h-7 text-xs"
-                                step="0.01"
-                              />
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={handleRateSave}>
-                                <Check className="h-3 w-3" />
-                              </Button>
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setEditingRate(null)}>
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-xs"
-                              onClick={() => setEditingRate({ reportId: report.id, rate: String(report.current_rate || 0) })}
-                            >
-                              <DollarSign className="h-3 w-3 mr-1" />
-                              {Number(report.current_rate || 0).toFixed(2)}
+                    <TableCell>{task.title}</TableCell>
+                    <TableCell>{task.platform}</TableCell>
+                    <TableCell>{task.hours_worked}h</TableCell>
+                    <TableCell>
+                      {showRateEdit && task.final_status === "pending" ? (
+                        editingRate?.taskId === task.id ? (
+                          <div className="flex items-center gap-1">
+                            <Input
+                              type="number"
+                              value={editingRate.rate}
+                              onChange={(e) => setEditingRate({ ...editingRate, rate: e.target.value })}
+                              className="w-20 h-7 text-xs"
+                              step="0.01"
+                            />
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={handleRateSave}>
+                              <Check className="h-3 w-3" />
                             </Button>
-                          )
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setEditingRate(null)}>
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
                         ) : (
-                          <span>${Number(report.current_rate || 0).toFixed(2)}</span>
-                        )}
-                      </TableCell>
-                    )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => setEditingRate({ taskId: task.id, rate: String(task.current_rate) })}
+                          >
+                            <DollarSign className="h-3 w-3 mr-1" />
+                            {Number(task.current_rate).toFixed(2)}
+                          </Button>
+                        )
+                      ) : (
+                        <span>${Number(task.current_rate).toFixed(2)}</span>
+                      )}
+                    </TableCell>
+                    <TableCell>${Number(task.calculated_earnings).toFixed(2)}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={statusColors[report.team_lead_status || "pending"]}>
+                      <Badge variant="outline" className={statusColors[task.team_lead_status || "pending"]}>
                         <TLStatusIcon className="h-3 w-3 mr-1" />
-                        {report.team_lead_status || "pending"}
+                        {task.team_lead_status || "pending"}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={statusColors[report.final_status]}>
+                      <Badge variant="outline" className={statusColors[task.final_status]}>
                         <FinalStatusIcon className="h-3 w-3 mr-1" />
-                        {report.final_status}
+                        {task.final_status}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      {report.description || "-"}
                     </TableCell>
                     {(showActions || showRateEdit) && (
                       <TableCell>
                         <div className="flex gap-1">
-                          {/* Team Lead / Admin Review Actions */}
-                          {showActions && (isTeamLead || canReview) && isPending && needsTeamLeadReview && (
+                          {/* Team Lead Actions */}
+                          {showActions && isTeamLead && needsTeamLeadReview && (
                             <>
                               <Button
                                 size="sm"
                                 variant="outline"
                                 className="text-success hover:bg-success/10 h-7 w-7 p-0"
-                                onClick={() => handleApprove(report.id)}
-                                disabled={updateStatus.isPending || teamLeadReview.isPending}
+                                onClick={() => handleTeamLeadApprove(task.id)}
+                                disabled={teamLeadReview.isPending}
                                 title="Approve"
                               >
                                 <Check className="h-3 w-3" />
@@ -218,21 +199,17 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                                     size="sm"
                                     variant="outline"
                                     className="text-destructive hover:bg-destructive/10 h-7 w-7 p-0"
-                                    onClick={() => setSelectedReport(report.id)}
-                                    title={isTeamLead && !canReview ? "Reject (non-final)" : "Reject"}
+                                    onClick={() => setSelectedTask(task.id)}
+                                    title="Reject (non-final)"
                                   >
                                     <X className="h-3 w-3" />
                                   </Button>
                                 </DialogTrigger>
                                 <DialogContent>
                                   <DialogHeader>
-                                    <DialogTitle>
-                                      {isTeamLead && !canReview ? "Reject Report (Non-Final)" : "Reject Report"}
-                                    </DialogTitle>
+                                    <DialogTitle>Reject Task (Non-Final)</DialogTitle>
                                     <DialogDescription>
-                                      {isTeamLead && !canReview
-                                        ? "This rejection can be overridden by a higher-level admin."
-                                        : "Please provide a reason for rejecting this report."}
+                                      This rejection can be overridden by a higher-level admin.
                                     </DialogDescription>
                                   </DialogHeader>
                                   <Textarea
@@ -241,13 +218,13 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                                     onChange={(e) => setRejectionReason(e.target.value)}
                                   />
                                   <DialogFooter>
-                                    <Button variant="outline" onClick={() => setSelectedReport(null)}>
+                                    <Button variant="outline" onClick={() => setSelectedTask(null)}>
                                       Cancel
                                     </Button>
                                     <Button
                                       variant="destructive"
-                                      onClick={handleReject}
-                                      disabled={!rejectionReason || updateStatus.isPending || teamLeadReview.isPending}
+                                      onClick={handleTeamLeadReject}
+                                      disabled={!rejectionReason || teamLeadReview.isPending}
                                     >
                                       Reject
                                     </Button>
@@ -282,7 +259,7 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                                   <div>
                                     <Label>Team Lead Rejection Reason:</Label>
                                     <p className="text-sm text-muted-foreground mt-1">
-                                      {report.team_lead_rejection_reason || "No reason provided"}
+                                      {task.team_lead_rejection_reason || "No reason provided"}
                                     </p>
                                   </div>
                                   <div>
@@ -298,14 +275,14 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                                 <DialogFooter className="gap-2">
                                   <Button
                                     variant="destructive"
-                                    onClick={() => handleAdminOverride(report.id, "rejected")}
+                                    onClick={() => handleAdminOverride(task.id, "rejected")}
                                     disabled={adminOverride.isPending}
                                   >
                                     Confirm Rejection
                                   </Button>
                                   <Button
                                     variant="default"
-                                    onClick={() => handleAdminOverride(report.id, "approved")}
+                                    onClick={() => handleAdminOverride(task.id, "approved")}
                                     disabled={adminOverride.isPending}
                                   >
                                     Override & Approve
@@ -315,19 +292,12 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                             </Dialog>
                           )}
 
-                          {/* Show rejection reason for rejected reports */}
-                          {report.status === "rejected" && report.rejection_reason && !canBeOverridden && (
-                            <span className="text-xs text-muted-foreground max-w-[100px] truncate">
-                              {report.rejection_reason}
-                            </span>
-                          )}
-
                           {/* Audit Log Button */}
                           <Button
                             size="sm"
                             variant="ghost"
                             className="h-7 w-7 p-0"
-                            onClick={() => setAuditReportId(report.id)}
+                            onClick={() => setAuditTaskId(task.id)}
                             title="View History"
                           >
                             <History className="h-3 w-3" />
@@ -343,10 +313,10 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
         </CardContent>
       </Card>
 
-      <ReportAuditDialog
-        reportId={auditReportId}
-        open={!!auditReportId}
-        onOpenChange={(open) => !open && setAuditReportId(null)}
+      <TaskAuditDialog
+        taskId={auditTaskId}
+        open={!!auditTaskId}
+        onOpenChange={(open) => !open && setAuditTaskId(null)}
       />
     </>
   );

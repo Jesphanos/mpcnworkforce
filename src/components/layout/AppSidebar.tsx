@@ -22,6 +22,7 @@ import {
   Settings,
   Building2,
   LogOut,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,22 +32,28 @@ const menuItems = [
     title: "Dashboard",
     url: "/dashboard",
     icon: LayoutDashboard,
-    roles: ["employee", "report_admin", "finance_hr_admin", "investment_admin", "user_admin", "general_overseer"],
+    roles: ["employee", "team_lead", "report_admin", "finance_hr_admin", "investment_admin", "user_admin", "general_overseer"],
   },
   {
     title: "My Profile",
     url: "/profile",
     icon: User,
-    roles: ["employee", "report_admin", "finance_hr_admin", "investment_admin", "user_admin", "general_overseer"],
+    roles: ["employee", "team_lead", "report_admin", "finance_hr_admin", "investment_admin", "user_admin", "general_overseer"],
+  },
+  {
+    title: "My Reports",
+    url: "/reports",
+    icon: FileText,
+    roles: ["employee", "team_lead", "report_admin", "finance_hr_admin", "investment_admin", "user_admin", "general_overseer"],
   },
 ];
 
 const adminMenuItems = [
   {
-    title: "Reports",
-    url: "/reports",
-    icon: FileText,
-    roles: ["report_admin", "general_overseer"],
+    title: "Tasks",
+    url: "/tasks",
+    icon: ClipboardList,
+    roles: ["team_lead", "report_admin", "general_overseer"],
   },
   {
     title: "Finance & HR",

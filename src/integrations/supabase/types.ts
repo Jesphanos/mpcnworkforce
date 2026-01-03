@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          entity_id: string
+          entity_type: string
+          id: string
+          new_values: Json | null
+          notes: string | null
+          performed_at: string
+          performed_by: string
+          previous_values: Json | null
+        }
+        Insert: {
+          action: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          new_values?: Json | null
+          notes?: string | null
+          performed_at?: string
+          performed_by: string
+          previous_values?: Json | null
+        }
+        Update: {
+          action?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          new_values?: Json | null
+          notes?: string | null
+          performed_at?: string
+          performed_by?: string
+          previous_values?: Json | null
+        }
+        Relationships: []
+      }
       investments: {
         Row: {
           created_at: string
@@ -197,6 +233,81 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          admin_rejection_reason: string | null
+          admin_reviewed_at: string | null
+          admin_reviewed_by: string | null
+          admin_status: string | null
+          base_rate: number
+          calculated_earnings: number | null
+          created_at: string
+          current_rate: number
+          description: string | null
+          final_status: string
+          hours_worked: number
+          id: string
+          platform: string
+          status: string
+          team_lead_rejection_reason: string | null
+          team_lead_reviewed_at: string | null
+          team_lead_reviewed_by: string | null
+          team_lead_status: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          work_date: string
+        }
+        Insert: {
+          admin_rejection_reason?: string | null
+          admin_reviewed_at?: string | null
+          admin_reviewed_by?: string | null
+          admin_status?: string | null
+          base_rate?: number
+          calculated_earnings?: number | null
+          created_at?: string
+          current_rate?: number
+          description?: string | null
+          final_status?: string
+          hours_worked?: number
+          id?: string
+          platform: string
+          status?: string
+          team_lead_rejection_reason?: string | null
+          team_lead_reviewed_at?: string | null
+          team_lead_reviewed_by?: string | null
+          team_lead_status?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          work_date: string
+        }
+        Update: {
+          admin_rejection_reason?: string | null
+          admin_reviewed_at?: string | null
+          admin_reviewed_by?: string | null
+          admin_status?: string | null
+          base_rate?: number
+          calculated_earnings?: number | null
+          created_at?: string
+          current_rate?: number
+          description?: string | null
+          final_status?: string
+          hours_worked?: number
+          id?: string
+          platform?: string
+          status?: string
+          team_lead_rejection_reason?: string | null
+          team_lead_reviewed_at?: string | null
+          team_lead_reviewed_by?: string | null
+          team_lead_status?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          work_date?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -220,9 +331,14 @@ export type Database = {
       }
       work_reports: {
         Row: {
+          admin_override_reason: string | null
+          admin_status: string | null
+          base_rate: number | null
           created_at: string
+          current_rate: number | null
           description: string | null
           earnings: number
+          final_status: string | null
           hours_worked: number
           id: string
           platform: string
@@ -230,14 +346,23 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by: string | null
           status: string
+          team_lead_rejection_reason: string | null
+          team_lead_reviewed_at: string | null
+          team_lead_reviewed_by: string | null
+          team_lead_status: string | null
           updated_at: string
           user_id: string
           work_date: string
         }
         Insert: {
+          admin_override_reason?: string | null
+          admin_status?: string | null
+          base_rate?: number | null
           created_at?: string
+          current_rate?: number | null
           description?: string | null
           earnings?: number
+          final_status?: string | null
           hours_worked?: number
           id?: string
           platform: string
@@ -245,14 +370,23 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
+          team_lead_rejection_reason?: string | null
+          team_lead_reviewed_at?: string | null
+          team_lead_reviewed_by?: string | null
+          team_lead_status?: string | null
           updated_at?: string
           user_id: string
           work_date: string
         }
         Update: {
+          admin_override_reason?: string | null
+          admin_status?: string | null
+          base_rate?: number | null
           created_at?: string
+          current_rate?: number | null
           description?: string | null
           earnings?: number
+          final_status?: string | null
           hours_worked?: number
           id?: string
           platform?: string
@@ -260,6 +394,10 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
+          team_lead_rejection_reason?: string | null
+          team_lead_reviewed_at?: string | null
+          team_lead_reviewed_by?: string | null
+          team_lead_status?: string | null
           updated_at?: string
           user_id?: string
           work_date?: string
@@ -271,7 +409,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_override_role: {
+        Args: {
+          _target_role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       get_general_overseer_email: { Args: never; Returns: string }
+      get_role_level: {
+        Args: { role_name: Database["public"]["Enums"]["app_role"] }
+        Returns: number
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -282,6 +431,18 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      log_audit_event: {
+        Args: {
+          p_action: string
+          p_entity_id: string
+          p_entity_type: string
+          p_new_values?: Json
+          p_notes?: string
+          p_performed_by: string
+          p_previous_values?: Json
+        }
+        Returns: string
       }
     }
     Enums: {
