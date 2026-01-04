@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { formatDistanceToNow } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { DateRange } from "react-day-picker";
 import { 
   Users, 
   FileText, 
@@ -144,7 +147,8 @@ function RecentActivitySection({ navigate }: { navigate: (path: string) => void 
 export default function Dashboard() {
   const { profile, role, hasRole } = useAuth();
   const navigate = useNavigate();
-  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const { data: stats, isLoading: statsLoading } = useDashboardStats(dateRange);
   const isAdmin = hasRole("user_admin") || hasRole("general_overseer") || hasRole("team_lead");
 
   const statsCards = [
@@ -193,7 +197,7 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6 animate-fade-in">
-        {/* Welcome Section */}
+        {/* Welcome Section with Date Filter */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">
@@ -203,6 +207,7 @@ export default function Dashboard() {
               {getRoleLabel(role)} Overview
             </p>
           </div>
+          <DateRangeFilter dateRange={dateRange} onDateRangeChange={setDateRange} />
         </div>
 
         {/* Stats Grid */}
