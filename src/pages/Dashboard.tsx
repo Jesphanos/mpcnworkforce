@@ -7,6 +7,7 @@ import { useRecentActivity } from "@/hooks/useRecentActivity";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { TrendsChart } from "@/components/dashboard/TrendsChart";
+import { PlatformChart } from "@/components/dashboard/PlatformChart";
 import { formatDistanceToNow } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -271,8 +272,13 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Trends Chart */}
-        <TrendsChart dateRange={dateRange} />
+        {/* Charts Grid */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <TrendsChart dateRange={dateRange} />
+          </div>
+          <PlatformChart dateRange={dateRange} />
+        </div>
 
         {/* Recent Activity */}
         <RecentActivitySection navigate={navigate} />
