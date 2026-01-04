@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Plus } from "lucide-react";
+import { CalendarIcon, Plus, Upload, Link2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,18 +9,38 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useCreateTask } from "@/hooks/useTasks";
 
-const platforms = ["Remotasks", "Outlier", "Scale AI", "Appen", "Clickworker", "Other"];
+const platforms = ["Remotasks", "Outlier", "Scale AI", "Appen", "Clickworker", "Upwork", "Fiverr", "Other"];
+
+const taskTypes = [
+  { value: "research", label: "Research" },
+  { value: "coding", label: "Coding" },
+  { value: "design", label: "Design" },
+  { value: "support", label: "Support" },
+  { value: "writing", label: "Writing" },
+  { value: "data_entry", label: "Data Entry" },
+  { value: "quality_assurance", label: "Quality Assurance" },
+  { value: "project_management", label: "Project Management" },
+  { value: "other", label: "Other" },
+];
 
 export function TaskForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [platform, setPlatform] = useState("");
+  const [taskType, setTaskType] = useState("other");
   const [workDate, setWorkDate] = useState<Date>();
+  const [dueDate, setDueDate] = useState<Date>();
   const [hoursWorked, setHoursWorked] = useState("");
+  const [estimatedHours, setEstimatedHours] = useState("");
   const [baseRate, setBaseRate] = useState("");
+  const [progressPercent, setProgressPercent] = useState("0");
+  const [externalTaskId, setExternalTaskId] = useState("");
+  const [evidenceUrl, setEvidenceUrl] = useState("");
+  const [evidenceRequired, setEvidenceRequired] = useState(true);
   
   const createTask = useCreateTask();
 
@@ -31,22 +51,41 @@ export function TaskForm() {
       return;
     }
 
+    // Validate evidence if required
+    if (evidenceRequired && !evidenceUrl) {
+      return;
+    }
+
     await createTask.mutateAsync({
       title,
       description: description || undefined,
       platform,
+      task_type: taskType as any,
       work_date: format(workDate, "yyyy-MM-dd"),
+      due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
       hours_worked: parseFloat(hoursWorked),
+      estimated_hours: estimatedHours ? parseFloat(estimatedHours) : undefined,
       base_rate: parseFloat(baseRate),
+      progress_percent: parseInt(progressPercent),
+      external_task_id: externalTaskId || undefined,
+      evidence_url: evidenceUrl || undefined,
+      evidence_required: evidenceRequired,
     });
 
     // Reset form
     setTitle("");
     setDescription("");
     setPlatform("");
+    setTaskType("other");
     setWorkDate(undefined);
+    setDueDate(undefined);
     setHoursWorked("");
+    setEstimatedHours("");
     setBaseRate("");
+    setProgressPercent("0");
+    setExternalTaskId("");
+    setEvidenceUrl("");
+    setEvidenceRequired(true);
   };
 
   return (
@@ -57,14 +96,15 @@ export function TaskForm() {
           Submit New Task
         </CardTitle>
         <CardDescription>
-          Create a task with rate-based earnings calculation
+          Create a task with rate-based earnings calculation. Evidence is mandatory for verification.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Info */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="title">Task Title</Label>
+              <Label htmlFor="title">Task Title *</Label>
               <Input
                 id="title"
                 placeholder="Enter task title"
@@ -75,7 +115,7 @@ export function TaskForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="platform">Platform</Label>
+              <Label htmlFor="platform">Platform *</Label>
               <Select value={platform} onValueChange={setPlatform} required>
                 <SelectTrigger>
                   <SelectValue placeholder="Select platform" />
@@ -91,7 +131,39 @@ export function TaskForm() {
             </div>
 
             <div className="space-y-2">
-              <Label>Work Date</Label>
+              <Label htmlFor="taskType">Task Type *</Label>
+              <Select value={taskType} onValueChange={setTaskType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {taskTypes.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="externalTaskId">External Task ID (Optional)</Label>
+              <Input
+                id="externalTaskId"
+                placeholder="ID from external platform"
+                value={externalTaskId}
+                onChange={(e) => setExternalTaskId(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Link this to an external platform task
+              </p>
+            </div>
+          </div>
+
+          {/* Dates */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Work Date *</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -117,7 +189,36 @@ export function TaskForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="hours">Hours Worked</Label>
+              <Label>Due Date (Optional)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !dueDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dueDate ? format(dueDate, "PPP") : "Pick a due date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={dueDate}
+                    onSelect={setDueDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          {/* Hours & Rate */}
+          <div className="grid gap-4 md:grid-cols-4">
+            <div className="space-y-2">
+              <Label htmlFor="hours">Hours Worked *</Label>
               <Input
                 id="hours"
                 type="number"
@@ -131,7 +232,20 @@ export function TaskForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="rate">Base Rate ($/hr)</Label>
+              <Label htmlFor="estimatedHours">Estimated Hours</Label>
+              <Input
+                id="estimatedHours"
+                type="number"
+                step="0.5"
+                min="0"
+                placeholder="0"
+                value={estimatedHours}
+                onChange={(e) => setEstimatedHours(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="rate">Base Rate ($/hr) *</Label>
               <Input
                 id="rate"
                 type="number"
@@ -154,6 +268,59 @@ export function TaskForm() {
             </div>
           </div>
 
+          {/* Progress */}
+          <div className="space-y-2">
+            <Label htmlFor="progress">Progress: {progressPercent}%</Label>
+            <Input
+              id="progress"
+              type="range"
+              min="0"
+              max="100"
+              step="5"
+              value={progressPercent}
+              onChange={(e) => setProgressPercent(e.target.value)}
+              className="cursor-pointer"
+            />
+          </div>
+
+          {/* Evidence Section */}
+          <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Evidence / Proof of Work
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Provide a link to proof of completion (screenshot, file, or external link)
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="evidenceRequired" className="text-sm">Required</Label>
+                <Switch
+                  id="evidenceRequired"
+                  checked={evidenceRequired}
+                  onCheckedChange={setEvidenceRequired}
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Link2 className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="https://drive.google.com/file/... or proof link"
+                value={evidenceUrl}
+                onChange={(e) => setEvidenceUrl(e.target.value)}
+                required={evidenceRequired}
+              />
+            </div>
+            {evidenceRequired && !evidenceUrl && (
+              <p className="text-xs text-destructive">
+                Evidence is required for this task to be submitted for review
+              </p>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="description">Description (optional)</Label>
             <Textarea
@@ -164,7 +331,11 @@ export function TaskForm() {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={createTask.isPending}>
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={createTask.isPending || (evidenceRequired && !evidenceUrl)}
+          >
             {createTask.isPending ? "Submitting..." : "Submit Task"}
           </Button>
         </form>
