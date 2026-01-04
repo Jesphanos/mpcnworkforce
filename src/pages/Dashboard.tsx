@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useRecentActivity } from "@/hooks/useRecentActivity";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
+import { TrendsChart } from "@/components/dashboard/TrendsChart";
 import { formatDistanceToNow } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -269,6 +270,9 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* Trends Chart */}
+        <TrendsChart dateRange={dateRange} />
 
         {/* Recent Activity */}
         <RecentActivitySection navigate={navigate} />
