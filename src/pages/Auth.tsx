@@ -239,7 +239,7 @@ export default function Auth() {
                 <TabsContent value="signup">
                   <form onSubmit={handleSignUp} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="signup-name">Full Name</Label>
+                      <Label htmlFor="signup-name">Full Name *</Label>
                       <Input
                         id="signup-name"
                         type="text"
@@ -248,9 +248,12 @@ export default function Auth() {
                         onChange={(e) => setFullName(e.target.value)}
                         required
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Your display name across the platform
+                      </p>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-email">Email</Label>
+                      <Label htmlFor="signup-email">Email *</Label>
                       <Input
                         id="signup-email"
                         type="email"
@@ -259,9 +262,12 @@ export default function Auth() {
                         onChange={(e) => setEmail(e.target.value)}
                         required
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Must be unique - used for login and notifications
+                      </p>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-password">Password</Label>
+                      <Label htmlFor="signup-password">Password *</Label>
                       <Input
                         id="signup-password"
                         type="password"
@@ -271,8 +277,16 @@ export default function Auth() {
                         required
                       />
                       <p className="text-xs text-muted-foreground">
-                        Must be at least 6 characters
+                        Must be at least 6 characters with strong security
                       </p>
+                    </div>
+                    <div className="bg-muted/50 p-3 rounded-lg space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground">What happens next:</p>
+                      <ul className="text-xs text-muted-foreground space-y-0.5">
+                        <li>• You'll be assigned the default Employee role</li>
+                        <li>• Complete your profile with skills and preferences</li>
+                        <li>• Your team lead will be notified of your registration</li>
+                      </ul>
                     </div>
                     <Button type="submit" className="w-full" disabled={isLoading}>
                       {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -23,13 +23,20 @@ interface TasksTableProps {
 const statusColors: Record<string, string> = {
   pending: "bg-warning/10 text-warning border-warning/20",
   approved: "bg-success/10 text-success border-success/20",
-  rejected: "bg-destructive/10 text-destructive border-destructive/20",
+  rejected: "bg-amber-500/10 text-amber-600 border-amber-500/20",
 };
 
 const statusIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   pending: Clock,
   approved: Check,
   rejected: X,
+};
+
+// Employee-friendly labels (softened rejection language)
+const statusLabels: Record<string, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  rejected: "Needs Revision",
 };
 
 export function TasksTable({ tasks, showActions = false, showRateEdit = false }: TasksTableProps) {
@@ -217,13 +224,13 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
                     <TableCell>
                       <Badge variant="outline" className={statusColors[task.team_lead_status || "pending"]}>
                         <TLStatusIcon className="h-3 w-3 mr-1" />
-                        {task.team_lead_status || "pending"}
+                        {statusLabels[task.team_lead_status || "pending"] || task.team_lead_status || "pending"}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusColors[task.final_status]}>
                         <FinalStatusIcon className="h-3 w-3 mr-1" />
-                        {task.final_status}
+                        {statusLabels[task.final_status] || task.final_status}
                       </Badge>
                     </TableCell>
                     {(showActions || showRateEdit) && (
