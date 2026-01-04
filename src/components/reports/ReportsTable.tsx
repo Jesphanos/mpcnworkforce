@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { toast } from "sonner";
 import { WorkReport, useUpdateReportStatus, useTeamLeadReportReview, useAdminReportOverride, useUpdateReportRate } from "@/hooks/useWorkReports";
 import { useAuth } from "@/contexts/AuthContext";
 import { ReportAuditDialog } from "./ReportAuditDialog";
@@ -36,11 +37,13 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
   const isTeamLead = hasRole("team_lead");
   const canOverride = hasRole("report_admin");
   const canReview = hasRole("report_admin");
+  const isOverseer = hasRole("general_overseer");
   
   const [rejectionReason, setRejectionReason] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
-  const [editingRate, setEditingRate] = useState<{ reportId: string; rate: string } | null>(null);
+  const [editingRate, setEditingRate] = useState<{ reportId: string; rate: string; originalRate: number } | null>(null);
+  const [rateChangeReason, setRateChangeReason] = useState("");
   const [auditReportId, setAuditReportId] = useState<string | null>(null);
   
   const updateStatus = useUpdateReportStatus();
@@ -77,6 +80,11 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
   };
 
   const handleAdminOverride = async (reportId: string, status: "approved" | "rejected") => {
+    // Mandatory reason for overseer
+    if (isOverseer && !overrideReason.trim()) {
+      toast.error("Override reason is required");
+      return;
+    }
     await adminOverride.mutateAsync({
       reportId,
       status,
@@ -87,11 +95,17 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
 
   const handleRateSave = async () => {
     if (editingRate) {
+      // Overseer requires reason for rate changes
+      if (isOverseer && !rateChangeReason.trim()) {
+        toast.error("Reason is required for rate changes");
+        return;
+      }
       await updateRate.mutateAsync({
         reportId: editingRate.reportId,
         newRate: parseFloat(editingRate.rate),
       });
       setEditingRate(null);
+      setRateChangeReason("");
     }
   };
 
@@ -150,27 +164,62 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                       <TableCell>
                         {report.final_status === "pending" ? (
                           editingRate?.reportId === report.id ? (
-                            <div className="flex items-center gap-1">
-                              <Input
-                                type="number"
-                                value={editingRate.rate}
-                                onChange={(e) => setEditingRate({ ...editingRate, rate: e.target.value })}
-                                className="w-20 h-7 text-xs"
-                                step="0.01"
-                              />
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={handleRateSave}>
-                                <Check className="h-3 w-3" />
-                              </Button>
-                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setEditingRate(null)}>
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
+                            <Dialog open={true} onOpenChange={(open) => !open && setEditingRate(null)}>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Update Rate</DialogTitle>
+                                  <DialogDescription>
+                                    {isOverseer 
+                                      ? "A reason is required for all overseer rate changes."
+                                      : "Update the rate for this report."}
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div>
+                                    <Label>New Rate</Label>
+                                    <Input
+                                      type="number"
+                                      value={editingRate.rate}
+                                      onChange={(e) => setEditingRate({ ...editingRate, rate: e.target.value })}
+                                      step="0.01"
+                                      className="mt-1"
+                                    />
+                                  </div>
+                                  {isOverseer && (
+                                    <div>
+                                      <Label>Reason (Required)</Label>
+                                      <Textarea
+                                        placeholder="Enter reason for rate change..."
+                                        value={rateChangeReason}
+                                        onChange={(e) => setRateChangeReason(e.target.value)}
+                                        className="mt-1"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                                <DialogFooter>
+                                  <Button variant="outline" onClick={() => { setEditingRate(null); setRateChangeReason(""); }}>
+                                    Cancel
+                                  </Button>
+                                  <Button 
+                                    onClick={handleRateSave}
+                                    disabled={isOverseer && !rateChangeReason.trim()}
+                                  >
+                                    Save Rate
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
                           ) : (
                             <Button
                               variant="ghost"
                               size="sm"
                               className="h-7 px-2 text-xs"
-                              onClick={() => setEditingRate({ reportId: report.id, rate: String(report.current_rate || 0) })}
+                              onClick={() => setEditingRate({ 
+                                reportId: report.id, 
+                                rate: String(report.current_rate || 0),
+                                originalRate: report.current_rate || 0
+                              })}
                             >
                               <DollarSign className="h-3 w-3 mr-1" />
                               {Number(report.current_rate || 0).toFixed(2)}
@@ -286,27 +335,32 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                                     </p>
                                   </div>
                                   <div>
-                                    <Label>Override Reason (optional)</Label>
+                                    <Label>Override Reason {isOverseer ? "(Required)" : "(Optional)"}</Label>
                                     <Textarea
                                       placeholder="Enter reason for override..."
                                       value={overrideReason}
                                       onChange={(e) => setOverrideReason(e.target.value)}
                                       className="mt-1"
                                     />
+                                    {isOverseer && !overrideReason.trim() && (
+                                      <p className="text-xs text-destructive mt-1">
+                                        Overseer overrides require a mandatory reason
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
                                 <DialogFooter className="gap-2">
                                   <Button
                                     variant="destructive"
                                     onClick={() => handleAdminOverride(report.id, "rejected")}
-                                    disabled={adminOverride.isPending}
+                                    disabled={adminOverride.isPending || (isOverseer && !overrideReason.trim())}
                                   >
                                     Confirm Rejection
                                   </Button>
                                   <Button
                                     variant="default"
                                     onClick={() => handleAdminOverride(report.id, "approved")}
-                                    disabled={adminOverride.isPending}
+                                    disabled={adminOverride.isPending || (isOverseer && !overrideReason.trim())}
                                   >
                                     Override & Approve
                                   </Button>
