@@ -181,7 +181,7 @@ export function useTeamLeadReview() {
 
 export function useAdminOverride() {
   const queryClient = useQueryClient();
-  const { user, profile } = useAuth();
+  const { user, profile, hasRole } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -192,10 +192,17 @@ export function useAdminOverride() {
     }: {
       taskId: string;
       status: "approved" | "rejected";
-      overrideReason?: string;
+      overrideReason: string;
       task: Task;
     }) => {
       if (!user) throw new Error("Not authenticated");
+      
+      const isOverseer = hasRole("general_overseer");
+      
+      // Mandatory reason for general_overseer overrides
+      if (isOverseer && !overrideReason?.trim()) {
+        throw new Error("Override reason is required for overseer actions");
+      }
 
       const { data, error } = await supabase
         .from("tasks")
@@ -203,7 +210,7 @@ export function useAdminOverride() {
           admin_status: status,
           admin_reviewed_by: user.id,
           admin_reviewed_at: new Date().toISOString(),
-          admin_rejection_reason: overrideReason || null,
+          admin_rejection_reason: overrideReason,
           final_status: status, // Admin decisions are final
         })
         .eq("id", taskId)
@@ -234,6 +241,63 @@ export function useAdminOverride() {
     },
     onError: (error) => {
       toast.error("Failed to override: " + error.message);
+    },
+  });
+}
+
+export function useUpdateTaskRateWithReason() {
+  const queryClient = useQueryClient();
+  const { user, hasRole } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ 
+      taskId, 
+      newRate,
+      previousRate,
+      reason 
+    }: { 
+      taskId: string; 
+      newRate: number;
+      previousRate: number;
+      reason: string;
+    }) => {
+      if (!user) throw new Error("Not authenticated");
+      
+      const isOverseer = hasRole("general_overseer");
+      
+      // Mandatory reason for general_overseer rate changes
+      if (isOverseer && !reason?.trim()) {
+        throw new Error("Reason is required for overseer rate changes");
+      }
+
+      const { data, error } = await supabase
+        .from("tasks")
+        .update({ current_rate: newRate })
+        .eq("id", taskId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Log the rate change with reason via RPC
+      await supabase.rpc("log_audit_event", {
+        p_entity_type: "task",
+        p_entity_id: taskId,
+        p_action: "rate_override",
+        p_performed_by: user.id,
+        p_previous_values: { current_rate: previousRate },
+        p_new_values: { current_rate: newRate },
+        p_notes: reason,
+      });
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Rate updated with audit log");
+    },
+    onError: (error) => {
+      toast.error("Failed to update rate: " + error.message);
     },
   });
 }

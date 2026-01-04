@@ -72,13 +72,29 @@ export function useCreateSalaryPeriod() {
 
 export function useToggleSalaryPeriodStatus() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ periodId, currentStatus }: { periodId: string; currentStatus: "open" | "closed" }) => {
+    mutationFn: async ({ 
+      periodId, 
+      currentStatus,
+      reason 
+    }: { 
+      periodId: string; 
+      currentStatus: "open" | "closed";
+      reason?: string;
+    }) => {
       if (!user) throw new Error("Not authenticated");
 
       const newStatus = currentStatus === "open" ? "closed" : "open";
+      const isReopening = newStatus === "open";
+      const isOverseer = hasRole("general_overseer");
+      
+      // Mandatory reason for reopening closed periods (especially for overseer)
+      if (isReopening && isOverseer && !reason?.trim()) {
+        throw new Error("Reason is required for reopening salary periods");
+      }
+
       const updateData: Record<string, unknown> = { status: newStatus };
 
       if (newStatus === "closed") {
@@ -97,6 +113,20 @@ export function useToggleSalaryPeriodStatus() {
         .single();
 
       if (error) throw error;
+
+      // Log reopen action with reason
+      if (isReopening && reason) {
+        await supabase.rpc("log_audit_event", {
+          p_entity_type: "salary_period",
+          p_entity_id: periodId,
+          p_action: "period_reopened",
+          p_performed_by: user.id,
+          p_previous_values: { status: "closed" },
+          p_new_values: { status: "open" },
+          p_notes: reason,
+        });
+      }
+
       return data;
     },
     onSuccess: (data) => {
