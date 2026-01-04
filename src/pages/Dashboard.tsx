@@ -3,7 +3,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useRecentActivity } from "@/hooks/useRecentActivity";
+import { useRecentActivity, ActivityFilters } from "@/hooks/useRecentActivity";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { TrendsChart } from "@/components/dashboard/TrendsChart";
@@ -60,7 +67,11 @@ const adminCards = [
 ];
 
 function RecentActivitySection({ navigate }: { navigate: (path: string) => void }) {
-  const { data: activities, isLoading } = useRecentActivity(5);
+  const [activityFilters, setActivityFilters] = useState<ActivityFilters>({
+    type: "all",
+    status: "all",
+  });
+  const { data: activities, isLoading } = useRecentActivity(5, activityFilters);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -77,20 +88,49 @@ function RecentActivitySection({ navigate }: { navigate: (path: string) => void 
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <CardTitle>Recent Activity</CardTitle>
           <CardDescription>Your latest updates and notifications</CardDescription>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate("/activity")}
-          className="text-primary hover:text-primary/80"
-        >
-          View All
-          <ArrowRight className="h-4 w-4 ml-1" />
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Select
+            value={activityFilters.type}
+            onValueChange={(value) => setActivityFilters((prev) => ({ ...prev, type: value as ActivityFilters["type"] }))}
+          >
+            <SelectTrigger className="w-[100px] h-8 text-xs">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="task">Tasks</SelectItem>
+              <SelectItem value="report">Reports</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={activityFilters.status}
+            onValueChange={(value) => setActivityFilters((prev) => ({ ...prev, status: value as ActivityFilters["status"] }))}
+          >
+            <SelectTrigger className="w-[110px] h-8 text-xs">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/activity")}
+            className="text-primary hover:text-primary/80"
+          >
+            View All
+            <ArrowRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
