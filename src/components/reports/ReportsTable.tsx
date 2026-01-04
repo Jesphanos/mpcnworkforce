@@ -23,13 +23,20 @@ interface ReportsTableProps {
 const statusColors: Record<string, string> = {
   pending: "bg-warning/10 text-warning border-warning/20",
   approved: "bg-success/10 text-success border-success/20",
-  rejected: "bg-destructive/10 text-destructive border-destructive/20",
+  rejected: "bg-amber-500/10 text-amber-600 border-amber-500/20",
 };
 
 const statusIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   pending: Clock,
   approved: Check,
   rejected: X,
+};
+
+// Employee-friendly labels (softened rejection language)
+const statusLabels: Record<string, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  rejected: "Needs Revision",
 };
 
 export function ReportsTable({ reports, showActions = false, showRateEdit = false }: ReportsTableProps) {
@@ -233,13 +240,13 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                     <TableCell>
                       <Badge variant="outline" className={statusColors[report.team_lead_status || "pending"]}>
                         <TLStatusIcon className="h-3 w-3 mr-1" />
-                        {report.team_lead_status || "pending"}
+                        {statusLabels[report.team_lead_status || "pending"] || report.team_lead_status || "pending"}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusColors[report.final_status]}>
                         <FinalStatusIcon className="h-3 w-3 mr-1" />
-                        {report.final_status}
+                        {statusLabels[report.final_status] || report.final_status}
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate">

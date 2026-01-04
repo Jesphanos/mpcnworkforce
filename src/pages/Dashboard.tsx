@@ -23,6 +23,10 @@ import { usePlatformDistribution } from "@/hooks/usePlatformDistribution";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { TrendsChart } from "@/components/dashboard/TrendsChart";
 import { PlatformChart } from "@/components/dashboard/PlatformChart";
+import { TeamSnapshotCard } from "@/components/employee/TeamSnapshotCard";
+import { InvestmentOverviewCard } from "@/components/employee/InvestmentOverviewCard";
+import { ComplaintsPanel } from "@/components/employee/ComplaintsPanel";
+import { ReferralCard } from "@/components/employee/ReferralCard";
 import { exportDashboardToCSV, exportDashboardToPDF } from "@/lib/dashboardExport";
 import { formatDistanceToNow } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -362,6 +366,14 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Employee Secondary Cards - Team Snapshot & Investment */}
+        {!isAdmin && (
+          <div className="grid gap-4 lg:grid-cols-2">
+            <TeamSnapshotCard />
+            <InvestmentOverviewCard />
+          </div>
+        )}
+
         {/* Charts Grid */}
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2">
@@ -372,6 +384,14 @@ export default function Dashboard() {
 
         {/* Recent Activity */}
         <RecentActivitySection navigate={navigate} />
+
+        {/* Employee Bottom Cards - Complaints & Referrals */}
+        {!isAdmin && (
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ComplaintsPanel />
+            <ReferralCard />
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

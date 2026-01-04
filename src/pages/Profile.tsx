@@ -19,9 +19,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, User, Mail, Shield, ExternalLink, Trash2 } from "lucide-react";
+import { SkillsSection } from "@/components/employee/SkillsSection";
+import { Loader2, User, Mail, Shield, ExternalLink, Trash2, Globe, Clock } from "lucide-react";
 
 export default function Profile() {
   const { user, profile, role, signOut } = useAuth();
@@ -214,6 +222,41 @@ export default function Profile() {
                 </p>
               </div>
               <Badge variant="outline">{getRoleLabel(role)}</Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Skills Section */}
+        <SkillsSection editable />
+
+        {/* International Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              International Settings
+            </CardTitle>
+            <CardDescription>
+              Configure your timezone and regional preferences
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Country</Label>
+                <p className="text-foreground py-2">{profile?.country || "Not set"}</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Timezone
+                </Label>
+                <p className="text-foreground py-2">{profile?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Language Preference</Label>
+              <p className="text-foreground py-2">{profile?.language_preference || "English"}</p>
             </div>
           </CardContent>
         </Card>

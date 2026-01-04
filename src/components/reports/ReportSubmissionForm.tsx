@@ -73,7 +73,7 @@ export function ReportSubmissionForm() {
     <Card>
       <CardHeader>
         <CardTitle>Submit Work Report</CardTitle>
-        <CardDescription>Log your work for a specific day</CardDescription>
+        <CardDescription>Log your work for a specific day. All fields marked with * are required.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -84,7 +84,7 @@ export function ReportSubmissionForm() {
                 name="platform"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Platform</FormLabel>
+                    <FormLabel>Platform *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -97,6 +97,9 @@ export function ReportSubmissionForm() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Select the platform where you performed this work
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -107,7 +110,7 @@ export function ReportSubmissionForm() {
                 name="work_date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Work Date</FormLabel>
+                    <FormLabel>Work Date *</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -133,6 +136,9 @@ export function ReportSubmissionForm() {
                         />
                       </PopoverContent>
                     </Popover>
+                    <p className="text-xs text-muted-foreground">
+                      The date when the work was performed
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -143,10 +149,13 @@ export function ReportSubmissionForm() {
                 name="hours_worked"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hours Worked</FormLabel>
+                    <FormLabel>Hours Worked *</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.5" {...field} />
                     </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      Total hours spent on this work (minimum 0.1)
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -157,10 +166,13 @@ export function ReportSubmissionForm() {
                 name="earnings"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Earnings ($)</FormLabel>
+                    <FormLabel>Earnings ($) *</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" {...field} />
                     </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      Your earnings for this work in USD
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -174,12 +186,25 @@ export function ReportSubmissionForm() {
                 <FormItem>
                   <FormLabel>Description (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Describe your work..." {...field} />
+                    <Textarea 
+                      placeholder="Describe your work, milestones achieved, or tasks completed..." 
+                      {...field} 
+                    />
                   </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Provide details about tasks, achievements, or notes for reviewers
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            <div className="bg-muted/50 p-3 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                After submission, your report will be reviewed by your team lead. 
+                You'll receive a notification once it's approved or if revisions are needed.
+              </p>
+            </div>
 
             <div className="flex gap-2">
               <Button type="submit" disabled={createReport.isPending}>

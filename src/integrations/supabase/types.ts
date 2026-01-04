@@ -50,6 +50,57 @@ export type Database = {
         }
         Relationships: []
       }
+      complaints: {
+        Row: {
+          assigned_to: string | null
+          attachment_url: string | null
+          category: string
+          created_at: string
+          description: string
+          escalated: boolean | null
+          escalated_at: string | null
+          id: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          attachment_url?: string | null
+          category: string
+          created_at?: string
+          description: string
+          escalated?: boolean | null
+          escalated_at?: string | null
+          id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          attachment_url?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          escalated?: boolean | null
+          escalated_at?: string | null
+          id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       investments: {
         Row: {
           created_at: string
@@ -200,27 +251,78 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          country: string | null
           created_at: string
           external_accounts: Json | null
           full_name: string | null
           id: string
+          initial_investment: number | null
+          is_investor: boolean | null
+          language_preference: string | null
+          referral_code: string | null
+          referred_by: string | null
+          skills: string[] | null
+          timezone: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          country?: string | null
           created_at?: string
           external_accounts?: Json | null
           full_name?: string | null
           id: string
+          initial_investment?: number | null
+          is_investor?: boolean | null
+          language_preference?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
+          skills?: string[] | null
+          timezone?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          country?: string | null
           created_at?: string
           external_accounts?: Json | null
           full_name?: string | null
           id?: string
+          initial_investment?: number | null
+          is_investor?: boolean | null
+          language_preference?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
+          skills?: string[] | null
+          timezone?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          status?: string
         }
         Relationships: []
       }

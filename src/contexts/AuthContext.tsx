@@ -9,6 +9,14 @@ interface Profile {
   full_name: string | null;
   avatar_url: string | null;
   external_accounts: Record<string, unknown>;
+  skills: string[];
+  country: string | null;
+  timezone: string | null;
+  language_preference: string | null;
+  is_investor: boolean;
+  initial_investment: number;
+  referral_code: string | null;
+  referred_by: string | null;
 }
 
 interface AuthContextType {
@@ -49,6 +57,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         full_name: data.full_name,
         avatar_url: data.avatar_url,
         external_accounts: (data.external_accounts as Record<string, unknown>) || {},
+        skills: (data.skills as string[]) || [],
+        country: data.country,
+        timezone: data.timezone,
+        language_preference: data.language_preference,
+        is_investor: data.is_investor || false,
+        initial_investment: Number(data.initial_investment || 0),
+        referral_code: data.referral_code,
+        referred_by: data.referred_by,
       });
     }
   };

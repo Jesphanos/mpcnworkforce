@@ -35,6 +35,16 @@ function NotificationItem({
     info: "border-l-primary",
   };
 
+  // Generate action link based on notification content
+  const getActionLink = () => {
+    const titleLower = notification.title.toLowerCase();
+    if (titleLower.includes("report")) return "/reports";
+    if (titleLower.includes("task")) return "/tasks";
+    return null;
+  };
+
+  const actionLink = getActionLink();
+
   return (
     <div
       className={cn(
@@ -50,9 +60,20 @@ function NotificationItem({
             {notification.title}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{notification.message}</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-          </p>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-xs text-muted-foreground">
+              {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+            </p>
+            {actionLink && (
+              <a
+                href={actionLink}
+                className="text-xs text-primary hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                View details →
+              </a>
+            )}
+          </div>
         </div>
         {!notification.read && (
           <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
