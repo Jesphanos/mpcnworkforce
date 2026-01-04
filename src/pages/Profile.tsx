@@ -29,7 +29,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { SkillsSection } from "@/components/employee/SkillsSection";
-import { Loader2, User, Mail, Shield, ExternalLink, Trash2, Globe, Clock } from "lucide-react";
+import { ExternalAccountsSection } from "@/components/employee/ExternalAccountsSection";
+import { Loader2, User, Mail, Shield, Trash2, Globe, Clock, Copy, CheckCircle } from "lucide-react";
 
 export default function Profile() {
   const { user, profile, role, signOut } = useAuth();
@@ -261,26 +262,43 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* External Accounts Placeholder */}
+        {/* MPCN Employee ID Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <ExternalLink className="h-5 w-5" />
-              External Accounts
+              <CheckCircle className="h-5 w-5" />
+              MPCN Employee ID
             </CardTitle>
             <CardDescription>
-              Link your freelancing and investment platform accounts
+              Your unique identifier for all tasks and reports
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <p>External account management coming in Phase 2</p>
-              <p className="text-sm">
-                Connect Upwork, Fiverr, Swagbucks, trading platforms, and more
-              </p>
+            <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 border">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Employee ID</p>
+                <p className="font-mono text-lg font-semibold">{user?.id?.slice(0, 8).toUpperCase()}</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(user?.id || "");
+                  toast({ title: "Copied!", description: "Employee ID copied to clipboard" });
+                }}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copy Full ID
+              </Button>
             </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              This ID is auto-generated and read-only. It links all your tasks and reports.
+            </p>
           </CardContent>
         </Card>
+
+        {/* External Accounts */}
+        <ExternalAccountsSection />
 
         {/* Danger Zone */}
         <Card className="border-destructive/50">

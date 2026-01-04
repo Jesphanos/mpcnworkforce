@@ -101,6 +101,45 @@ export type Database = {
         }
         Relationships: []
       }
+      external_accounts: {
+        Row: {
+          created_at: string
+          external_username: string
+          id: string
+          platform_name: string
+          profile_link: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          external_username: string
+          id?: string
+          platform_name: string
+          profile_link?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          external_username?: string
+          id?: string
+          platform_name?: string
+          profile_link?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
       investments: {
         Row: {
           created_at: string
@@ -398,16 +437,30 @@ export type Database = {
           admin_reviewed_at: string | null
           admin_reviewed_by: string | null
           admin_status: string | null
+          assigned_by: string | null
           base_rate: number
+          bonuses: number | null
           calculated_earnings: number | null
+          collaborators: string[] | null
           created_at: string
           current_rate: number
           description: string | null
+          due_date: string | null
+          estimated_hours: number | null
+          evidence_required: boolean | null
+          evidence_url: string | null
+          external_task_id: string | null
+          feedback_notes: string | null
           final_status: string
           hours_worked: number
           id: string
+          investment_contribution: number | null
           platform: string
+          progress_percent: number | null
+          rating: number | null
+          revisions_count: number | null
           status: string
+          task_type: Database["public"]["Enums"]["task_type"] | null
           team_lead_rejection_reason: string | null
           team_lead_reviewed_at: string | null
           team_lead_reviewed_by: string | null
@@ -422,16 +475,30 @@ export type Database = {
           admin_reviewed_at?: string | null
           admin_reviewed_by?: string | null
           admin_status?: string | null
+          assigned_by?: string | null
           base_rate?: number
+          bonuses?: number | null
           calculated_earnings?: number | null
+          collaborators?: string[] | null
           created_at?: string
           current_rate?: number
           description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          evidence_required?: boolean | null
+          evidence_url?: string | null
+          external_task_id?: string | null
+          feedback_notes?: string | null
           final_status?: string
           hours_worked?: number
           id?: string
+          investment_contribution?: number | null
           platform: string
+          progress_percent?: number | null
+          rating?: number | null
+          revisions_count?: number | null
           status?: string
+          task_type?: Database["public"]["Enums"]["task_type"] | null
           team_lead_rejection_reason?: string | null
           team_lead_reviewed_at?: string | null
           team_lead_reviewed_by?: string | null
@@ -446,16 +513,30 @@ export type Database = {
           admin_reviewed_at?: string | null
           admin_reviewed_by?: string | null
           admin_status?: string | null
+          assigned_by?: string | null
           base_rate?: number
+          bonuses?: number | null
           calculated_earnings?: number | null
+          collaborators?: string[] | null
           created_at?: string
           current_rate?: number
           description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          evidence_required?: boolean | null
+          evidence_url?: string | null
+          external_task_id?: string | null
+          feedback_notes?: string | null
           final_status?: string
           hours_worked?: number
           id?: string
+          investment_contribution?: number | null
           platform?: string
+          progress_percent?: number | null
+          rating?: number | null
+          revisions_count?: number | null
           status?: string
+          task_type?: Database["public"]["Enums"]["task_type"] | null
           team_lead_rejection_reason?: string | null
           team_lead_reviewed_at?: string | null
           team_lead_reviewed_by?: string | null
@@ -554,19 +635,33 @@ export type Database = {
         Row: {
           admin_override_reason: string | null
           admin_status: string | null
+          assigned_by: string | null
           base_rate: number | null
+          bonuses: number | null
+          collaborators: string[] | null
           created_at: string
           current_rate: number | null
           description: string | null
+          due_date: string | null
           earnings: number
+          estimated_hours: number | null
+          evidence_required: boolean | null
+          evidence_url: string | null
+          external_task_id: string | null
+          feedback_notes: string | null
           final_status: string | null
           hours_worked: number
           id: string
+          investment_contribution: number | null
           platform: string
+          progress_percent: number | null
+          rating: number | null
           rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          revisions_count: number | null
           status: string
+          task_type: Database["public"]["Enums"]["task_type"] | null
           team_lead_rejection_reason: string | null
           team_lead_reviewed_at: string | null
           team_lead_reviewed_by: string | null
@@ -578,19 +673,33 @@ export type Database = {
         Insert: {
           admin_override_reason?: string | null
           admin_status?: string | null
+          assigned_by?: string | null
           base_rate?: number | null
+          bonuses?: number | null
+          collaborators?: string[] | null
           created_at?: string
           current_rate?: number | null
           description?: string | null
+          due_date?: string | null
           earnings?: number
+          estimated_hours?: number | null
+          evidence_required?: boolean | null
+          evidence_url?: string | null
+          external_task_id?: string | null
+          feedback_notes?: string | null
           final_status?: string | null
           hours_worked?: number
           id?: string
+          investment_contribution?: number | null
           platform: string
+          progress_percent?: number | null
+          rating?: number | null
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          revisions_count?: number | null
           status?: string
+          task_type?: Database["public"]["Enums"]["task_type"] | null
           team_lead_rejection_reason?: string | null
           team_lead_reviewed_at?: string | null
           team_lead_reviewed_by?: string | null
@@ -602,19 +711,33 @@ export type Database = {
         Update: {
           admin_override_reason?: string | null
           admin_status?: string | null
+          assigned_by?: string | null
           base_rate?: number | null
+          bonuses?: number | null
+          collaborators?: string[] | null
           created_at?: string
           current_rate?: number | null
           description?: string | null
+          due_date?: string | null
           earnings?: number
+          estimated_hours?: number | null
+          evidence_required?: boolean | null
+          evidence_url?: string | null
+          external_task_id?: string | null
+          feedback_notes?: string | null
           final_status?: string | null
           hours_worked?: number
           id?: string
+          investment_contribution?: number | null
           platform?: string
+          progress_percent?: number | null
+          rating?: number | null
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          revisions_count?: number | null
           status?: string
+          task_type?: Database["public"]["Enums"]["task_type"] | null
           team_lead_rejection_reason?: string | null
           team_lead_reviewed_at?: string | null
           team_lead_reviewed_by?: string | null
@@ -675,6 +798,16 @@ export type Database = {
         | "investment_admin"
         | "user_admin"
         | "general_overseer"
+      task_type:
+        | "research"
+        | "coding"
+        | "design"
+        | "support"
+        | "writing"
+        | "data_entry"
+        | "quality_assurance"
+        | "project_management"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -810,6 +943,17 @@ export const Constants = {
         "investment_admin",
         "user_admin",
         "general_overseer",
+      ],
+      task_type: [
+        "research",
+        "coding",
+        "design",
+        "support",
+        "writing",
+        "data_entry",
+        "quality_assurance",
+        "project_management",
+        "other",
       ],
     },
   },

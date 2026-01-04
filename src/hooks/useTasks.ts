@@ -10,11 +10,25 @@ export interface Task {
   title: string;
   description: string | null;
   platform: string;
+  task_type: string;
   work_date: string;
+  due_date: string | null;
   hours_worked: number;
+  estimated_hours: number;
   base_rate: number;
   current_rate: number;
   calculated_earnings: number;
+  progress_percent: number;
+  external_task_id: string | null;
+  evidence_url: string | null;
+  evidence_required: boolean;
+  collaborators: string[];
+  revisions_count: number;
+  rating: number | null;
+  feedback_notes: string | null;
+  bonuses: number;
+  investment_contribution: number;
+  assigned_by: string | null;
   status: string;
   team_lead_status: string | null;
   team_lead_rejection_reason: string | null;
@@ -33,10 +47,18 @@ export interface CreateTaskInput {
   title: string;
   description?: string;
   platform: string;
+  task_type?: string;
   work_date: string;
+  due_date?: string;
   hours_worked: number;
+  estimated_hours?: number;
   base_rate: number;
   current_rate?: number;
+  progress_percent?: number;
+  external_task_id?: string;
+  evidence_url?: string;
+  evidence_required?: boolean;
+  collaborators?: string[];
 }
 
 export function useTasks() {
@@ -65,13 +87,28 @@ export function useCreateTask() {
     mutationFn: async (input: CreateTaskInput) => {
       if (!user) throw new Error("Not authenticated");
 
+      const insertData = {
+        user_id: user.id,
+        title: input.title,
+        description: input.description,
+        platform: input.platform,
+        work_date: input.work_date,
+        hours_worked: input.hours_worked,
+        base_rate: input.base_rate,
+        current_rate: input.current_rate ?? input.base_rate,
+        task_type: input.task_type || "other",
+        due_date: input.due_date,
+        estimated_hours: input.estimated_hours ?? 0,
+        progress_percent: input.progress_percent ?? 0,
+        external_task_id: input.external_task_id,
+        evidence_url: input.evidence_url,
+        evidence_required: input.evidence_required ?? true,
+        collaborators: input.collaborators || [],
+      };
+
       const { data, error } = await supabase
         .from("tasks")
-        .insert({
-          user_id: user.id,
-          ...input,
-          current_rate: input.current_rate ?? input.base_rate,
-        })
+        .insert(insertData as any)
         .select()
         .single();
 
@@ -109,6 +146,104 @@ export function useUpdateTaskRate() {
     },
     onError: (error) => {
       toast.error("Failed to update rate: " + error.message);
+    },
+  });
+}
+
+export function useUpdateTaskProgress() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ taskId, progress }: { taskId: string; progress: number }) => {
+      const { data, error } = await supabase
+        .from("tasks")
+        .update({ progress_percent: progress })
+        .eq("id", taskId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Progress updated");
+    },
+    onError: (error) => {
+      toast.error("Failed to update progress: " + error.message);
+    },
+  });
+}
+
+export function useUpdateTaskRating() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      taskId, 
+      rating, 
+      feedbackNotes 
+    }: { 
+      taskId: string; 
+      rating: number;
+      feedbackNotes?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from("tasks")
+        .update({ 
+          rating, 
+          feedback_notes: feedbackNotes || null 
+        })
+        .eq("id", taskId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Rating submitted");
+    },
+    onError: (error) => {
+      toast.error("Failed to submit rating: " + error.message);
+    },
+  });
+}
+
+export function useRequestRevision() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ taskId }: { taskId: string }) => {
+      // First get current revisions count
+      const { data: task, error: fetchError } = await supabase
+        .from("tasks")
+        .select("revisions_count")
+        .eq("id", taskId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const { data, error } = await supabase
+        .from("tasks")
+        .update({ 
+          revisions_count: (task?.revisions_count || 0) + 1,
+          team_lead_status: "revision_requested",
+        })
+        .eq("id", taskId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Revision requested");
+    },
+    onError: (error) => {
+      toast.error("Failed to request revision: " + error.message);
     },
   });
 }
