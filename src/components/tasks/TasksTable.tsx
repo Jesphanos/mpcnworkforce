@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Check, X, Clock, Eye, Shield, DollarSign, History } from "lucide-react";
+import { Check, X, Clock, Eye, Shield, DollarSign, History, RotateCcw, Users } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Task, useTeamLeadReview, useAdminOverride, useUpdateTaskRate } from "@/hooks/useTasks";
+import { Task, useTeamLeadReview, useAdminOverride, useUpdateTaskRate, useRequestRevision } from "@/hooks/useTasks";
 import { useAuth } from "@/contexts/AuthContext";
 import { TaskAuditDialog } from "./TaskAuditDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TasksTableProps {
   tasks: Task[];
@@ -24,12 +26,14 @@ const statusColors: Record<string, string> = {
   pending: "bg-warning/10 text-warning border-warning/20",
   approved: "bg-success/10 text-success border-success/20",
   rejected: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  revision_requested: "bg-blue-500/10 text-blue-600 border-blue-500/20",
 };
 
 const statusIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   pending: Clock,
   approved: Check,
   rejected: X,
+  revision_requested: RotateCcw,
 };
 
 // Employee-friendly labels (softened rejection language)
@@ -37,6 +41,7 @@ const statusLabels: Record<string, string> = {
   pending: "Pending",
   approved: "Approved",
   rejected: "Needs Revision",
+  revision_requested: "Revision Requested",
 };
 
 export function TasksTable({ tasks, showActions = false, showRateEdit = false }: TasksTableProps) {
@@ -47,14 +52,43 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
   
   const [rejectionReason, setRejectionReason] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
+  const [revisionNotes, setRevisionNotes] = useState("");
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [editingRate, setEditingRate] = useState<{ taskId: string; rate: string; originalRate: number } | null>(null);
   const [rateChangeReason, setRateChangeReason] = useState("");
   const [auditTaskId, setAuditTaskId] = useState<string | null>(null);
+  const [collaboratorNames, setCollaboratorNames] = useState<Record<string, string>>({});
   
   const teamLeadReview = useTeamLeadReview();
   const adminOverride = useAdminOverride();
   const updateRate = useUpdateTaskRate();
+  const requestRevision = useRequestRevision();
+
+  // Fetch collaborator names
+  useEffect(() => {
+    const allCollaboratorIds = new Set<string>();
+    tasks.forEach(task => {
+      task.collaborators?.forEach(id => allCollaboratorIds.add(id));
+    });
+
+    if (allCollaboratorIds.size > 0) {
+      const fetchNames = async () => {
+        const { data } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", Array.from(allCollaboratorIds));
+        
+        if (data) {
+          const names: Record<string, string> = {};
+          data.forEach(p => {
+            names[p.id] = p.full_name || p.id.slice(0, 8);
+          });
+          setCollaboratorNames(names);
+        }
+      };
+      fetchNames();
+    }
+  }, [tasks]);
 
   const handleTeamLeadApprove = async (task: Task) => {
     await teamLeadReview.mutateAsync({ taskId: task.id, status: "approved", task });
@@ -84,6 +118,14 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
       task,
     });
     setOverrideReason("");
+  };
+
+  const handleRequestRevision = async (task: Task) => {
+    await requestRevision.mutateAsync({
+      taskId: task.id,
+      notes: revisionNotes,
+    });
+    setRevisionNotes("");
   };
 
   const handleRateSave = async (task: Task) => {
@@ -132,6 +174,8 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
                 <TableHead>Hours</TableHead>
                 <TableHead>Rate</TableHead>
                 <TableHead>Earnings</TableHead>
+                <TableHead>Revisions</TableHead>
+                <TableHead>Collaborators</TableHead>
                 <TableHead>TL Status</TableHead>
                 <TableHead>Final Status</TableHead>
                 {(showActions || showRateEdit) && <TableHead>Actions</TableHead>}
@@ -222,6 +266,39 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
                     </TableCell>
                     <TableCell>${Number(task.calculated_earnings).toFixed(2)}</TableCell>
                     <TableCell>
+                      {task.revisions_count > 0 ? (
+                        <Badge variant="secondary" className="gap-1">
+                          <RotateCcw className="h-3 w-3" />
+                          {task.revisions_count}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">0</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <TooltipProvider>
+                        {task.collaborators && task.collaborators.length > 0 ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge variant="outline" className="gap-1 cursor-help">
+                                <Users className="h-3 w-3" />
+                                {task.collaborators.length}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="text-sm">
+                                {task.collaborators.map(id => (
+                                  <div key={id}>{collaboratorNames[id] || id.slice(0, 8)}</div>
+                                ))}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
+                      </TooltipProvider>
+                    </TableCell>
+                    <TableCell>
                       <Badge variant="outline" className={statusColors[task.team_lead_status || "pending"]}>
                         <TLStatusIcon className="h-3 w-3 mr-1" />
                         {statusLabels[task.team_lead_status || "pending"] || task.team_lead_status || "pending"}
@@ -249,6 +326,47 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
                               >
                                 <Check className="h-3 w-3" />
                               </Button>
+                              
+                              {/* Request Revision Button */}
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-blue-600 hover:bg-blue-500/10 h-7 w-7 p-0"
+                                    title="Request Revision"
+                                  >
+                                    <RotateCcw className="h-3 w-3" />
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle>Request Revision</DialogTitle>
+                                    <DialogDescription>
+                                      Ask the employee to revise this task. Revision count: {task.revisions_count}
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <Textarea
+                                    placeholder="Enter revision notes (what needs to be changed)..."
+                                    value={revisionNotes}
+                                    onChange={(e) => setRevisionNotes(e.target.value)}
+                                  />
+                                  <DialogFooter>
+                                    <Button variant="outline" onClick={() => setRevisionNotes("")}>
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      onClick={() => handleRequestRevision(task)}
+                                      disabled={requestRevision.isPending}
+                                    >
+                                      <RotateCcw className="h-4 w-4 mr-2" />
+                                      Request Revision
+                                    </Button>
+                                  </DialogFooter>
+                                </DialogContent>
+                              </Dialog>
+                              
+                              {/* Reject Button */}
                               <Dialog>
                                 <DialogTrigger asChild>
                                   <Button

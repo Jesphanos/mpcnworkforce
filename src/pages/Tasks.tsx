@@ -16,7 +16,10 @@ export default function Tasks() {
   const isAdmin = hasRole("report_admin");
 
   const myTasks = tasks?.filter((t) => t.user_id === user?.id) || [];
-  const pendingTasks = tasks?.filter((t) => t.final_status === "pending" && !t.team_lead_status) || [];
+  const pendingTasks = tasks?.filter((t) => 
+    t.final_status === "pending" && 
+    (!t.team_lead_status || t.team_lead_status === "revision_requested")
+  ) || [];
   const rejectedByTL = tasks?.filter((t) => t.team_lead_status === "rejected" && t.final_status === "pending") || [];
 
   // Stats
