@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, Upload, Link2 } from "lucide-react";
+import { CalendarIcon, Plus, Upload, Link2, Users } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useCreateTask } from "@/hooks/useTasks";
+import { CollaboratorsPicker } from "./CollaboratorsPicker";
 
 const platforms = ["Remotasks", "Outlier", "Scale AI", "Appen", "Clickworker", "Upwork", "Fiverr", "Other"];
 
@@ -41,6 +42,7 @@ export function TaskForm() {
   const [externalTaskId, setExternalTaskId] = useState("");
   const [evidenceUrl, setEvidenceUrl] = useState("");
   const [evidenceRequired, setEvidenceRequired] = useState(true);
+  const [collaborators, setCollaborators] = useState<string[]>([]);
   
   const createTask = useCreateTask();
 
@@ -70,6 +72,7 @@ export function TaskForm() {
       external_task_id: externalTaskId || undefined,
       evidence_url: evidenceUrl || undefined,
       evidence_required: evidenceRequired,
+      collaborators: collaborators.length > 0 ? collaborators : undefined,
     });
 
     // Reset form
@@ -86,6 +89,7 @@ export function TaskForm() {
     setExternalTaskId("");
     setEvidenceUrl("");
     setEvidenceRequired(true);
+    setCollaborators([]);
   };
 
   return (
@@ -319,6 +323,21 @@ export function TaskForm() {
                 Evidence is required for this task to be submitted for review
               </p>
             )}
+          </div>
+
+          {/* Collaborators Section */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Collaborators (Optional)
+            </Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Add team members who contributed to this task
+            </p>
+            <CollaboratorsPicker
+              value={collaborators}
+              onChange={setCollaborators}
+            />
           </div>
 
           <div className="space-y-2">

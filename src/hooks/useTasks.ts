@@ -213,9 +213,12 @@ export function useUpdateTaskRating() {
 
 export function useRequestRevision() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ taskId }: { taskId: string }) => {
+    mutationFn: async ({ taskId, notes }: { taskId: string; notes?: string }) => {
+      if (!user) throw new Error("Not authenticated");
+
       // First get current revisions count
       const { data: task, error: fetchError } = await supabase
         .from("tasks")
@@ -230,6 +233,9 @@ export function useRequestRevision() {
         .update({ 
           revisions_count: (task?.revisions_count || 0) + 1,
           team_lead_status: "revision_requested",
+          feedback_notes: notes || null,
+          team_lead_reviewed_by: user.id,
+          team_lead_reviewed_at: new Date().toISOString(),
         })
         .eq("id", taskId)
         .select()
@@ -240,7 +246,8 @@ export function useRequestRevision() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Revision requested");
+      queryClient.invalidateQueries({ queryKey: ["team-tasks"] });
+      toast.success("Revision requested - employee notified");
     },
     onError: (error) => {
       toast.error("Failed to request revision: " + error.message);
