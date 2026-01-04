@@ -11,10 +11,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useDashboardTrends } from "@/hooks/useDashboardTrends";
+import { usePlatformDistribution } from "@/hooks/usePlatformDistribution";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { TrendsChart } from "@/components/dashboard/TrendsChart";
 import { PlatformChart } from "@/components/dashboard/PlatformChart";
+import { exportDashboardToCSV, exportDashboardToPDF } from "@/lib/dashboardExport";
 import { formatDistanceToNow } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -29,7 +38,8 @@ import {
   AlertCircle,
   ArrowUpRight,
   ClipboardList,
-  ArrowRight
+  ArrowRight,
+  Download
 } from "lucide-react";
 const adminCards = [
   {
@@ -191,7 +201,29 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const { data: stats, isLoading: statsLoading } = useDashboardStats(dateRange);
+  const { data: trends } = useDashboardTrends(dateRange);
+  const { data: platforms } = usePlatformDistribution(dateRange);
   const isAdmin = hasRole("user_admin") || hasRole("general_overseer") || hasRole("team_lead");
+
+  const handleExportCSV = () => {
+    if (!stats) return;
+    exportDashboardToCSV({
+      stats,
+      trends: trends || [],
+      platforms: platforms || [],
+      dateRange,
+    });
+  };
+
+  const handleExportPDF = () => {
+    if (!stats) return;
+    exportDashboardToPDF({
+      stats,
+      trends: trends || [],
+      platforms: platforms || [],
+      dateRange,
+    });
+  };
 
   const statsCards = [
     {
@@ -239,7 +271,7 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6 animate-fade-in">
-        {/* Welcome Section with Date Filter */}
+        {/* Welcome Section with Date Filter and Export */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">
@@ -249,7 +281,25 @@ export default function Dashboard() {
               {getRoleLabel(role)} Overview
             </p>
           </div>
-          <DateRangeFilter dateRange={dateRange} onDateRangeChange={setDateRange} />
+          <div className="flex items-center gap-2">
+            <DateRangeFilter dateRange={dateRange} onDateRangeChange={setDateRange} />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" disabled={statsLoading}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleExportCSV}>
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportPDF}>
+                  Export as PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Stats Grid */}
