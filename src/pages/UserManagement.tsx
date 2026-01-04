@@ -32,10 +32,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Users, Search, Trash2, Shield, Mail } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { TeamManagement } from "@/components/team/TeamManagement";
+import { TeamAssignmentDialog } from "@/components/team/TeamAssignmentDialog";
+import { useTeamMembers } from "@/hooks/useTeams";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -45,9 +49,10 @@ interface UserWithRole {
   avatar_url: string | null;
   created_at: string;
   role: AppRole | null;
+  team_id?: string;
 }
 
-const ALL_ROLES: AppRole[] = ["employee", "report_admin", "finance_hr_admin", "investment_admin", "user_admin"];
+const ALL_ROLES: AppRole[] = ["employee", "team_lead", "report_admin", "finance_hr_admin", "investment_admin", "user_admin"];
 
 export default function UserManagement() {
   const { user, hasRole, role: currentUserRole } = useAuth();
@@ -58,6 +63,7 @@ export default function UserManagement() {
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [updatingRoleUserId, setUpdatingRoleUserId] = useState<string | null>(null);
   const [pendingApprovals, setPendingApprovals] = useState<string[]>([]);
+  const { members: allTeamMembers } = useTeamMembers();
 
   const isAdmin = hasRole("user_admin") || hasRole("general_overseer");
 
@@ -119,6 +125,11 @@ export default function UserManagement() {
 
     setUsers(usersWithRoles);
     setIsLoading(false);
+  };
+
+  const getUserTeamId = (userId: string) => {
+    const membership = allTeamMembers.find(m => m.user_id === userId);
+    return membership?.team_id;
   };
 
   const handleRoleChange = async (userId: string, newRole: AppRole, userName: string | null) => {
@@ -281,7 +292,7 @@ export default function UserManagement() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">User Management</h1>
-            <p className="text-muted-foreground">Manage users and their roles</p>
+            <p className="text-muted-foreground">Manage users, roles, and teams</p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="gap-1">
@@ -291,44 +302,56 @@ export default function UserManagement() {
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search users by name or role..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Button variant="outline" onClick={fetchUsers} disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Refresh
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : filteredUsers.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                {searchQuery ? "No users match your search." : "No users found."}
-              </div>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>User</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Joined</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
+        <Tabs defaultValue="users" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="teams">Teams</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="teams">
+            <TeamManagement />
+          </TabsContent>
+
+          <TabsContent value="users">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search users by name or role..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Button variant="outline" onClick={fetchUsers} disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Refresh
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : filteredUsers.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    {searchQuery ? "No users match your search." : "No users found."}
+                  </div>
+                ) : (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>User</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead>Team</TableHead>
+                          <TableHead>Joined</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
                   <TableBody>
                     {filteredUsers.map((u) => (
                       <TableRow key={u.id}>
@@ -380,6 +403,13 @@ export default function UserManagement() {
                               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                             )}
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          <TeamAssignmentDialog
+                            userId={u.id}
+                            userName={u.full_name || "User"}
+                            currentTeamId={getUserTeamId(u.id)}
+                          />
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {new Date(u.created_at).toLocaleDateString()}
@@ -436,6 +466,8 @@ export default function UserManagement() {
             )}
           </CardContent>
         </Card>
+      </TabsContent>
+    </Tabs>
       </div>
     </DashboardLayout>
   );
