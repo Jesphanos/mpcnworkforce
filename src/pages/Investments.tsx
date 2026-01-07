@@ -1,16 +1,23 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InvestmentForm } from "@/components/investments/InvestmentForm";
 import { InvestmentsTable } from "@/components/investments/InvestmentsTable";
 import { InvestmentStats } from "@/components/investments/InvestmentStats";
 import { InvestmentCharts } from "@/components/investments/InvestmentCharts";
+import { InvestorDashboard } from "@/components/investments/InvestorDashboard";
 import { useInvestments } from "@/hooks/useInvestments";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCapabilities } from "@/hooks/useCapabilities";
+import { TrendingUp, Landmark } from "lucide-react";
 
 export default function Investments() {
   const { data: investments, isLoading } = useInvestments();
-  const { hasRole } = useAuth();
-  const canManage = hasRole("investment_admin");
+  const { profile } = useAuth();
+  const { can, isInvestor } = useCapabilities();
+  
+  const canManage = can("canManageInvestments");
+  const showInvestorTab = isInvestor();
 
   if (isLoading) {
     return (
@@ -28,6 +35,23 @@ export default function Investments() {
     );
   }
 
+  // If user is only an investor (no admin access), show just their dashboard
+  if (showInvestorTab && !canManage) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6 animate-fade-in">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">My Investments</h1>
+            <p className="text-muted-foreground">
+              Track your investment portfolio and returns
+            </p>
+          </div>
+          <InvestorDashboard />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6 animate-fade-in">
@@ -38,13 +62,38 @@ export default function Investments() {
           </p>
         </div>
 
-        <InvestmentStats investments={investments || []} />
+        {showInvestorTab && canManage ? (
+          <Tabs defaultValue="portfolio" className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="portfolio" className="gap-2">
+                <Landmark className="h-4 w-4" />
+                Portfolio
+              </TabsTrigger>
+              <TabsTrigger value="my-investments" className="gap-2">
+                <TrendingUp className="h-4 w-4" />
+                My Investments
+              </TabsTrigger>
+            </TabsList>
 
-        <InvestmentCharts investments={investments || []} />
+            <TabsContent value="portfolio" className="space-y-6">
+              <InvestmentStats investments={investments || []} />
+              <InvestmentCharts investments={investments || []} />
+              {canManage && <InvestmentForm />}
+              <InvestmentsTable investments={investments || []} />
+            </TabsContent>
 
-        {canManage && <InvestmentForm />}
-
-        <InvestmentsTable investments={investments || []} />
+            <TabsContent value="my-investments">
+              <InvestorDashboard />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <>
+            <InvestmentStats investments={investments || []} />
+            <InvestmentCharts investments={investments || []} />
+            {canManage && <InvestmentForm />}
+            <InvestmentsTable investments={investments || []} />
+          </>
+        )}
       </div>
     </DashboardLayout>
   );
