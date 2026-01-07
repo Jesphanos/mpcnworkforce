@@ -3,7 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
-interface MpcnFinancial {
+export type FinancialPeriodStatus = "draft" | "finalized" | "corrected";
+
+export interface MpcnFinancial {
   id: string;
   total_pool: number;
   total_profit: number;
@@ -12,6 +14,16 @@ interface MpcnFinancial {
   created_by: string;
   created_at: string;
   updated_at: string;
+  // New finalization fields
+  status: FinancialPeriodStatus;
+  finalized_at: string | null;
+  finalized_by: string | null;
+  correction_reason: string | null;
+  corrected_at: string | null;
+  corrected_by: string | null;
+  disclosure_notes: string | null;
+  original_total_pool: number | null;
+  original_total_profit: number | null;
 }
 
 interface InvestmentReturn {
@@ -78,6 +90,8 @@ export function useMpcnFinancials() {
       total_pool?: number;
       total_profit?: number;
       notes?: string;
+      disclosure_notes?: string;
+      correction_reason?: string;
     }) => {
       const { id, ...updates } = input;
       const { error } = await supabase
@@ -96,11 +110,58 @@ export function useMpcnFinancials() {
     },
   });
 
+  const finalizeFinancial = useMutation({
+    mutationFn: async (input: { id: string; disclosure_notes?: string }) => {
+      const { error } = await supabase
+        .from("mpcn_financials")
+        .update({
+          status: "finalized",
+          disclosure_notes: input.disclosure_notes,
+        })
+        .eq("id", input.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mpcn-financials"] });
+      toast.success("Financial period finalized");
+    },
+    onError: (error) => {
+      toast.error("Failed to finalize: " + error.message);
+    },
+  });
+
+  const correctFinancial = useMutation({
+    mutationFn: async (input: {
+      id: string;
+      total_pool?: number;
+      total_profit?: number;
+      correction_reason: string;
+    }) => {
+      const { id, ...updates } = input;
+      const { error } = await supabase
+        .from("mpcn_financials")
+        .update(updates)
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mpcn-financials"] });
+      toast.success("Financial correction applied");
+    },
+    onError: (error) => {
+      toast.error("Correction failed: " + error.message);
+    },
+  });
+
   return {
     financials: financialsQuery.data || [],
     isLoading: financialsQuery.isLoading,
     createFinancial,
     updateFinancial,
+    finalizeFinancial,
+    correctFinancial,
   };
 }
 
