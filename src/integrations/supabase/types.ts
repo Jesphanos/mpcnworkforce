@@ -292,31 +292,58 @@ export type Database = {
       }
       mpcn_financials: {
         Row: {
+          corrected_at: string | null
+          corrected_by: string | null
+          correction_reason: string | null
           created_at: string
           created_by: string
+          disclosure_notes: string | null
+          finalized_at: string | null
+          finalized_by: string | null
           id: string
           notes: string | null
+          original_total_pool: number | null
+          original_total_profit: number | null
           profit_date: string
+          status: Database["public"]["Enums"]["financial_period_status"]
           total_pool: number
           total_profit: number
           updated_at: string
         }
         Insert: {
+          corrected_at?: string | null
+          corrected_by?: string | null
+          correction_reason?: string | null
           created_at?: string
           created_by: string
+          disclosure_notes?: string | null
+          finalized_at?: string | null
+          finalized_by?: string | null
           id?: string
           notes?: string | null
+          original_total_pool?: number | null
+          original_total_profit?: number | null
           profit_date: string
+          status?: Database["public"]["Enums"]["financial_period_status"]
           total_pool?: number
           total_profit?: number
           updated_at?: string
         }
         Update: {
+          corrected_at?: string | null
+          corrected_by?: string | null
+          correction_reason?: string | null
           created_at?: string
           created_by?: string
+          disclosure_notes?: string | null
+          finalized_at?: string | null
+          finalized_by?: string | null
           id?: string
           notes?: string | null
+          original_total_pool?: number | null
+          original_total_profit?: number | null
           profit_date?: string
+          status?: Database["public"]["Enums"]["financial_period_status"]
           total_pool?: number
           total_profit?: number
           updated_at?: string
@@ -984,6 +1011,7 @@ export type Database = {
         | "user_admin"
         | "general_overseer"
       attention_level: "informational" | "support_needed" | "review_required"
+      financial_period_status: "draft" | "finalized" | "corrected"
       task_type:
         | "research"
         | "coding"
@@ -1131,6 +1159,7 @@ export const Constants = {
         "general_overseer",
       ],
       attention_level: ["informational", "support_needed", "review_required"],
+      financial_period_status: ["draft", "finalized", "corrected"],
       task_type: [
         "research",
         "coding",
