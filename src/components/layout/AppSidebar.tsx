@@ -24,72 +24,148 @@ import {
   LogOut,
   ClipboardList,
   UsersRound,
+  Activity,
+  Bell,
+  BarChart3,
+  Shield,
+  PieChart,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { useCapabilities } from "@/hooks/useCapabilities";
 
-const menuItems = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: LayoutDashboard,
-    roles: ["employee", "team_lead", "report_admin", "finance_hr_admin", "investment_admin", "user_admin", "general_overseer"],
-  },
-  {
-    title: "My Profile",
-    url: "/profile",
-    icon: User,
-    roles: ["employee", "team_lead", "report_admin", "finance_hr_admin", "investment_admin", "user_admin", "general_overseer"],
-  },
-  {
-    title: "My Reports",
-    url: "/reports",
-    icon: FileText,
-    roles: ["employee", "team_lead", "report_admin", "finance_hr_admin", "investment_admin", "user_admin", "general_overseer"],
-  },
-];
+type AppRole = 
+  | "employee" 
+  | "team_lead" 
+  | "report_admin" 
+  | "finance_hr_admin" 
+  | "investment_admin" 
+  | "user_admin" 
+  | "general_overseer";
 
-const adminMenuItems = [
-  {
-    title: "Team Dashboard",
-    url: "/team",
-    icon: UsersRound,
-    roles: ["team_lead", "report_admin", "general_overseer"],
+interface MenuItem {
+  title: string;
+  url: string;
+  icon: React.ElementType;
+}
+
+/**
+ * Role-based navigation structure
+ * Each role has a distinct menu reflecting their authority level
+ */
+const roleMenus: Record<AppRole, { main: MenuItem[]; admin?: MenuItem[]; adminLabel?: string }> = {
+  // Worker: Execution layer - own work only
+  employee: {
+    main: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "My Tasks", url: "/tasks", icon: ClipboardList },
+      { title: "My Reports", url: "/reports", icon: FileText },
+      { title: "My Profile", url: "/profile", icon: User },
+    ],
   },
-  {
-    title: "Tasks",
-    url: "/tasks",
-    icon: ClipboardList,
-    roles: ["team_lead", "report_admin", "general_overseer"],
+
+  // Team Lead: First-level review
+  team_lead: {
+    main: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "My Tasks", url: "/tasks", icon: ClipboardList },
+      { title: "My Reports", url: "/reports", icon: FileText },
+      { title: "My Profile", url: "/profile", icon: User },
+    ],
+    adminLabel: "Team Management",
+    admin: [
+      { title: "Team Overview", url: "/team", icon: UsersRound },
+      { title: "Pending Reviews", url: "/reports?tab=review", icon: FileText },
+    ],
   },
-  {
-    title: "Finance & HR",
-    url: "/finance-hr",
-    icon: DollarSign,
-    roles: ["finance_hr_admin", "general_overseer"],
+
+  // Report Admin: Quality & governance
+  report_admin: {
+    main: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "My Profile", url: "/profile", icon: User },
+    ],
+    adminLabel: "Administration",
+    admin: [
+      { title: "System Inbox", url: "/reports?tab=review", icon: FileText },
+      { title: "All Reports", url: "/reports?tab=all", icon: FileText },
+      { title: "Teams View", url: "/team", icon: UsersRound },
+      { title: "Activity Logs", url: "/activity", icon: Activity },
+    ],
   },
-  {
-    title: "Investments",
-    url: "/investments",
-    icon: TrendingUp,
-    roles: ["investment_admin", "general_overseer"],
+
+  // Finance/HR Admin: Payroll & HR
+  finance_hr_admin: {
+    main: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "My Profile", url: "/profile", icon: User },
+    ],
+    adminLabel: "Finance & HR",
+    admin: [
+      { title: "Finance & HR", url: "/finance-hr", icon: DollarSign },
+      { title: "Employee Directory", url: "/users", icon: Users },
+      { title: "Teams View", url: "/team", icon: UsersRound },
+      { title: "Activity Logs", url: "/activity", icon: Activity },
+    ],
   },
-  {
-    title: "User Management",
-    url: "/users",
-    icon: Users,
-    roles: ["user_admin", "general_overseer"],
+
+  // Investment Admin: Investments & financials
+  investment_admin: {
+    main: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "My Profile", url: "/profile", icon: User },
+    ],
+    adminLabel: "Investments",
+    admin: [
+      { title: "Investments", url: "/investments", icon: TrendingUp },
+      { title: "MPCN Financials", url: "/investments?tab=financials", icon: PieChart },
+    ],
   },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-    roles: ["general_overseer"],
+
+  // User Admin: User management
+  user_admin: {
+    main: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "My Profile", url: "/profile", icon: User },
+    ],
+    adminLabel: "User Management",
+    admin: [
+      { title: "Users", url: "/users", icon: Users },
+      { title: "Teams", url: "/team", icon: UsersRound },
+      { title: "Activity Logs", url: "/activity", icon: Activity },
+    ],
   },
+
+  // General Overseer: Strategic oversight
+  general_overseer: {
+    main: [
+      { title: "Global Overview", url: "/dashboard", icon: LayoutDashboard },
+      { title: "My Profile", url: "/profile", icon: User },
+    ],
+    adminLabel: "Strategic Oversight",
+    admin: [
+      { title: "Organization", url: "/team", icon: Building2 },
+      { title: "System Inbox", url: "/reports", icon: FileText },
+      { title: "Overrides", url: "/reports?tab=overrides", icon: Shield },
+      { title: "Audit Trail", url: "/activity", icon: Activity },
+      { title: "Finance & HR", url: "/finance-hr", icon: DollarSign },
+      { title: "Investments", url: "/investments", icon: TrendingUp },
+      { title: "User Management", url: "/users", icon: Users },
+      { title: "Settings", url: "/settings", icon: Settings },
+    ],
+  },
+};
+
+// Investor-specific menu (appended for is_investor flag)
+const investorMenu: MenuItem[] = [
+  { title: "My Investments", url: "/investments", icon: Wallet },
 ];
 
 export function AppSidebar() {
-  const { profile, role, signOut, hasRole } = useAuth();
+  const { profile, role, signOut } = useAuth();
+  const { isInvestor, isOverseer } = useCapabilities();
 
   const getInitials = (name: string | null) => {
     if (!name) return "U";
@@ -103,15 +179,26 @@ export function AppSidebar() {
 
   const getRoleLabel = (role: string | null) => {
     if (!role) return "Employee";
-    return role
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
+    const labels: Record<string, string> = {
+      employee: "Employee",
+      team_lead: "Team Lead",
+      report_admin: "Report Admin",
+      finance_hr_admin: "Finance & HR",
+      investment_admin: "Investment Admin",
+      user_admin: "User Admin",
+      general_overseer: "General Overseer",
+    };
+    return labels[role] || role.split("_").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
   };
 
-  const visibleAdminItems = adminMenuItems.filter((item) =>
-    item.roles.some((r) => hasRole(r as any))
-  );
+  const getRoleBadgeVariant = (role: string | null): "default" | "secondary" | "outline" => {
+    if (role === "general_overseer") return "default";
+    if (role?.includes("admin") || role === "team_lead") return "secondary";
+    return "outline";
+  };
+
+  const currentRole = (role as AppRole) || "employee";
+  const menu = roleMenus[currentRole] || roleMenus.employee;
 
   return (
     <Sidebar className="border-r-0">
@@ -121,20 +208,21 @@ export function AppSidebar() {
             <Building2 className="h-5 w-5 text-sidebar-primary-foreground" />
           </div>
           <div>
-            <h2 className="font-semibold text-sidebar-foreground">Workforce Hub</h2>
+            <h2 className="font-semibold text-sidebar-foreground">MPCN Workforce</h2>
             <p className="text-xs text-sidebar-foreground/60">Management System</p>
           </div>
         </div>
       </SidebarHeader>
 
       <SidebarContent className="p-2">
+        {/* Main Navigation */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs uppercase tracking-wider">
             Main
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {menu.main.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -152,14 +240,42 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {visibleAdminItems.length > 0 && (
+        {/* Investor Section (if is_investor and not already in investment role) */}
+        {isInvestor() && currentRole !== "investment_admin" && currentRole !== "general_overseer" && (
           <SidebarGroup className="mt-4">
             <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs uppercase tracking-wider">
-              Administration
+              Investments
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {visibleAdminItems.map((item) => (
+                {investorMenu.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+                        activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
+                      >
+                        <item.icon className="h-5 w-5" />
+                        <span>{item.title}</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* Administration Section */}
+        {menu.admin && menu.admin.length > 0 && (
+          <SidebarGroup className="mt-4">
+            <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs uppercase tracking-wider">
+              {menu.adminLabel || "Administration"}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {menu.admin.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
                       <NavLink
@@ -191,9 +307,9 @@ export function AppSidebar() {
             <p className="text-sm font-medium text-sidebar-foreground truncate">
               {profile?.full_name || "User"}
             </p>
-            <p className="text-xs text-sidebar-foreground/60 truncate">
+            <Badge variant={getRoleBadgeVariant(role)} className="text-[10px] h-5">
               {getRoleLabel(role)}
-            </p>
+            </Badge>
           </div>
         </div>
         <Button
