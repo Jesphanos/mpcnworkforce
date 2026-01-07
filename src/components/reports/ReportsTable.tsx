@@ -20,23 +20,19 @@ interface ReportsTableProps {
   showRateEdit?: boolean;
 }
 
+import { STATUS_LABELS, getHumaneStatus } from "@/config/humaneTerminology";
+import { RotateCcw } from "lucide-react";
+
 const statusColors: Record<string, string> = {
   pending: "bg-warning/10 text-warning border-warning/20",
   approved: "bg-success/10 text-success border-success/20",
-  rejected: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  rejected: "bg-secondary/50 text-secondary-foreground border-secondary", // Softened - not red/destructive
 };
 
 const statusIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   pending: Clock,
   approved: Check,
-  rejected: X,
-};
-
-// Employee-friendly labels (softened rejection language)
-const statusLabels: Record<string, string> = {
-  pending: "Pending",
-  approved: "Approved",
-  rejected: "Needs Revision",
+  rejected: RotateCcw, // Changed from X to indicate revision opportunity
 };
 
 export function ReportsTable({ reports, showActions = false, showRateEdit = false }: ReportsTableProps) {
@@ -240,13 +236,13 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                     <TableCell>
                       <Badge variant="outline" className={statusColors[report.team_lead_status || "pending"]}>
                         <TLStatusIcon className="h-3 w-3 mr-1" />
-                        {statusLabels[report.team_lead_status || "pending"] || report.team_lead_status || "pending"}
+                        {getHumaneStatus(report.team_lead_status || "pending")}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusColors[report.final_status]}>
                         <FinalStatusIcon className="h-3 w-3 mr-1" />
-                        {statusLabels[report.final_status] || report.final_status}
+                        {getHumaneStatus(report.final_status)}
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate">
@@ -283,16 +279,16 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                                 <DialogContent>
                                   <DialogHeader>
                                     <DialogTitle>
-                                      {isTeamLead && !canReview ? "Reject Report (Non-Final)" : "Reject Report"}
+                                      {isTeamLead && !canReview ? "Request Revision" : "Request Revision"}
                                     </DialogTitle>
                                     <DialogDescription>
                                       {isTeamLead && !canReview
-                                        ? "This rejection can be overridden by a higher-level admin."
-                                        : "Please provide a reason for rejecting this report."}
+                                        ? "This decision can be adjusted by an admin if needed. Revisions are a normal part of the quality process."
+                                        : "Please provide constructive feedback to help improve this submission."}
                                     </DialogDescription>
                                   </DialogHeader>
                                   <Textarea
-                                    placeholder="Enter rejection reason..."
+                                    placeholder="What needs to be improved..."
                                     value={rejectionReason}
                                     onChange={(e) => setRejectionReason(e.target.value)}
                                   />
@@ -301,11 +297,11 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                                       Cancel
                                     </Button>
                                     <Button
-                                      variant="destructive"
+                                      variant="secondary"
                                       onClick={handleReject}
                                       disabled={!rejectionReason || updateStatus.isPending || teamLeadReview.isPending}
                                     >
-                                      Reject
+                                      Request Revision
                                     </Button>
                                   </DialogFooter>
                                 </DialogContent>
@@ -321,55 +317,55 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                                   size="sm"
                                   variant="outline"
                                   className="text-primary hover:bg-primary/10 h-7 px-2"
-                                  title="Admin Override"
+                                  title="Adjust Decision"
                                 >
                                   <Shield className="h-3 w-3 mr-1" />
-                                  Override
+                                  Adjust
                                 </Button>
                               </DialogTrigger>
                               <DialogContent>
                                 <DialogHeader>
-                                  <DialogTitle>Admin Override</DialogTitle>
+                                  <DialogTitle>Adjust Decision</DialogTitle>
                                   <DialogDescription>
-                                    Override the team lead rejection. This decision is final.
+                                    Review and adjust the previous decision to maintain quality or fairness. This action is logged in the activity record.
                                   </DialogDescription>
                                 </DialogHeader>
                                 <div className="space-y-4">
                                   <div>
-                                    <Label>Team Lead Rejection Reason:</Label>
+                                    <Label>Previous Feedback:</Label>
                                     <p className="text-sm text-muted-foreground mt-1">
-                                      {report.team_lead_rejection_reason || "No reason provided"}
+                                      {report.team_lead_rejection_reason || "No feedback provided"}
                                     </p>
                                   </div>
                                   <div>
-                                    <Label>Override Reason {isOverseer ? "(Required)" : "(Optional)"}</Label>
+                                    <Label>Adjustment Reason {isOverseer ? "(Required)" : "(Recommended)"}</Label>
                                     <Textarea
-                                      placeholder="Enter reason for override..."
+                                      placeholder="Explain how this adjustment maintains quality or fairness..."
                                       value={overrideReason}
                                       onChange={(e) => setOverrideReason(e.target.value)}
                                       className="mt-1"
                                     />
                                     {isOverseer && !overrideReason.trim() && (
-                                      <p className="text-xs text-destructive mt-1">
-                                        Overseer overrides require a mandatory reason
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        A reason is required for governance decisions
                                       </p>
                                     )}
                                   </div>
                                 </div>
                                 <DialogFooter className="gap-2">
                                   <Button
-                                    variant="destructive"
+                                    variant="secondary"
                                     onClick={() => handleAdminOverride(report.id, "rejected")}
                                     disabled={adminOverride.isPending || (isOverseer && !overrideReason.trim())}
                                   >
-                                    Confirm Rejection
+                                    Confirm Revision Needed
                                   </Button>
                                   <Button
                                     variant="default"
                                     onClick={() => handleAdminOverride(report.id, "approved")}
                                     disabled={adminOverride.isPending || (isOverseer && !overrideReason.trim())}
                                   >
-                                    Override & Approve
+                                    Approve Submission
                                   </Button>
                                 </DialogFooter>
                               </DialogContent>

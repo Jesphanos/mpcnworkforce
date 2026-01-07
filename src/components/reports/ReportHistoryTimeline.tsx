@@ -6,18 +6,20 @@ import {
   Clock, 
   ArrowRight, 
   FileText, 
-  AlertTriangle,
+  Info,
   Shield,
   Send,
   RotateCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ACTION_LABELS } from "@/config/humaneTerminology";
 
 interface ReportHistoryTimelineProps {
   reportId: string;
 }
 
+// Humane action configuration - uses growth-oriented language
 const actionConfig: Record<string, { 
   icon: typeof CheckCircle; 
   color: string;
@@ -26,39 +28,39 @@ const actionConfig: Record<string, {
 }> = {
   approval: {
     icon: CheckCircle,
-    color: "text-green-600",
-    bgColor: "bg-green-100",
-    label: "Approved",
+    color: "text-success",
+    bgColor: "bg-success/10",
+    label: ACTION_LABELS.approval,
   },
   rejection: {
-    icon: XCircle,
-    color: "text-red-600",
-    bgColor: "bg-red-100",
-    label: "Rejected",
+    icon: RotateCcw, // Changed from XCircle to indicate revision, not failure
+    color: "text-warning",
+    bgColor: "bg-warning/10",
+    label: ACTION_LABELS.rejection, // "Revision Requested" instead of "Rejected"
   },
   override: {
     icon: Shield,
-    color: "text-purple-600",
-    bgColor: "bg-purple-100",
-    label: "Overridden",
+    color: "text-primary",
+    bgColor: "bg-primary/10",
+    label: ACTION_LABELS.override, // "Decision Adjustment" instead of "Overridden"
   },
   status_change: {
     icon: ArrowRight,
-    color: "text-blue-600",
-    bgColor: "bg-blue-100",
-    label: "Status Changed",
+    color: "text-info",
+    bgColor: "bg-info/10",
+    label: ACTION_LABELS.status_change,
   },
   submission: {
     icon: Send,
-    color: "text-sky-600",
-    bgColor: "bg-sky-100",
-    label: "Submitted",
+    color: "text-info",
+    bgColor: "bg-info/10",
+    label: ACTION_LABELS.submission,
   },
   resubmission: {
     icon: RotateCcw,
-    color: "text-orange-600",
-    bgColor: "bg-orange-100",
-    label: "Resubmitted",
+    color: "text-secondary-foreground",
+    bgColor: "bg-secondary/50",
+    label: ACTION_LABELS.resubmission,
   },
 };
 
@@ -138,7 +140,7 @@ export function ReportHistoryTimeline({ reportId }: ReportHistoryTimelineProps) 
                 {entry.comment && (
                   <div className="mt-2 p-2 rounded bg-muted/50 text-sm">
                     {entry.action === "override" && (
-                      <AlertTriangle className="h-3.5 w-3.5 inline mr-1 text-amber-500" />
+                      <Info className="h-3.5 w-3.5 inline mr-1 text-primary" />
                     )}
                     {entry.comment}
                   </div>

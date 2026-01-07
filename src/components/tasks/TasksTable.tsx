@@ -22,26 +22,20 @@ interface TasksTableProps {
   showRateEdit?: boolean;
 }
 
+import { getHumaneStatus } from "@/config/humaneTerminology";
+
 const statusColors: Record<string, string> = {
   pending: "bg-warning/10 text-warning border-warning/20",
   approved: "bg-success/10 text-success border-success/20",
-  rejected: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-  revision_requested: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  rejected: "bg-secondary/50 text-secondary-foreground border-secondary", // Softened
+  revision_requested: "bg-info/10 text-info border-info/20",
 };
 
 const statusIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   pending: Clock,
   approved: Check,
-  rejected: X,
+  rejected: RotateCcw, // Changed from X
   revision_requested: RotateCcw,
-};
-
-// Employee-friendly labels (softened rejection language)
-const statusLabels: Record<string, string> = {
-  pending: "Pending",
-  approved: "Approved",
-  rejected: "Needs Revision",
-  revision_requested: "Revision Requested",
 };
 
 export function TasksTable({ tasks, showActions = false, showRateEdit = false }: TasksTableProps) {
@@ -301,13 +295,13 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
                     <TableCell>
                       <Badge variant="outline" className={statusColors[task.team_lead_status || "pending"]}>
                         <TLStatusIcon className="h-3 w-3 mr-1" />
-                        {statusLabels[task.team_lead_status || "pending"] || task.team_lead_status || "pending"}
+                        {getHumaneStatus(task.team_lead_status || "pending")}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusColors[task.final_status]}>
                         <FinalStatusIcon className="h-3 w-3 mr-1" />
-                        {statusLabels[task.final_status] || task.final_status}
+                        {getHumaneStatus(task.final_status)}
                       </Badge>
                     </TableCell>
                     {(showActions || showRateEdit) && (
@@ -381,13 +375,13 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
                                 </DialogTrigger>
                                 <DialogContent>
                                   <DialogHeader>
-                                    <DialogTitle>Reject Task (Non-Final)</DialogTitle>
+                                    <DialogTitle>Request Revision</DialogTitle>
                                     <DialogDescription>
-                                      This rejection can be overridden by a higher-level admin.
+                                      This decision can be adjusted by an admin if needed. Revisions are a normal part of the quality process.
                                     </DialogDescription>
                                   </DialogHeader>
                                   <Textarea
-                                    placeholder="Enter rejection reason..."
+                                    placeholder="What needs to be improved..."
                                     value={rejectionReason}
                                     onChange={(e) => setRejectionReason(e.target.value)}
                                   />
@@ -396,11 +390,11 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
                                       Cancel
                                     </Button>
                                     <Button
-                                      variant="destructive"
+                                      variant="secondary"
                                       onClick={() => handleTeamLeadReject(task)}
                                       disabled={!rejectionReason || teamLeadReview.isPending}
                                     >
-                                      Reject
+                                      Request Revision
                                     </Button>
                                   </DialogFooter>
                                 </DialogContent>
@@ -416,55 +410,55 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
                                   size="sm"
                                   variant="outline"
                                   className="text-primary hover:bg-primary/10 h-7 px-2"
-                                  title="Admin Override"
+                                  title="Adjust Decision"
                                 >
                                   <Shield className="h-3 w-3 mr-1" />
-                                  Override
+                                  Adjust
                                 </Button>
                               </DialogTrigger>
                               <DialogContent>
                                 <DialogHeader>
-                                  <DialogTitle>Admin Override</DialogTitle>
+                                  <DialogTitle>Adjust Decision</DialogTitle>
                                   <DialogDescription>
-                                    Override the team lead rejection. This decision is final.
+                                    Review and adjust the previous decision to maintain quality or fairness. This action is logged in the activity record.
                                   </DialogDescription>
                                 </DialogHeader>
                                 <div className="space-y-4">
                                   <div>
-                                    <Label>Team Lead Rejection Reason:</Label>
+                                    <Label>Previous Feedback:</Label>
                                     <p className="text-sm text-muted-foreground mt-1">
-                                      {task.team_lead_rejection_reason || "No reason provided"}
+                                      {task.team_lead_rejection_reason || "No feedback provided"}
                                     </p>
                                   </div>
                                   <div>
-                                    <Label>Override Reason {isOverseer ? "(Required)" : "(Optional)"}</Label>
+                                    <Label>Adjustment Reason {isOverseer ? "(Required)" : "(Recommended)"}</Label>
                                     <Textarea
-                                      placeholder="Enter reason for override..."
+                                      placeholder="Explain how this adjustment maintains quality or fairness..."
                                       value={overrideReason}
                                       onChange={(e) => setOverrideReason(e.target.value)}
                                       className="mt-1"
                                     />
                                     {isOverseer && !overrideReason.trim() && (
-                                      <p className="text-xs text-destructive mt-1">
-                                        Overseer overrides require a mandatory reason
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        A reason is required for governance decisions
                                       </p>
                                     )}
                                   </div>
                                 </div>
                                 <DialogFooter className="gap-2">
                                   <Button
-                                    variant="destructive"
+                                    variant="secondary"
                                     onClick={() => handleAdminOverride(task, "rejected")}
                                     disabled={adminOverride.isPending || (isOverseer && !overrideReason.trim())}
                                   >
-                                    Confirm Rejection
+                                    Confirm Revision Needed
                                   </Button>
                                   <Button
                                     variant="default"
                                     onClick={() => handleAdminOverride(task, "approved")}
                                     disabled={adminOverride.isPending || (isOverseer && !overrideReason.trim())}
                                   >
-                                    Override & Approve
+                                    Approve Submission
                                   </Button>
                                 </DialogFooter>
                               </DialogContent>

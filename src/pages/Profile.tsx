@@ -30,7 +30,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { SkillsSection } from "@/components/employee/SkillsSection";
 import { ExternalAccountsSection } from "@/components/employee/ExternalAccountsSection";
-import { Loader2, User, Mail, Shield, Trash2, Globe, Clock, Copy, CheckCircle } from "lucide-react";
+import { GovernanceCharter } from "@/components/settings/GovernanceCharter";
+import { Loader2, User, Mail, Shield, Trash2, Globe, Clock, Copy, CheckCircle, Heart, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function Profile() {
   const { user, profile, role, signOut } = useAuth();
@@ -299,6 +301,31 @@ export default function Profile() {
 
         {/* External Accounts */}
         <ExternalAccountsSection />
+
+        {/* Governance Charter - Collapsible */}
+        <Collapsible>
+          <Card>
+            <CollapsibleTrigger className="w-full">
+              <CardHeader className="flex flex-row items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
+                <div className="flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-primary" />
+                  <div className="text-left">
+                    <CardTitle className="text-base">MPCN Culture & Governance Charter</CardTitle>
+                    <CardDescription className="text-sm">
+                      Our principles for accountability without humiliation
+                    </CardDescription>
+                  </div>
+                </div>
+                <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <GovernanceCharter />
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Danger Zone */}
         <Card className="border-destructive/50">
