@@ -7,6 +7,8 @@ interface Team {
   id: string;
   name: string;
   description: string | null;
+  skill_focus: string | null;
+  region: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -40,10 +42,15 @@ export function useTeams() {
   });
 
   const createTeam = useMutation({
-    mutationFn: async ({ name, description }: { name: string; description?: string }) => {
+    mutationFn: async ({ name, description, skill_focus, region }: { 
+      name: string; 
+      description?: string; 
+      skill_focus?: string; 
+      region?: string;
+    }) => {
       const { data, error } = await supabase
         .from("teams")
-        .insert({ name, description, created_by: user!.id })
+        .insert({ name, description, skill_focus, region, created_by: user!.id })
         .select()
         .single();
       
@@ -60,10 +67,16 @@ export function useTeams() {
   });
 
   const updateTeam = useMutation({
-    mutationFn: async ({ id, name, description }: { id: string; name: string; description?: string }) => {
+    mutationFn: async ({ id, name, description, skill_focus, region }: { 
+      id: string; 
+      name: string; 
+      description?: string;
+      skill_focus?: string;
+      region?: string;
+    }) => {
       const { error } = await supabase
         .from("teams")
-        .update({ name, description })
+        .update({ name, description, skill_focus, region })
         .eq("id", id);
       
       if (error) throw error;
