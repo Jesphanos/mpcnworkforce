@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useWorkReports } from "@/hooks/useWorkReports";
 import { useAuditLogs } from "@/hooks/useAuditLogs";
+import { useAttentionSignals } from "@/hooks/useAttentionSignals";
 import { TrendsChart } from "@/components/dashboard/TrendsChart";
 import { PlatformChart } from "@/components/dashboard/PlatformChart";
+import { AttentionSignalsList } from "@/components/governance/AttentionSignalsList";
 import { 
   Building2,
   Users,
@@ -20,6 +22,7 @@ import {
   ArrowRight,
   AlertTriangle,
   Eye,
+  Bell,
 } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
@@ -37,6 +40,7 @@ export function OverseerDashboard({ dateRange }: OverseerDashboardProps) {
   const { data: stats, isLoading } = useDashboardStats(dateRange);
   const { data: reports } = useWorkReports();
   const { data: auditLogs } = useAuditLogs();
+  const { data: attentionSignals } = useAttentionSignals({ unresolvedOnly: true });
 
   // Calculate key metrics
   const totalWorkers = stats?.teamMembers ?? 0;
@@ -48,6 +52,7 @@ export function OverseerDashboard({ dateRange }: OverseerDashboardProps) {
   const conflicts = reports?.filter(
     r => r.team_lead_status === "rejected" && r.final_status === "pending"
   ).length || 0;
+  const activeSignals = attentionSignals?.length || 0;
 
   const kpiCards = [
     {
@@ -73,6 +78,12 @@ export function OverseerDashboard({ dateRange }: OverseerDashboardProps) {
       value: conflicts,
       icon: AlertTriangle,
       color: conflicts > 0 ? "text-destructive" : "text-success",
+    },
+    {
+      title: "Attention Signals",
+      value: activeSignals,
+      icon: Bell,
+      color: activeSignals > 0 ? "text-warning" : "text-success",
     },
   ];
 
@@ -215,6 +226,11 @@ export function OverseerDashboard({ dateRange }: OverseerDashboardProps) {
           </Card>
         ))}
       </div>
+
+      {/* Attention Signals */}
+      {activeSignals > 0 && (
+        <AttentionSignalsList />
+      )}
 
       {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-3">

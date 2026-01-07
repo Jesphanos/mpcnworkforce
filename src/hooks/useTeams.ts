@@ -3,12 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
-interface Team {
+export interface Team {
   id: string;
   name: string;
   description: string | null;
   skill_focus: string | null;
   region: string | null;
+  department_id: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;

@@ -155,6 +155,56 @@ export type Database = {
         }
         Relationships: []
       }
+      departments: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          head_id: string | null
+          id: string
+          is_active: boolean
+          name: string
+          parent_department_id: string | null
+          region: string | null
+          skill_focus: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          head_id?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          parent_department_id?: string | null
+          region?: string | null
+          skill_focus?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          head_id?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          parent_department_id?: string | null
+          region?: string | null
+          skill_focus?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departments_parent_department_id_fkey"
+            columns: ["parent_department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       external_accounts: {
         Row: {
           created_at: string
@@ -571,6 +621,96 @@ export type Database = {
           },
         ]
       }
+      resolution_requests: {
+        Row: {
+          against_user_id: string | null
+          assigned_at: string | null
+          assigned_to: string | null
+          category: string
+          created_at: string
+          description: string
+          escalated_at: string | null
+          escalated_to: string | null
+          escalation_reason: string | null
+          evidence_url: string | null
+          id: string
+          is_confidential: boolean
+          mediation_notes: string | null
+          mediation_started_at: string | null
+          mediator_id: string | null
+          priority: string
+          raised_by: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          resolution: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          sla_breached: boolean | null
+          sla_due_at: string | null
+          status: Database["public"]["Enums"]["resolution_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          against_user_id?: string | null
+          assigned_at?: string | null
+          assigned_to?: string | null
+          category: string
+          created_at?: string
+          description: string
+          escalated_at?: string | null
+          escalated_to?: string | null
+          escalation_reason?: string | null
+          evidence_url?: string | null
+          id?: string
+          is_confidential?: boolean
+          mediation_notes?: string | null
+          mediation_started_at?: string | null
+          mediator_id?: string | null
+          priority?: string
+          raised_by: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          sla_breached?: boolean | null
+          sla_due_at?: string | null
+          status?: Database["public"]["Enums"]["resolution_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          against_user_id?: string | null
+          assigned_at?: string | null
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          escalated_at?: string | null
+          escalated_to?: string | null
+          escalation_reason?: string | null
+          evidence_url?: string | null
+          id?: string
+          is_confidential?: boolean
+          mediation_notes?: string | null
+          mediation_started_at?: string | null
+          mediator_id?: string | null
+          priority?: string
+          raised_by?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          sla_breached?: boolean | null
+          sla_due_at?: string | null
+          status?: Database["public"]["Enums"]["resolution_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       salary_periods: {
         Row: {
           closed_at: string | null
@@ -793,6 +933,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          department_id: string | null
           description: string | null
           id: string
           name: string
@@ -803,6 +944,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          department_id?: string | null
           description?: string | null
           id?: string
           name: string
@@ -813,6 +955,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          department_id?: string | null
           description?: string | null
           id?: string
           name?: string
@@ -820,7 +963,15 @@ export type Database = {
           skill_focus?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "teams_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -1012,6 +1163,12 @@ export type Database = {
         | "general_overseer"
       attention_level: "informational" | "support_needed" | "review_required"
       financial_period_status: "draft" | "finalized" | "corrected"
+      resolution_status:
+        | "open"
+        | "under_review"
+        | "mediation"
+        | "resolved"
+        | "escalated"
       task_type:
         | "research"
         | "coding"
@@ -1160,6 +1317,13 @@ export const Constants = {
       ],
       attention_level: ["informational", "support_needed", "review_required"],
       financial_period_status: ["draft", "finalized", "corrected"],
+      resolution_status: [
+        "open",
+        "under_review",
+        "mediation",
+        "resolved",
+        "escalated",
+      ],
       task_type: [
         "research",
         "coding",
