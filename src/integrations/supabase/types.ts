@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      attention_signals: {
+        Row: {
+          created_at: string
+          id: string
+          is_private: boolean
+          level: Database["public"]["Enums"]["attention_level"]
+          related_entity_id: string | null
+          related_entity_type: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          signal_type: string
+          trigger_count: number
+          trigger_threshold: number
+          triggered_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_private?: boolean
+          level?: Database["public"]["Enums"]["attention_level"]
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          signal_type: string
+          trigger_count?: number
+          trigger_threshold?: number
+          triggered_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_private?: boolean
+          level?: Database["public"]["Enums"]["attention_level"]
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          signal_type?: string
+          trigger_count?: number
+          trigger_threshold?: number
+          triggered_by?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -929,6 +983,7 @@ export type Database = {
         | "investment_admin"
         | "user_admin"
         | "general_overseer"
+      attention_level: "informational" | "support_needed" | "review_required"
       task_type:
         | "research"
         | "coding"
@@ -1075,6 +1130,7 @@ export const Constants = {
         "user_admin",
         "general_overseer",
       ],
+      attention_level: ["informational", "support_needed", "review_required"],
       task_type: [
         "research",
         "coding",
