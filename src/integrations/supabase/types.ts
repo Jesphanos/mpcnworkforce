@@ -140,6 +140,54 @@ export type Database = {
         }
         Relationships: []
       }
+      investment_returns: {
+        Row: {
+          created_at: string
+          financial_period_id: string | null
+          id: string
+          investment_id: string
+          notes: string | null
+          profit_date: string
+          return_amount: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          financial_period_id?: string | null
+          id?: string
+          investment_id: string
+          notes?: string | null
+          profit_date: string
+          return_amount?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          financial_period_id?: string | null
+          id?: string
+          investment_id?: string
+          notes?: string | null
+          profit_date?: string
+          return_amount?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_returns_financial_period_id_fkey"
+            columns: ["financial_period_id"]
+            isOneToOne: false
+            referencedRelation: "mpcn_financials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investment_returns_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       investments: {
         Row: {
           created_at: string
@@ -150,6 +198,7 @@ export type Database = {
           investment_type: string
           name: string
           notes: string | null
+          percentage_of_pool: number | null
           platform: string
           purchase_date: string
           status: string
@@ -164,6 +213,7 @@ export type Database = {
           investment_type: string
           name: string
           notes?: string | null
+          percentage_of_pool?: number | null
           platform: string
           purchase_date: string
           status?: string
@@ -178,9 +228,43 @@ export type Database = {
           investment_type?: string
           name?: string
           notes?: string | null
+          percentage_of_pool?: number | null
           platform?: string
           purchase_date?: string
           status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mpcn_financials: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          notes: string | null
+          profit_date: string
+          total_pool: number
+          total_profit: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          notes?: string | null
+          profit_date: string
+          total_pool?: number
+          total_profit?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          notes?: string | null
+          profit_date?: string
+          total_pool?: number
+          total_profit?: number
           updated_at?: string
         }
         Relationships: []
@@ -364,6 +448,47 @@ export type Database = {
           status?: string
         }
         Relationships: []
+      }
+      report_history: {
+        Row: {
+          action: string
+          comment: string | null
+          created_at: string
+          id: string
+          new_status: string | null
+          performed_by: string
+          previous_status: string | null
+          report_id: string
+        }
+        Insert: {
+          action: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          new_status?: string | null
+          performed_by: string
+          previous_status?: string | null
+          report_id: string
+        }
+        Update: {
+          action?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          new_status?: string | null
+          performed_by?: string
+          previous_status?: string | null
+          report_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_history_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "work_reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       salary_periods: {
         Row: {
@@ -590,6 +715,8 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          region: string | null
+          skill_focus: string | null
           updated_at: string
         }
         Insert: {
@@ -598,6 +725,8 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          region?: string | null
+          skill_focus?: string | null
           updated_at?: string
         }
         Update: {
@@ -606,6 +735,8 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          region?: string | null
+          skill_focus?: string | null
           updated_at?: string
         }
         Relationships: []
