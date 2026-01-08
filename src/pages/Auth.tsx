@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Building2 } from "lucide-react";
 import { z } from "zod";
+import { SignupPhoneField, COUNTRIES } from "@/components/auth/SignupPhoneField";
+import { supabase } from "@/integrations/supabase/client";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -17,6 +19,8 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [countryCode, setCountryCode] = useState("US");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   
@@ -94,10 +98,10 @@ export default function Auth() {
     }
 
     setIsLoading(true);
-    const { error } = await signUp(email, password, fullName);
-    setIsLoading(false);
-
+    const { error, user: newUser } = await signUp(email, password, fullName);
+    
     if (error) {
+      setIsLoading(false);
       if (error.message.includes("already registered")) {
         toast({
           title: "Account Exists",
@@ -107,12 +111,29 @@ export default function Auth() {
       } else {
         toast({ title: "Sign Up Failed", description: error.message, variant: "destructive" });
       }
-    } else {
-      toast({
-        title: "Account Created",
-        description: "Your account has been created successfully!",
-      });
+      return;
     }
+    
+    // Save phone number and country to profile if provided
+    if (newUser && (phoneNumber || countryCode)) {
+      const selectedCountry = COUNTRIES.find(c => c.code === countryCode);
+      const fullPhone = phoneNumber ? `${selectedCountry?.dialCode} ${phoneNumber}` : null;
+      
+      await supabase
+        .from("profiles")
+        .update({
+          phone_number: fullPhone,
+          country: countryCode,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        })
+        .eq("id", newUser.id);
+    }
+    
+    setIsLoading(false);
+    toast({
+      title: "Account Created",
+      description: "Your account has been created successfully!",
+    });
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -248,9 +269,6 @@ export default function Auth() {
                         onChange={(e) => setFullName(e.target.value)}
                         required
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Your display name across the platform
-                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-email">Email *</Label>
@@ -262,9 +280,6 @@ export default function Auth() {
                         onChange={(e) => setEmail(e.target.value)}
                         required
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Must be unique - used for login and notifications
-                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">Password *</Label>
@@ -277,9 +292,15 @@ export default function Auth() {
                         required
                       />
                       <p className="text-xs text-muted-foreground">
-                        Must be at least 6 characters with strong security
+                        Must be at least 6 characters
                       </p>
                     </div>
+                    <SignupPhoneField
+                      countryCode={countryCode}
+                      phoneNumber={phoneNumber}
+                      onCountryChange={setCountryCode}
+                      onPhoneChange={setPhoneNumber}
+                    />
                     <div className="bg-muted/50 p-3 rounded-lg space-y-1">
                       <p className="text-xs font-medium text-muted-foreground">What happens next:</p>
                       <ul className="text-xs text-muted-foreground space-y-0.5">

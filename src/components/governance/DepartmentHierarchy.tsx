@@ -1,27 +1,70 @@
-import { Building2, ChevronRight, Users, FolderTree } from "lucide-react";
+import { useState } from "react";
+import { Building2, Users, FolderTree, GripVertical } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDepartments, Department } from "@/hooks/useDepartments";
+import { useDepartments, useAssignTeamToDepartment, Department } from "@/hooks/useDepartments";
 import { useTeams, Team } from "@/hooks/useTeams";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
+interface DragData {
+  teamId: string;
+  teamName: string;
+}
 
 interface DepartmentNodeProps {
   department: Department;
-  children: Department[];
   teams: Team[];
   allDepartments: Department[];
   level: number;
+  onDropTeam: (teamId: string, departmentId: string) => void;
+  draggedTeam: DragData | null;
 }
 
-function DepartmentNode({ department, children, teams, allDepartments, level }: DepartmentNodeProps) {
+function DepartmentNode({ 
+  department, 
+  teams, 
+  allDepartments, 
+  level, 
+  onDropTeam,
+  draggedTeam 
+}: DepartmentNodeProps) {
+  const [isDragOver, setIsDragOver] = useState(false);
   const departmentTeams = teams.filter(t => t.department_id === department.id);
   const childDepts = allDepartments.filter(d => d.parent_department_id === department.id);
+  
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+  
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+  
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const teamId = e.dataTransfer.getData("teamId");
+    if (teamId) {
+      onDropTeam(teamId, department.id);
+    }
+  };
   
   return (
     <div className={cn("relative", level > 0 && "ml-6 pl-4 border-l-2 border-muted")}>
       <div className="py-2">
-        <div className="flex items-start gap-3 p-3 rounded-lg bg-card border hover:bg-accent/50 transition-colors">
+        <div 
+          className={cn(
+            "flex items-start gap-3 p-3 rounded-lg bg-card border transition-all",
+            isDragOver && "ring-2 ring-primary bg-primary/5 border-primary",
+            !isDragOver && "hover:bg-accent/50"
+          )}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           <div className={cn(
             "flex items-center justify-center w-8 h-8 rounded-lg shrink-0",
             level === 0 ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
@@ -59,10 +102,18 @@ function DepartmentNode({ department, children, teams, allDepartments, level }: 
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <Users className="h-3 w-3 text-muted-foreground" />
                 {departmentTeams.map(team => (
-                  <Badge key={team.id} variant="outline" className="text-xs font-normal">
-                    {team.name}
-                  </Badge>
+                  <DraggableTeamBadge 
+                    key={team.id} 
+                    team={team} 
+                    inDepartment 
+                  />
                 ))}
+              </div>
+            )}
+            
+            {isDragOver && draggedTeam && (
+              <div className="mt-2 p-2 rounded border-2 border-dashed border-primary bg-primary/5 text-xs text-primary">
+                Drop "{draggedTeam.teamName}" here to assign
               </div>
             )}
           </div>
@@ -84,10 +135,11 @@ function DepartmentNode({ department, children, teams, allDepartments, level }: 
             <DepartmentNode
               key={child.id}
               department={child}
-              children={allDepartments.filter(d => d.parent_department_id === child.id)}
               teams={teams}
               allDepartments={allDepartments}
               level={level + 1}
+              onDropTeam={onDropTeam}
+              draggedTeam={draggedTeam}
             />
           ))}
         </div>
@@ -96,32 +148,102 @@ function DepartmentNode({ department, children, teams, allDepartments, level }: 
   );
 }
 
-function UnassignedTeams({ teams }: { teams: Team[] }) {
-  const unassignedTeams = teams.filter(t => !t.department_id);
+function DraggableTeamBadge({ team, inDepartment }: { team: Team; inDepartment?: boolean }) {
+  const [isDragging, setIsDragging] = useState(false);
   
-  if (unassignedTeams.length === 0) return null;
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData("teamId", team.id);
+    e.dataTransfer.setData("teamName", team.name);
+    e.dataTransfer.effectAllowed = "move";
+    setIsDragging(true);
+  };
+  
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
   
   return (
-    <div className="mt-6 pt-4 border-t">
+    <div
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      className={cn(
+        "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs cursor-grab active:cursor-grabbing transition-all",
+        inDepartment 
+          ? "bg-background border hover:border-primary" 
+          : "bg-muted/50 border border-dashed hover:border-primary hover:bg-primary/5",
+        isDragging && "opacity-50 ring-2 ring-primary"
+      )}
+    >
+      <GripVertical className="h-3 w-3 text-muted-foreground" />
+      <span>{team.name}</span>
+      {team.skill_focus && (
+        <Badge variant="outline" className="text-[10px] h-4 px-1">
+          {team.skill_focus}
+        </Badge>
+      )}
+    </div>
+  );
+}
+
+function UnassignedTeams({ 
+  teams, 
+  onUnassign 
+}: { 
+  teams: Team[]; 
+  onUnassign: (teamId: string) => void;
+}) {
+  const [isDragOver, setIsDragOver] = useState(false);
+  const unassignedTeams = teams.filter(t => !t.department_id);
+  
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+  
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+  
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const teamId = e.dataTransfer.getData("teamId");
+    if (teamId) {
+      onUnassign(teamId);
+    }
+  };
+  
+  return (
+    <div 
+      className={cn(
+        "mt-6 pt-4 border-t transition-all rounded-lg",
+        isDragOver && "bg-muted/50 ring-2 ring-dashed ring-muted-foreground p-4"
+      )}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <div className="flex items-center gap-2 mb-3 text-muted-foreground">
         <Users className="h-4 w-4" />
         <span className="text-sm font-medium">Unassigned Teams</span>
-        <Badge variant="secondary" className="text-xs">{unassignedTeams.length}</Badge>
+        {unassignedTeams.length > 0 && (
+          <Badge variant="secondary" className="text-xs">{unassignedTeams.length}</Badge>
+        )}
+        <span className="text-xs ml-auto">Drag teams here to unassign</span>
       </div>
-      <div className="flex flex-wrap gap-2">
-        {unassignedTeams.map(team => (
-          <div 
-            key={team.id} 
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-dashed"
-          >
-            <Users className="h-3 w-3 text-muted-foreground" />
-            <span className="text-sm">{team.name}</span>
-            {team.skill_focus && (
-              <Badge variant="outline" className="text-xs">{team.skill_focus}</Badge>
-            )}
-          </div>
-        ))}
-      </div>
+      
+      {unassignedTeams.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {unassignedTeams.map(team => (
+            <DraggableTeamBadge key={team.id} team={team} />
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground text-center py-4">
+          All teams are assigned to departments
+        </p>
+      )}
     </div>
   );
 }
@@ -129,11 +251,61 @@ function UnassignedTeams({ teams }: { teams: Team[] }) {
 export function DepartmentHierarchy() {
   const { data: departments, isLoading: deptsLoading } = useDepartments({ includeInactive: true });
   const { teams, isLoading: teamsLoading } = useTeams();
+  const assignTeam = useAssignTeamToDepartment();
+  const [draggedTeam, setDraggedTeam] = useState<DragData | null>(null);
   
   const isLoading = deptsLoading || teamsLoading;
   
   // Get root departments (no parent)
   const rootDepartments = departments?.filter(d => !d.parent_department_id) || [];
+  
+  const handleDropTeam = (teamId: string, departmentId: string) => {
+    const team = teams.find(t => t.id === teamId);
+    const department = departments?.find(d => d.id === departmentId);
+    
+    if (team?.department_id === departmentId) {
+      return; // Already in this department
+    }
+    
+    assignTeam.mutate(
+      { teamId, departmentId },
+      {
+        onSuccess: () => {
+          toast.success(`Team "${team?.name}" assigned to ${department?.name}`);
+        },
+      }
+    );
+  };
+  
+  const handleUnassignTeam = (teamId: string) => {
+    const team = teams.find(t => t.id === teamId);
+    
+    if (!team?.department_id) {
+      return; // Already unassigned
+    }
+    
+    assignTeam.mutate(
+      { teamId, departmentId: null },
+      {
+        onSuccess: () => {
+          toast.success(`Team "${team?.name}" unassigned from department`);
+        },
+      }
+    );
+  };
+  
+  // Track dragged team globally for visual feedback
+  const handleGlobalDragStart = (e: DragEvent) => {
+    const teamId = (e.target as HTMLElement)?.getAttribute?.("data-team-id");
+    const teamName = (e.target as HTMLElement)?.getAttribute?.("data-team-name");
+    if (teamId && teamName) {
+      setDraggedTeam({ teamId, teamName });
+    }
+  };
+  
+  const handleGlobalDragEnd = () => {
+    setDraggedTeam(null);
+  };
   
   if (isLoading) {
     return (
@@ -157,7 +329,7 @@ export function DepartmentHierarchy() {
           Organization Hierarchy
         </CardTitle>
         <CardDescription>
-          Visual overview of department structure and team assignments
+          Drag and drop teams to assign them to departments
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -167,10 +339,11 @@ export function DepartmentHierarchy() {
               <DepartmentNode
                 key={dept.id}
                 department={dept}
-                children={(departments || []).filter(d => d.parent_department_id === dept.id)}
                 teams={teams}
                 allDepartments={departments || []}
                 level={0}
+                onDropTeam={handleDropTeam}
+                draggedTeam={draggedTeam}
               />
             ))}
           </div>
@@ -182,7 +355,7 @@ export function DepartmentHierarchy() {
           </div>
         )}
         
-        <UnassignedTeams teams={teams} />
+        <UnassignedTeams teams={teams} onUnassign={handleUnassignTeam} />
       </CardContent>
     </Card>
   );
