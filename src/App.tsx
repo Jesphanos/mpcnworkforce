@@ -16,6 +16,7 @@ import Tasks from "./pages/Tasks";
 import TeamDashboard from "./pages/TeamDashboard";
 import ActivityHistory from "./pages/ActivityHistory";
 import Settings from "./pages/Settings";
+import Governance from "./pages/Governance";
 import NotFound from "./pages/NotFound";
 import AccessDenied from "./pages/AccessDenied";
 
@@ -108,6 +109,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={["general_overseer"]}>
                   <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/governance"
+              element={
+                <ProtectedRoute allowedRoles={["report_admin", "user_admin", "general_overseer"]}>
+                  <Governance />
                 </ProtectedRoute>
               }
             />
