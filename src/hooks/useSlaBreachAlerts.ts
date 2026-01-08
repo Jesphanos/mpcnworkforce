@@ -10,12 +10,14 @@ interface SlaBreachRequest {
   priority: string;
   sla_due_at: string;
   status: string;
+  category: string;
 }
 
 export function useSlaBreachAlerts() {
   const { can, isOverseer } = useCapabilities();
   const queryClient = useQueryClient();
   const lastCheckedRef = useRef<string[]>([]);
+  const emailSentRef = useRef<Set<string>>(new Set());
   const isAdmin = can("canApproveReports") || can("canOverrideReports") || isOverseer();
 
   // Query for requests approaching or past SLA
@@ -27,7 +29,7 @@ export function useSlaBreachAlerts() {
 
       const { data, error } = await supabase
         .from("resolution_requests")
-        .select("id, title, priority, sla_due_at, status")
+        .select("id, title, priority, sla_due_at, status, category")
         .neq("status", "resolved")
         .not("sla_due_at", "is", null)
         .lte("sla_due_at", warningThreshold.toISOString())
@@ -40,7 +42,7 @@ export function useSlaBreachAlerts() {
     refetchInterval: 5 * 60 * 1000, // Check every 5 minutes
   });
 
-  // Show toast for new breaches or approaching deadlines
+  // Send email notifications for breaches and show toast for new ones
   useEffect(() => {
     if (!atRiskRequests || !isAdmin) return;
 
@@ -49,11 +51,32 @@ export function useSlaBreachAlerts() {
       (req) => !lastCheckedRef.current.includes(req.id)
     );
 
-    newBreaches.forEach((req) => {
+    newBreaches.forEach(async (req) => {
       const dueDate = new Date(req.sla_due_at);
       const isPastDue = dueDate < now;
       const hoursUntilDue = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
 
+      // Send email notification (only once per request)
+      if (!emailSentRef.current.has(req.id)) {
+        emailSentRef.current.add(req.id);
+        
+        try {
+          await supabase.functions.invoke("send-sla-breach-alert", {
+            body: {
+              requestId: req.id,
+              title: req.title,
+              priority: req.priority,
+              slaDueAt: req.sla_due_at,
+              category: req.category,
+              isBreach: isPastDue,
+            },
+          });
+        } catch (error) {
+          console.error("Failed to send SLA breach email:", error);
+        }
+      }
+
+      // Show toast notification
       if (isPastDue) {
         toast.error(`SLA Breach: "${req.title}"`, {
           description: `This ${req.priority} priority request is overdue`,
