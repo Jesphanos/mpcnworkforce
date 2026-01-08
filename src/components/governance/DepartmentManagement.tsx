@@ -43,9 +43,11 @@ const REGION_OPTIONS = [
 
 function DepartmentFormDialog({ 
   department, 
+  departments,
   onClose 
 }: { 
   department?: Department; 
+  departments?: Department[];
   onClose: () => void;
 }) {
   const [form, setForm] = useState({
@@ -53,19 +55,44 @@ function DepartmentFormDialog({
     description: department?.description || "",
     skill_focus: department?.skill_focus || "",
     region: department?.region || "",
+    parent_department_id: department?.parent_department_id || "",
   });
   
   const createDepartment = useCreateDepartment();
   const updateDepartment = useUpdateDepartment();
   
+  // Filter out the current department and its children from parent options
+  const getValidParentOptions = () => {
+    if (!departments) return [];
+    
+    // If editing, exclude this department and its descendants
+    if (department) {
+      const getDescendantIds = (deptId: string): string[] => {
+        const children = departments.filter(d => d.parent_department_id === deptId);
+        return [deptId, ...children.flatMap(c => getDescendantIds(c.id))];
+      };
+      const excludeIds = getDescendantIds(department.id);
+      return departments.filter(d => !excludeIds.includes(d.id) && d.is_active);
+    }
+    
+    return departments.filter(d => d.is_active);
+  };
+  
+  const parentOptions = getValidParentOptions();
+  
   const handleSubmit = () => {
+    const submitData = {
+      ...form,
+      parent_department_id: form.parent_department_id || null,
+    };
+    
     if (department) {
       updateDepartment.mutate(
-        { departmentId: department.id, updates: form },
+        { departmentId: department.id, updates: submitData },
         { onSuccess: onClose }
       );
     } else {
-      createDepartment.mutate(form, { onSuccess: onClose });
+      createDepartment.mutate(submitData, { onSuccess: onClose });
     }
   };
   
@@ -87,6 +114,39 @@ function DepartmentFormDialog({
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="mt-1"
           />
+        </div>
+        
+        <div>
+          <Label>Parent Department</Label>
+          <Select
+            value={form.parent_department_id}
+            onValueChange={(value) => setForm({ ...form, parent_department_id: value === "none" ? "" : value })}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="None (Top-level department)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">
+                <span className="text-muted-foreground">None (Top-level department)</span>
+              </SelectItem>
+              {parentOptions.map((dept) => (
+                <SelectItem key={dept.id} value={dept.id}>
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-3 w-3 text-muted-foreground" />
+                    {dept.name}
+                    {dept.parent_department_id && (
+                      <span className="text-xs text-muted-foreground">
+                        (sub-department)
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground mt-1">
+            Select a parent to create a sub-department hierarchy
+          </p>
         </div>
         
         <div>
@@ -202,7 +262,7 @@ export function DepartmentManagement() {
               New Department
             </Button>
           </DialogTrigger>
-          <DepartmentFormDialog onClose={() => setIsCreateOpen(false)} />
+          <DepartmentFormDialog departments={departments} onClose={() => setIsCreateOpen(false)} />
         </Dialog>
       </CardHeader>
       <CardContent>
@@ -211,6 +271,7 @@ export function DepartmentManagement() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Parent</TableHead>
                 <TableHead>Focus</TableHead>
                 <TableHead>Region</TableHead>
                 <TableHead>Teams</TableHead>
@@ -219,34 +280,50 @@ export function DepartmentManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {departments.map((dept) => (
-                <TableRow key={dept.id}>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{dept.name}</p>
-                      {dept.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-1">
-                          {dept.description}
-                        </p>
+              {departments.map((dept) => {
+                const parentDept = departments.find(d => d.id === dept.parent_department_id);
+                return (
+                  <TableRow key={dept.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {dept.parent_department_id && (
+                          <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                        )}
+                        <div>
+                          <p className="font-medium">{dept.name}</p>
+                          {dept.description && (
+                            <p className="text-xs text-muted-foreground line-clamp-1">
+                              {dept.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {parentDept ? (
+                        <Badge variant="outline" className="text-xs font-normal">
+                          {parentDept.name}
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
                       )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {dept.skill_focus && (
-                      <Badge variant="secondary">{dept.skill_focus}</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {dept.region && (
-                      <Badge variant="outline">{dept.region}</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3 text-muted-foreground" />
-                      <span>{teamCounts[dept.id] || 0}</span>
-                    </div>
-                  </TableCell>
+                    </TableCell>
+                    <TableCell>
+                      {dept.skill_focus && (
+                        <Badge variant="secondary">{dept.skill_focus}</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {dept.region && (
+                        <Badge variant="outline">{dept.region}</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Users className="h-3 w-3 text-muted-foreground" />
+                        <span>{teamCounts[dept.id] || 0}</span>
+                      </div>
+                    </TableCell>
                   <TableCell>
                     <Badge variant={dept.is_active ? "default" : "secondary"}>
                       {dept.is_active ? "Active" : "Inactive"}
@@ -268,14 +345,16 @@ export function DepartmentManagement() {
                       </DialogTrigger>
                       {editingDepartment && (
                         <DepartmentFormDialog 
-                          department={editingDepartment} 
+                          department={editingDepartment}
+                          departments={departments}
                           onClose={() => setEditingDepartment(null)} 
                         />
                       )}
                     </Dialog>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         ) : (
