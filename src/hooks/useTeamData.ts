@@ -40,6 +40,8 @@ export interface TeamMember {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
+  timezone: string | null;
+  country: string | null;
   task_count: number;
   report_count: number;
   pending_count: number;
@@ -118,10 +120,10 @@ export function useTeamMembers() {
   return useQuery({
     queryKey: ["team-members", user?.id],
     queryFn: async () => {
-      // Get all profiles
+      // Get all profiles with timezone
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, full_name, avatar_url");
+        .select("id, full_name, avatar_url, timezone, country");
 
       if (profilesError) throw profilesError;
 
@@ -152,6 +154,8 @@ export function useTeamMembers() {
           id: profile.id,
           full_name: profile.full_name,
           avatar_url: profile.avatar_url,
+          timezone: profile.timezone,
+          country: profile.country,
           task_count: taskCounts.get(profile.id)?.total || 0,
           report_count: reportCounts.get(profile.id)?.total || 0,
           pending_count:
