@@ -30,6 +30,7 @@ import {
   Shield,
   PieChart,
   Wallet,
+  Scale,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -89,6 +90,7 @@ const roleMenus: Record<AppRole, { main: MenuItem[]; admin?: MenuItem[]; adminLa
     ],
     adminLabel: "Administration",
     admin: [
+      { title: "Governance", url: "/governance", icon: Scale },
       { title: "System Inbox", url: "/reports?tab=review", icon: FileText },
       { title: "All Reports", url: "/reports?tab=all", icon: FileText },
       { title: "Teams View", url: "/team", icon: UsersRound },
@@ -132,6 +134,7 @@ const roleMenus: Record<AppRole, { main: MenuItem[]; admin?: MenuItem[]; adminLa
     ],
     adminLabel: "User Management",
     admin: [
+      { title: "Governance", url: "/governance", icon: Scale },
       { title: "Users", url: "/users", icon: Users },
       { title: "Teams", url: "/team", icon: UsersRound },
       { title: "Activity Logs", url: "/activity", icon: Activity },
@@ -146,6 +149,7 @@ const roleMenus: Record<AppRole, { main: MenuItem[]; admin?: MenuItem[]; adminLa
     ],
     adminLabel: "Strategic Oversight",
     admin: [
+      { title: "Governance", url: "/governance", icon: Scale },
       { title: "Organization", url: "/team", icon: Building2 },
       { title: "System Inbox", url: "/reports", icon: FileText },
       { title: "Overrides", url: "/reports?tab=overrides", icon: Shield },

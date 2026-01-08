@@ -6,10 +6,11 @@ import { InvestmentsTable } from "@/components/investments/InvestmentsTable";
 import { InvestmentStats } from "@/components/investments/InvestmentStats";
 import { InvestmentCharts } from "@/components/investments/InvestmentCharts";
 import { InvestorDashboard } from "@/components/investments/InvestorDashboard";
+import { FinancialManagement } from "@/components/investments/FinancialManagement";
 import { useInvestments } from "@/hooks/useInvestments";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCapabilities } from "@/hooks/useCapabilities";
-import { TrendingUp, Landmark } from "lucide-react";
+import { TrendingUp, Landmark, FileText } from "lucide-react";
 
 export default function Investments() {
   const { data: investments, isLoading } = useInvestments();
@@ -69,6 +70,12 @@ export default function Investments() {
                 <Landmark className="h-4 w-4" />
                 Portfolio
               </TabsTrigger>
+              {canManage && (
+                <TabsTrigger value="financials" className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Financials
+                </TabsTrigger>
+              )}
               <TabsTrigger value="my-investments" className="gap-2">
                 <TrendingUp className="h-4 w-4" />
                 My Investments
@@ -81,6 +88,12 @@ export default function Investments() {
               {canManage && <InvestmentForm />}
               <InvestmentsTable investments={investments || []} />
             </TabsContent>
+
+            {canManage && (
+              <TabsContent value="financials" className="space-y-6">
+                <FinancialManagement />
+              </TabsContent>
+            )}
 
             <TabsContent value="my-investments">
               <InvestorDashboard />
