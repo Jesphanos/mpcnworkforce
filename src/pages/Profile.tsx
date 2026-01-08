@@ -30,8 +30,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { SkillsSection } from "@/components/employee/SkillsSection";
 import { ExternalAccountsSection } from "@/components/employee/ExternalAccountsSection";
+import { InternationalSettingsSection } from "@/components/profile/InternationalSettingsSection";
 import { GovernanceCharter } from "@/components/settings/GovernanceCharter";
-import { Loader2, User, Mail, Shield, Trash2, Globe, Clock, Copy, CheckCircle, Heart, ChevronDown } from "lucide-react";
+import { Loader2, User, Mail, Shield, Trash2, Copy, CheckCircle, Heart, ChevronDown } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function Profile() {
@@ -233,36 +234,7 @@ export default function Profile() {
         <SkillsSection editable />
 
         {/* International Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5" />
-              International Settings
-            </CardTitle>
-            <CardDescription>
-              Configure your timezone and regional preferences
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Country</Label>
-                <p className="text-foreground py-2">{profile?.country || "Not set"}</p>
-              </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Timezone
-                </Label>
-                <p className="text-foreground py-2">{profile?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Language Preference</Label>
-              <p className="text-foreground py-2">{profile?.language_preference || "English"}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <InternationalSettingsSection />
 
         {/* MPCN Employee ID Card */}
         <Card>

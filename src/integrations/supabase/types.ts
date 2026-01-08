@@ -513,6 +513,7 @@ export type Database = {
           initial_investment: number | null
           is_investor: boolean | null
           language_preference: string | null
+          phone_number: string | null
           referral_code: string | null
           referred_by: string | null
           skills: string[] | null
@@ -529,6 +530,7 @@ export type Database = {
           initial_investment?: number | null
           is_investor?: boolean | null
           language_preference?: string | null
+          phone_number?: string | null
           referral_code?: string | null
           referred_by?: string | null
           skills?: string[] | null
@@ -545,6 +547,7 @@ export type Database = {
           initial_investment?: number | null
           is_investor?: boolean | null
           language_preference?: string | null
+          phone_number?: string | null
           referral_code?: string | null
           referred_by?: string | null
           skills?: string[] | null
