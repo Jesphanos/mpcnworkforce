@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
-import { Globe, Clock, Phone, Languages, Save } from "lucide-react";
+import { Globe, Clock, Phone, Languages, Save, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { PhoneVerificationDialog } from "./PhoneVerificationDialog";
 
 const COUNTRIES = [
   { code: "US", name: "United States", dialCode: "+1" },
@@ -75,6 +77,7 @@ export function InternationalSettingsSection() {
   const { user, profile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
   
   const [form, setForm] = useState({
     country: profile?.country || "",
@@ -268,9 +271,22 @@ export function InternationalSettingsSection() {
                 />
               </div>
             ) : (
-              <p className="text-foreground py-2">
-                {form.phone_number || "Not set"}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-foreground py-2">
+                  {form.phone_number || "Not set"}
+                </p>
+                {form.phone_number && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowVerification(true)}
+                    className="gap-1"
+                  >
+                    <ShieldCheck className="h-3 w-3" />
+                    Verify
+                  </Button>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -301,6 +317,15 @@ export function InternationalSettingsSection() {
             </Button>
           </div>
         )}
+        
+        <PhoneVerificationDialog
+          open={showVerification}
+          onOpenChange={setShowVerification}
+          phoneNumber={form.phone_number}
+          onVerified={() => {
+            toast.success("Phone number verified successfully!");
+          }}
+        />
       </CardContent>
     </Card>
   );
