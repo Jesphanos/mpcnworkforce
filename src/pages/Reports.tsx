@@ -1,6 +1,7 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RoleAuthorityBanner } from "@/components/ui/RoleAuthorityBanner";
 import { ReportSubmissionForm } from "@/components/reports/ReportSubmissionForm";
 import { ReportsTable } from "@/components/reports/ReportsTable";
 import { ReportsStats } from "@/components/reports/ReportsStats";
@@ -48,6 +49,22 @@ export default function Reports() {
               : "Submit and track your work reports"}
           </p>
         </div>
+
+        {/* Role-specific authority banners */}
+        {isAdmin && (
+          <RoleAuthorityBanner
+            variant="warning"
+            title="Admin actions are logged and visible to the General Overseer"
+            description="All approvals, rejections, and overrides require justification and are permanently recorded."
+          />
+        )}
+        {isTeamLead && !isAdmin && (
+          <RoleAuthorityBanner
+            variant="constraint"
+            title="Review Only — Final approval handled by Admin"
+            description="Your approvals move reports to the admin queue. Revisions help team members improve."
+          />
+        )}
 
         <ReportsStats reports={myReports} />
 

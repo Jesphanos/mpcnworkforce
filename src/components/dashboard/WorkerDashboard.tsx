@@ -3,15 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RoleAuthorityBanner } from "@/components/ui/RoleAuthorityBanner";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useRecentActivity, ActivityFilters } from "@/hooks/useRecentActivity";
 import { TeamSnapshotCard } from "@/components/employee/TeamSnapshotCard";
 import { InvestmentOverviewCard } from "@/components/employee/InvestmentOverviewCard";
-import { ComplaintsPanel } from "@/components/employee/ComplaintsPanel";
+import { SupportRequestsPanel } from "@/components/employee/SupportRequestsPanel";
 import { ReferralCard } from "@/components/employee/ReferralCard";
 import { TrendsChart } from "@/components/dashboard/TrendsChart";
 import { useCapabilities } from "@/hooks/useCapabilities";
 import { formatDistanceToNow } from "date-fns";
+import { getHumaneStatusLabel } from "@/lib/statusDefinitions";
 import { 
   Clock, 
   CheckCircle2, 
@@ -19,6 +21,7 @@ import {
   ClipboardList, 
   FileText,
   ArrowRight,
+  TrendingUp,
 } from "lucide-react";
 import {
   Select,
@@ -87,6 +90,13 @@ export function WorkerDashboard({ dateRange }: WorkerDashboardProps) {
 
   return (
     <div className="space-y-6">
+      {/* Growth-oriented welcome banner */}
+      <RoleAuthorityBanner
+        variant="info"
+        title="Your Personal Workspace"
+        description="Focus on your tasks and reports. Your progress is tracked to support your growth — not to judge you."
+      />
+
       {/* Stats Grid - Personal metrics only */}
       <div className="grid gap-4 md:grid-cols-3">
         {statsCards.map((stat) => (
@@ -205,9 +215,9 @@ export function WorkerDashboard({ dateRange }: WorkerDashboardProps) {
         </CardContent>
       </Card>
 
-      {/* Bottom Cards */}
+      {/* Bottom Cards - Support & Referral */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <ComplaintsPanel />
+        <SupportRequestsPanel />
         <ReferralCard />
       </div>
     </div>

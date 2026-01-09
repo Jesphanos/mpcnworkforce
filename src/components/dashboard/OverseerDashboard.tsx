@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { RoleAuthorityBanner } from "@/components/ui/RoleAuthorityBanner";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useWorkReports } from "@/hooks/useWorkReports";
 import { useAuditLogs } from "@/hooks/useAuditLogs";
@@ -23,6 +24,7 @@ import {
   AlertTriangle,
   Eye,
   Bell,
+  Crown,
 } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
@@ -141,14 +143,21 @@ export function OverseerDashboard({ dateRange }: OverseerDashboardProps) {
 
   return (
     <div className="space-y-6">
+      {/* Overseer Authority Banner */}
+      <RoleAuthorityBanner
+        variant="warning"
+        title="Full Governance Authority — With Full Accountability"
+        description="You have complete system access. Every action you take is permanently recorded with your justification. This is your trust contract with the organization."
+      />
+
       {/* Executive Banner */}
       <div className="rounded-lg gradient-primary p-6 text-primary-foreground">
         <div className="flex items-center gap-3 mb-2">
-          <Eye className="h-6 w-6" />
-          <h2 className="text-xl font-semibold">Global Overview</h2>
+          <Crown className="h-6 w-6" />
+          <h2 className="text-xl font-semibold">Global Strategic Overview</h2>
         </div>
         <p className="text-primary-foreground/80 text-sm">
-          Strategic oversight of the entire MPCN organization. All admin actions are logged and reviewable.
+          System-wide oversight of the MPCN organization. Focus on governance patterns, not individual tasks.
         </p>
       </div>
 
