@@ -1,8 +1,11 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Investment } from "@/hooks/useInvestments";
+import { FinancialExplanationCard, generateFinancialExplanation } from "./FinancialExplanationCard";
+import { useMpcnFinancials } from "@/hooks/useMpcnFinancials";
+import { format } from "date-fns";
 
 interface InvestmentChartsProps {
   investments: Investment[];
@@ -33,6 +36,8 @@ const platformColors = [
 ];
 
 export function InvestmentCharts({ investments }: InvestmentChartsProps) {
+  const { financials } = useMpcnFinancials();
+
   const allocationByType = useMemo(() => {
     const typeMap = new Map<string, number>();
 
@@ -84,12 +89,38 @@ export function InvestmentCharts({ investments }: InvestmentChartsProps) {
       .slice(0, 8);
   }, [investments]);
 
+  // Generate financial explanation from latest periods
+  const latestExplanation = useMemo(() => {
+    if (financials.length < 1) return null;
+    const current = financials[0];
+    const previous = financials.length > 1 ? financials[1] : null;
+    const explanation = generateFinancialExplanation(current, previous);
+    return {
+      periodLabel: format(new Date(current.profit_date), "MMMM yyyy"),
+      ...explanation,
+      disclosureNotes: current.disclosure_notes || undefined,
+      adjustmentNotes: current.correction_reason || undefined,
+    };
+  }, [financials]);
+
   if (investments.length === 0) {
     return null;
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-4">
+      {/* Financial Explanation - Why This Changed */}
+      {latestExplanation && (
+        <FinancialExplanationCard
+          periodLabel={latestExplanation.periodLabel}
+          periodSummary={latestExplanation.summary}
+          drivers={latestExplanation.drivers}
+          adjustmentNotes={latestExplanation.adjustmentNotes}
+          disclosureNotes={latestExplanation.disclosureNotes}
+        />
+      )}
+      
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Allocation by Type</CardTitle>
@@ -248,6 +279,7 @@ export function InvestmentCharts({ investments }: InvestmentChartsProps) {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

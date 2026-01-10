@@ -1,7 +1,7 @@
-import { AlertCircle, Info, Shield, Eye } from "lucide-react";
+import { AlertCircle, Info, Shield, Eye, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type BannerVariant = "info" | "warning" | "constraint" | "readonly";
+export type BannerVariant = "info" | "warning" | "constraint" | "readonly" | "full" | "scoped";
 
 interface RoleAuthorityBannerProps {
   variant?: BannerVariant;
@@ -34,6 +34,18 @@ const variantStyles: Record<BannerVariant, { bg: string; border: string; icon: R
     border: "border-secondary",
     icon: Eye,
     iconColor: "text-secondary-foreground",
+  },
+  full: {
+    bg: "bg-primary/10",
+    border: "border-primary/20",
+    icon: Crown,
+    iconColor: "text-primary",
+  },
+  scoped: {
+    bg: "bg-info/10",
+    border: "border-info/20",
+    icon: Shield,
+    iconColor: "text-info",
   },
 };
 

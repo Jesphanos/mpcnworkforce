@@ -1,8 +1,8 @@
 /**
- * Support Request Form (renamed from ComplaintForm)
+ * Support Request Form
  * 
  * Humane framing for raising concerns or requesting support.
- * Emphasizes help-seeking over complaint-filing.
+ * Uses resolution_requests table (not deprecated complaints).
  */
 
 import { useState } from "react";
@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { HelpCircle, Send, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -36,7 +37,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useCreateComplaint } from "@/hooks/useComplaints";
+import { useCreateSupportRequest } from "@/hooks/useSupportRequests";
 
 /**
  * Reframed categories with supportive language
@@ -81,6 +82,9 @@ const SUPPORT_CATEGORIES = [
 
 const formSchema = z.object({
   category: z.string().min(1, "Please select a category"),
+  title: z.string()
+    .min(5, "Please provide a brief title (at least 5 characters)")
+    .max(100, "Title must be less than 100 characters"),
   description: z.string()
     .min(10, "Please provide a bit more detail (at least 10 characters)")
     .max(1000, "Description must be less than 1000 characters"),
@@ -94,12 +98,13 @@ interface SupportRequestFormProps {
 
 export function SupportRequestForm({ variant = "button" }: SupportRequestFormProps) {
   const [open, setOpen] = useState(false);
-  const createRequest = useCreateComplaint();
+  const createRequest = useCreateSupportRequest();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       category: "",
+      title: "",
       description: "",
     },
   });
@@ -107,6 +112,7 @@ export function SupportRequestForm({ variant = "button" }: SupportRequestFormPro
   const onSubmit = async (values: FormValues) => {
     await createRequest.mutateAsync({
       category: values.category,
+      title: values.title,
       description: values.description,
     });
     form.reset();
@@ -160,6 +166,23 @@ export function SupportRequestForm({ variant = "button" }: SupportRequestFormPro
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Brief title</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="A short summary of your request..."
+                      {...field} 
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
