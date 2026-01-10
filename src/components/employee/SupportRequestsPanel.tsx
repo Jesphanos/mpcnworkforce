@@ -1,7 +1,8 @@
 /**
- * Support Requests Panel (renamed from ComplaintsPanel)
+ * Support Requests Panel
  * 
  * Displays user's support requests with humane, growth-oriented framing.
+ * Uses resolution_requests table (not deprecated complaints).
  */
 
 import { format, formatDistanceToNow } from "date-fns";
@@ -12,20 +13,28 @@ import {
   Eye, 
   MessageCircle,
   ArrowUpRight,
+  Users,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMyComplaints, Complaint } from "@/hooks/useComplaints";
+import { useMySupportRequests, SupportRequest } from "@/hooks/useSupportRequests";
 import { SupportRequestForm } from "./SupportRequestForm";
 import { cn } from "@/lib/utils";
 
 /**
  * Status configuration with humane labels
  */
-const STATUS_CONFIG = {
-  pending: {
+const STATUS_CONFIG: Record<string, { 
+  label: string; 
+  icon: typeof Clock; 
+  color: string; 
+  bgColor: string; 
+  borderColor: string; 
+  description: string 
+}> = {
+  open: {
     label: "Awaiting Review",
     icon: Clock,
     color: "text-warning",
@@ -41,6 +50,14 @@ const STATUS_CONFIG = {
     borderColor: "border-info/20",
     description: "Someone is looking into this",
   },
+  mediation: {
+    label: "In Mediation",
+    icon: Users,
+    color: "text-primary",
+    bgColor: "bg-primary/10",
+    borderColor: "border-primary/20",
+    description: "Working toward a resolution",
+  },
   resolved: {
     label: "Resolved",
     icon: CheckCircle2,
@@ -48,6 +65,14 @@ const STATUS_CONFIG = {
     bgColor: "bg-success/10",
     borderColor: "border-success/20",
     description: "This has been addressed",
+  },
+  escalated: {
+    label: "Escalated",
+    icon: ArrowUpRight,
+    color: "text-warning",
+    bgColor: "bg-warning/10",
+    borderColor: "border-warning/20",
+    description: "Elevated for additional support",
   },
 };
 
@@ -65,8 +90,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-function SupportRequestItem({ request }: { request: Complaint }) {
-  const status = STATUS_CONFIG[request.status] || STATUS_CONFIG.pending;
+function SupportRequestItem({ request }: { request: SupportRequest }) {
+  const status = STATUS_CONFIG[request.status] || STATUS_CONFIG.open;
   const StatusIcon = status.icon;
   const categoryLabel = CATEGORY_LABELS[request.category] || request.category;
 
@@ -77,7 +102,7 @@ function SupportRequestItem({ request }: { request: Complaint }) {
           <Badge variant="secondary" className="text-xs">
             {categoryLabel}
           </Badge>
-          {request.escalated && (
+          {request.status === "escalated" && (
             <Badge variant="outline" className="text-xs gap-1 text-primary">
               <ArrowUpRight className="h-3 w-3" />
               Escalated for Support
@@ -93,20 +118,23 @@ function SupportRequestItem({ request }: { request: Complaint }) {
         </Badge>
       </div>
       
-      <p className="text-sm text-foreground line-clamp-2">{request.description}</p>
+      <div>
+        <p className="text-sm font-medium text-foreground">{request.title}</p>
+        <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{request.description}</p>
+      </div>
       
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>{format(new Date(request.created_at), "MMM d, yyyy")}</span>
         <span>{formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}</span>
       </div>
       
-      {request.resolution_notes && (
+      {request.resolution && (
         <div className="pt-3 border-t border-border/50">
           <div className="flex items-start gap-2">
             <MessageCircle className="h-4 w-4 text-success mt-0.5 shrink-0" />
             <div>
               <p className="text-xs font-medium text-success mb-1">Resolution</p>
-              <p className="text-sm text-muted-foreground">{request.resolution_notes}</p>
+              <p className="text-sm text-muted-foreground">{request.resolution}</p>
             </div>
           </div>
         </div>
@@ -116,7 +144,7 @@ function SupportRequestItem({ request }: { request: Complaint }) {
 }
 
 export function SupportRequestsPanel() {
-  const { data: requests, isLoading } = useMyComplaints();
+  const { data: requests, isLoading } = useMySupportRequests();
 
   const activeCount = requests?.filter((r) => r.status !== "resolved").length || 0;
 
