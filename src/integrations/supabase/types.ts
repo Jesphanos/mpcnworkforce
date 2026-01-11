@@ -244,6 +244,56 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_narratives: {
+        Row: {
+          adjustment_notes: string | null
+          created_at: string
+          created_by: string
+          financial_period_id: string | null
+          id: string
+          negative_drivers: string[] | null
+          next_period_outlook: string | null
+          period_summary: string
+          primary_drivers: string[]
+          updated_at: string
+          workforce_impact: string | null
+        }
+        Insert: {
+          adjustment_notes?: string | null
+          created_at?: string
+          created_by: string
+          financial_period_id?: string | null
+          id?: string
+          negative_drivers?: string[] | null
+          next_period_outlook?: string | null
+          period_summary: string
+          primary_drivers?: string[]
+          updated_at?: string
+          workforce_impact?: string | null
+        }
+        Update: {
+          adjustment_notes?: string | null
+          created_at?: string
+          created_by?: string
+          financial_period_id?: string | null
+          id?: string
+          negative_drivers?: string[] | null
+          next_period_outlook?: string | null
+          period_summary?: string
+          primary_drivers?: string[]
+          updated_at?: string
+          workforce_impact?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_narratives_financial_period_id_fkey"
+            columns: ["financial_period_id"]
+            isOneToOne: false
+            referencedRelation: "mpcn_financials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       investment_returns: {
         Row: {
           created_at: string
@@ -337,6 +387,87 @@ export type Database = {
           purchase_date?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      leadership_signals: {
+        Row: {
+          calculated_at: string
+          created_at: string
+          id: string
+          notes: string | null
+          period_end: string
+          period_start: string
+          role: string
+          signal_type: string
+          signal_value: number
+          user_id: string
+        }
+        Insert: {
+          calculated_at?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          period_end: string
+          period_start: string
+          role: string
+          signal_type: string
+          signal_value?: number
+          user_id: string
+        }
+        Update: {
+          calculated_at?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          role?: string
+          signal_type?: string
+          signal_value?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      learning_insights: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          generated_by: string
+          id: string
+          resolution_status: string
+          skill_signal: string | null
+          suggestions: string[] | null
+          user_id: string
+          what_to_improve: string | null
+          what_went_well: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          generated_by: string
+          id?: string
+          resolution_status: string
+          skill_signal?: string | null
+          suggestions?: string[] | null
+          user_id: string
+          what_to_improve?: string | null
+          what_went_well?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          generated_by?: string
+          id?: string
+          resolution_status?: string
+          skill_signal?: string | null
+          suggestions?: string[] | null
+          user_id?: string
+          what_to_improve?: string | null
+          what_went_well?: string | null
         }
         Relationships: []
       }
@@ -507,11 +638,14 @@ export type Database = {
           avatar_url: string | null
           country: string | null
           created_at: string
+          currency_preference: string | null
+          dispute_sla_tier: string | null
           external_accounts: Json | null
           full_name: string | null
           id: string
           initial_investment: number | null
           is_investor: boolean | null
+          jurisdiction: string | null
           language_preference: string | null
           phone_number: string | null
           referral_code: string | null
@@ -524,11 +658,14 @@ export type Database = {
           avatar_url?: string | null
           country?: string | null
           created_at?: string
+          currency_preference?: string | null
+          dispute_sla_tier?: string | null
           external_accounts?: Json | null
           full_name?: string | null
           id: string
           initial_investment?: number | null
           is_investor?: boolean | null
+          jurisdiction?: string | null
           language_preference?: string | null
           phone_number?: string | null
           referral_code?: string | null
@@ -541,11 +678,14 @@ export type Database = {
           avatar_url?: string | null
           country?: string | null
           created_at?: string
+          currency_preference?: string | null
+          dispute_sla_tier?: string | null
           external_accounts?: Json | null
           full_name?: string | null
           id?: string
           initial_investment?: number | null
           is_investor?: boolean | null
+          jurisdiction?: string | null
           language_preference?: string | null
           phone_number?: string | null
           referral_code?: string | null
@@ -780,6 +920,47 @@ export type Database = {
         }
         Relationships: []
       }
+      task_contributions: {
+        Row: {
+          contribution_notes: string | null
+          contribution_weight: number
+          created_at: string
+          id: string
+          task_id: string | null
+          user_id: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          contribution_notes?: string | null
+          contribution_weight?: number
+          created_at?: string
+          id?: string
+          task_id?: string | null
+          user_id: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          contribution_notes?: string | null
+          contribution_weight?: number
+          created_at?: string
+          id?: string
+          task_id?: string | null
+          user_id?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_contributions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           admin_rejection_reason: string | null
@@ -795,20 +976,28 @@ export type Database = {
           current_rate: number
           description: string | null
           due_date: string | null
+          effort_band: string | null
           estimated_hours: number | null
           evidence_required: boolean | null
           evidence_url: string | null
           external_task_id: string | null
+          failure_handling_policy: string | null
           feedback_notes: string | null
           final_status: string
           hours_worked: number
           id: string
           investment_contribution: number | null
+          is_shared: boolean | null
+          outcome_evaluation: string | null
+          payment_logic_type: string | null
           platform: string
           progress_percent: number | null
           rating: number | null
+          review_type: string | null
           revisions_count: number | null
           status: string
+          success_criteria: string | null
+          task_purpose: string | null
           task_type: Database["public"]["Enums"]["task_type"] | null
           team_lead_rejection_reason: string | null
           team_lead_reviewed_at: string | null
@@ -833,20 +1022,28 @@ export type Database = {
           current_rate?: number
           description?: string | null
           due_date?: string | null
+          effort_band?: string | null
           estimated_hours?: number | null
           evidence_required?: boolean | null
           evidence_url?: string | null
           external_task_id?: string | null
+          failure_handling_policy?: string | null
           feedback_notes?: string | null
           final_status?: string
           hours_worked?: number
           id?: string
           investment_contribution?: number | null
+          is_shared?: boolean | null
+          outcome_evaluation?: string | null
+          payment_logic_type?: string | null
           platform: string
           progress_percent?: number | null
           rating?: number | null
+          review_type?: string | null
           revisions_count?: number | null
           status?: string
+          success_criteria?: string | null
+          task_purpose?: string | null
           task_type?: Database["public"]["Enums"]["task_type"] | null
           team_lead_rejection_reason?: string | null
           team_lead_reviewed_at?: string | null
@@ -871,20 +1068,28 @@ export type Database = {
           current_rate?: number
           description?: string | null
           due_date?: string | null
+          effort_band?: string | null
           estimated_hours?: number | null
           evidence_required?: boolean | null
           evidence_url?: string | null
           external_task_id?: string | null
+          failure_handling_policy?: string | null
           feedback_notes?: string | null
           final_status?: string
           hours_worked?: number
           id?: string
           investment_contribution?: number | null
+          is_shared?: boolean | null
+          outcome_evaluation?: string | null
+          payment_logic_type?: string | null
           platform?: string
           progress_percent?: number | null
           rating?: number | null
+          review_type?: string | null
           revisions_count?: number | null
           status?: string
+          success_criteria?: string | null
+          task_purpose?: string | null
           task_type?: Database["public"]["Enums"]["task_type"] | null
           team_lead_rejection_reason?: string | null
           team_lead_reviewed_at?: string | null
