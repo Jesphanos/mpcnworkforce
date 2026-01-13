@@ -11,6 +11,7 @@ import { useAttentionSignals } from "@/hooks/useAttentionSignals";
 import { TrendsChart } from "@/components/dashboard/TrendsChart";
 import { PlatformChart } from "@/components/dashboard/PlatformChart";
 import { AttentionSignalsList } from "@/components/governance/AttentionSignalsList";
+import { LeadershipOverviewCard } from "@/components/leadership/LeadershipOverviewCard";
 import { 
   Building2,
   Users,
@@ -240,6 +241,9 @@ export function OverseerDashboard({ dateRange }: OverseerDashboardProps) {
       {activeSignals > 0 && (
         <AttentionSignalsList />
       )}
+
+      {/* Leadership Quality Monitoring */}
+      <LeadershipOverviewCard />
 
       {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-3">

@@ -8,6 +8,7 @@ import {
   AlertCircle,
   FileText,
   History,
+  BookOpen,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,8 @@ import {
   FinancialPeriodStatus 
 } from "@/hooks/useMpcnFinancials";
 import { useCapabilities } from "@/hooks/useCapabilities";
+import { useFinancialNarrativeForPeriod } from "@/hooks/useFinancialNarratives";
+import { FinancialNarrativeForm } from "./FinancialNarrativeForm";
 import { cn } from "@/lib/utils";
 
 const STATUS_CONFIG: Record<FinancialPeriodStatus, { 
@@ -249,7 +252,10 @@ function CorrectionDialog({
 function FinancialRow({ financial }: { financial: MpcnFinancial }) {
   const [showFinalize, setShowFinalize] = useState(false);
   const [showCorrect, setShowCorrect] = useState(false);
-  const { isOverseer } = useCapabilities();
+  const [showNarrativeForm, setShowNarrativeForm] = useState(false);
+  const { isOverseer, can } = useCapabilities();
+  const canManage = can("canManageFinancials");
+  const { data: narrative } = useFinancialNarrativeForPeriod(financial.id);
   
   const statusConfig = STATUS_CONFIG[financial.status];
   const StatusIcon = statusConfig.icon;
@@ -295,6 +301,16 @@ function FinancialRow({ financial }: { financial: MpcnFinancial }) {
         </TableCell>
         <TableCell>
           <div className="flex items-center gap-1">
+            {canManage && (
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={() => setShowNarrativeForm(true)}
+                title={narrative ? "Edit explanation" : "Add explanation"}
+              >
+                <BookOpen className={cn("h-3 w-3", narrative ? "text-info" : "text-muted-foreground")} />
+              </Button>
+            )}
             {financial.status === "draft" && (
               <Button size="sm" variant="outline" onClick={() => setShowFinalize(true)}>
                 <Lock className="h-3 w-3 mr-1" />
@@ -320,6 +336,12 @@ function FinancialRow({ financial }: { financial: MpcnFinancial }) {
         financial={financial} 
         isOpen={showCorrect} 
         onClose={() => setShowCorrect(false)} 
+      />
+      <FinancialNarrativeForm
+        open={showNarrativeForm}
+        onOpenChange={setShowNarrativeForm}
+        periodId={financial.id}
+        existingNarrative={narrative}
       />
     </>
   );

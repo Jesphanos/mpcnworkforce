@@ -10,9 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useCreateTask } from "@/hooks/useTasks";
 import { CollaboratorsPicker } from "./CollaboratorsPicker";
+import { TaskContractFields } from "./TaskContractFields";
+import { EffortBand, ReviewType, PaymentLogicType, FailureHandlingPolicy } from "@/hooks/useTaskContracts";
 
 const platforms = ["Remotasks", "Outlier", "Scale AI", "Appen", "Clickworker", "Upwork", "Fiverr", "Other"];
 
@@ -44,6 +47,14 @@ export function TaskForm() {
   const [evidenceRequired, setEvidenceRequired] = useState(true);
   const [collaborators, setCollaborators] = useState<string[]>([]);
   
+  // Task contract fields
+  const [taskPurpose, setTaskPurpose] = useState("");
+  const [successCriteria, setSuccessCriteria] = useState("");
+  const [effortBand, setEffortBand] = useState<EffortBand>("medium");
+  const [reviewType, setReviewType] = useState<ReviewType>("team_lead");
+  const [paymentLogicType, setPaymentLogicType] = useState<PaymentLogicType>("fixed");
+  const [failureHandlingPolicy, setFailureHandlingPolicy] = useState<FailureHandlingPolicy>("revision");
+  
   const createTask = useCreateTask();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,6 +84,13 @@ export function TaskForm() {
       evidence_url: evidenceUrl || undefined,
       evidence_required: evidenceRequired,
       collaborators: collaborators.length > 0 ? collaborators : undefined,
+      // Task contract fields
+      task_purpose: taskPurpose || undefined,
+      success_criteria: successCriteria || undefined,
+      effort_band: effortBand,
+      review_type: reviewType,
+      payment_logic_type: paymentLogicType,
+      failure_handling_policy: failureHandlingPolicy,
     });
 
     // Reset form
@@ -90,6 +108,12 @@ export function TaskForm() {
     setEvidenceUrl("");
     setEvidenceRequired(true);
     setCollaborators([]);
+    setTaskPurpose("");
+    setSuccessCriteria("");
+    setEffortBand("medium");
+    setReviewType("team_lead");
+    setPaymentLogicType("fixed");
+    setFailureHandlingPolicy("revision");
   };
 
   return (
@@ -349,6 +373,23 @@ export function TaskForm() {
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
+
+          {/* Task Contract Fields */}
+          <Separator />
+          <TaskContractFields 
+            taskPurpose={taskPurpose}
+            setTaskPurpose={setTaskPurpose}
+            successCriteria={successCriteria}
+            setSuccessCriteria={setSuccessCriteria}
+            effortBand={effortBand}
+            setEffortBand={setEffortBand}
+            reviewType={reviewType}
+            setReviewType={setReviewType}
+            paymentLogicType={paymentLogicType}
+            setPaymentLogicType={setPaymentLogicType}
+            failureHandlingPolicy={failureHandlingPolicy}
+            setFailureHandlingPolicy={setFailureHandlingPolicy}
+          />
 
           <Button 
             type="submit" 
