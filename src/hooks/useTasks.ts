@@ -23,6 +23,7 @@ export interface Task {
   evidence_url: string | null;
   evidence_required: boolean;
   collaborators: string[];
+  is_shared: boolean;
   revisions_count: number;
   rating: number | null;
   feedback_notes: string | null;

@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Check, X, Clock, Eye, Shield, DollarSign, History, RotateCcw, Users } from "lucide-react";
+import { Check, X, Clock, Eye, Shield, DollarSign, History, RotateCcw, Users, Scale } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Task, useTeamLeadReview, useAdminOverride, useUpdateTaskRate, useRequestRevision } from "@/hooks/useTasks";
 import { useAuth } from "@/contexts/AuthContext";
 import { TaskAuditDialog } from "./TaskAuditDialog";
+import { ContributionWeightingPanel } from "./ContributionWeightingPanel";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TasksTableProps {
@@ -52,6 +53,7 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
   const [rateChangeReason, setRateChangeReason] = useState("");
   const [auditTaskId, setAuditTaskId] = useState<string | null>(null);
   const [collaboratorNames, setCollaboratorNames] = useState<Record<string, string>>({});
+  const [contributionTask, setContributionTask] = useState<Task | null>(null);
   
   const teamLeadReview = useTeamLeadReview();
   const adminOverride = useAdminOverride();
@@ -272,21 +274,34 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
                     <TableCell>
                       <TooltipProvider>
                         {task.collaborators && task.collaborators.length > 0 ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge variant="outline" className="gap-1 cursor-help">
-                                <Users className="h-3 w-3" />
-                                {task.collaborators.length}
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <div className="text-sm">
-                                {task.collaborators.map(id => (
-                                  <div key={id}>{collaboratorNames[id] || id.slice(0, 8)}</div>
-                                ))}
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
+                          <div className="flex items-center gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="outline" className="gap-1 cursor-help">
+                                  <Users className="h-3 w-3" />
+                                  {task.collaborators.length}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <div className="text-sm">
+                                  {task.collaborators.map(id => (
+                                    <div key={id}>{collaboratorNames[id] || id.slice(0, 8)}</div>
+                                  ))}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                            {task.is_shared && showActions && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => setContributionTask(task)}
+                                title="Manage Contributions"
+                              >
+                                <Scale className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-muted-foreground text-sm">—</span>
                         )}
@@ -491,6 +506,26 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
         open={!!auditTaskId}
         onOpenChange={(open) => !open && setAuditTaskId(null)}
       />
+
+      {/* Contribution Weighting Dialog */}
+      <Dialog open={!!contributionTask} onOpenChange={(open) => !open && setContributionTask(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Contribution Weighting</DialogTitle>
+            <DialogDescription>
+              Assign credit percentages for shared task "{contributionTask?.title}"
+            </DialogDescription>
+          </DialogHeader>
+          {contributionTask && (
+            <ContributionWeightingPanel
+              taskId={contributionTask.id}
+              collaborators={contributionTask.collaborators || []}
+              totalEarnings={contributionTask.calculated_earnings || 0}
+              isShared={contributionTask.is_shared || false}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

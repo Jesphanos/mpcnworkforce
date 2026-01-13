@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { SkillsSection } from "@/components/employee/SkillsSection";
 import { ExternalAccountsSection } from "@/components/employee/ExternalAccountsSection";
+import { SkillProgressionChart } from "@/components/profile/SkillProgressionChart";
 import { InternationalSettingsSection } from "@/components/profile/InternationalSettingsSection";
 import { GovernanceCharter } from "@/components/settings/GovernanceCharter";
 import { Loader2, User, Mail, Shield, Trash2, Copy, CheckCircle, Heart, ChevronDown } from "lucide-react";
@@ -232,6 +233,9 @@ export default function Profile() {
 
         {/* Skills Section */}
         <SkillsSection editable />
+
+        {/* Skill Progression Chart */}
+        <SkillProgressionChart />
 
         {/* International Settings */}
         <InternationalSettingsSection />
