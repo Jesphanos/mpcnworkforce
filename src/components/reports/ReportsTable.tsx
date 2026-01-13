@@ -44,7 +44,7 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
   
   const [rejectionReason, setRejectionReason] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
-  const [selectedReport, setSelectedReport] = useState<string | null>(null);
+  const [selectedReport, setSelectedReport] = useState<WorkReport | null>(null);
   const [editingRate, setEditingRate] = useState<{ reportId: string; rate: string; originalRate: number } | null>(null);
   const [rateChangeReason, setRateChangeReason] = useState("");
   const [auditReportId, setAuditReportId] = useState<string | null>(null);
@@ -54,11 +54,17 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
   const adminOverride = useAdminReportOverride();
   const updateRate = useUpdateReportRate();
 
-  const handleApprove = async (reportId: string) => {
+  const handleApprove = async (report: WorkReport) => {
     if (isTeamLead && !canReview) {
-      await teamLeadReview.mutateAsync({ reportId, status: "approved" });
+      await teamLeadReview.mutateAsync({ 
+        reportId: report.id, 
+        status: "approved",
+        userId: report.user_id,
+        platform: report.platform,
+        taskType: report.task_type || null,
+      });
     } else {
-      await updateStatus.mutateAsync({ reportId, status: "approved" });
+      await updateStatus.mutateAsync({ reportId: report.id, status: "approved" });
     }
   };
 
@@ -66,13 +72,16 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
     if (selectedReport) {
       if (isTeamLead && !canReview) {
         await teamLeadReview.mutateAsync({
-          reportId: selectedReport,
+          reportId: selectedReport.id,
           status: "rejected",
           rejectionReason,
+          userId: selectedReport.user_id,
+          platform: selectedReport.platform,
+          taskType: selectedReport.task_type || null,
         });
       } else {
         await updateStatus.mutateAsync({
-          reportId: selectedReport,
+          reportId: selectedReport.id,
           status: "rejected",
           rejectionReason,
         });
@@ -258,7 +267,7 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                                 size="sm"
                                 variant="outline"
                                 className="text-success hover:bg-success/10 h-7 w-7 p-0"
-                                onClick={() => handleApprove(report.id)}
+                                onClick={() => handleApprove(report)}
                                 disabled={updateStatus.isPending || teamLeadReview.isPending}
                                 title="Approve"
                               >
@@ -270,7 +279,7 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                                     size="sm"
                                     variant="outline"
                                     className="text-destructive hover:bg-destructive/10 h-7 w-7 p-0"
-                                    onClick={() => setSelectedReport(report.id)}
+                                    onClick={() => setSelectedReport(report)}
                                     title={isTeamLead && !canReview ? "Reject (non-final)" : "Reject"}
                                   >
                                     <X className="h-3 w-3" />

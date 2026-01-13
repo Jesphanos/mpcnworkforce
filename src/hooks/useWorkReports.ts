@@ -24,6 +24,7 @@ export interface WorkReport {
   admin_status: string | null;
   admin_override_reason: string | null;
   final_status: string;
+  task_type: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -135,10 +136,16 @@ export function useTeamLeadReportReview() {
       reportId,
       status,
       rejectionReason,
+      userId,
+      platform,
+      taskType,
     }: {
       reportId: string;
       status: "approved" | "rejected";
       rejectionReason?: string;
+      userId?: string;
+      platform?: string;
+      taskType?: string | null;
     }) => {
       if (!user) throw new Error("Not authenticated");
 
@@ -155,6 +162,11 @@ export function useTeamLeadReportReview() {
         updateData.status = "approved";
       }
 
+      // If rejected, increment revisions count
+      if (status === "rejected") {
+        updateData.revisions_count = supabase.rpc ? undefined : 1; // Will be handled separately
+      }
+
       const { data, error } = await supabase
         .from("work_reports")
         .update(updateData)
@@ -163,16 +175,60 @@ export function useTeamLeadReportReview() {
         .single();
 
       if (error) throw error;
+      
+      // Generate learning insight
+      if (userId && platform) {
+        await supabase.from("learning_insights").insert({
+          user_id: userId,
+          entity_id: reportId,
+          entity_type: "report",
+          resolution_status: status,
+          generated_by: "reviewer",
+          skill_signal: inferSkillFromPlatform(platform, taskType),
+          what_went_well: status === "approved" ? `Successfully completed work on ${platform}. Quality standards met.` : null,
+          what_to_improve: status === "rejected" ? rejectionReason || "Submission requires revision." : null,
+          suggestions: status === "approved" 
+            ? ["Continue maintaining quality standards", "Document successful approaches"]
+            : ["Review the specific feedback provided", "Ask for clarification if needed"],
+        });
+      }
+
       return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["work-reports"] });
+      queryClient.invalidateQueries({ queryKey: ["learning-insights"] });
       toast.success(`Report ${variables.status} by team lead`);
     },
     onError: (error) => {
       toast.error("Failed to review report: " + error.message);
     },
   });
+}
+
+function inferSkillFromPlatform(platform: string, taskType?: string | null): string {
+  const taskSkills: Record<string, string> = {
+    "research": "Research & Analysis",
+    "coding": "Software Development",
+    "design": "Creative Design",
+    "support": "Customer Support",
+    "writing": "Content Creation",
+    "data_entry": "Data Processing",
+    "quality_assurance": "Quality Control",
+    "project_management": "Project Leadership",
+  };
+
+  if (taskType && taskSkills[taskType]) {
+    return taskSkills[taskType];
+  }
+  
+  const platformSkills: Record<string, string> = {
+    "Upwork": "Freelancing",
+    "Fiverr": "Service Delivery",
+    "99designs": "Design",
+  };
+
+  return platformSkills[platform] || "General Proficiency";
 }
 
 export function useAdminReportOverride() {
