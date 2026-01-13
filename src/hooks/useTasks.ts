@@ -59,6 +59,13 @@ export interface CreateTaskInput {
   evidence_url?: string;
   evidence_required?: boolean;
   collaborators?: string[];
+  // Task contract fields
+  task_purpose?: string;
+  success_criteria?: string;
+  effort_band?: string;
+  review_type?: string;
+  payment_logic_type?: string;
+  failure_handling_policy?: string;
 }
 
 export function useTasks() {
@@ -104,6 +111,13 @@ export function useCreateTask() {
         evidence_url: input.evidence_url,
         evidence_required: input.evidence_required ?? true,
         collaborators: input.collaborators || [],
+        // Task contract fields
+        task_purpose: input.task_purpose,
+        success_criteria: input.success_criteria,
+        effort_band: input.effort_band || "medium",
+        review_type: input.review_type || "team_lead",
+        payment_logic_type: input.payment_logic_type || "fixed",
+        failure_handling_policy: input.failure_handling_policy || "revision",
       };
 
       const { data, error } = await supabase

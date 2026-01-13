@@ -11,6 +11,7 @@ import { InvestmentOverviewCard } from "@/components/employee/InvestmentOverview
 import { SupportRequestsPanel } from "@/components/employee/SupportRequestsPanel";
 import { ReferralCard } from "@/components/employee/ReferralCard";
 import { TrendsChart } from "@/components/dashboard/TrendsChart";
+import { LearningInsightsCard } from "@/components/learning/LearningInsightsCard";
 import { useCapabilities } from "@/hooks/useCapabilities";
 import { formatDistanceToNow } from "date-fns";
 import { getHumaneStatusLabel } from "@/lib/statusDefinitions";
@@ -214,6 +215,9 @@ export function WorkerDashboard({ dateRange }: WorkerDashboardProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Learning & Growth Section */}
+      <LearningInsightsCard />
 
       {/* Bottom Cards - Support & Referral */}
       <div className="grid gap-4 lg:grid-cols-2">

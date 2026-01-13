@@ -3,9 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Investment } from "@/hooks/useInvestments";
-import { FinancialExplanationCard, generateFinancialExplanation } from "./FinancialExplanationCard";
+import { FinancialNarrativeCard } from "./FinancialNarrativeCard";
 import { useMpcnFinancials } from "@/hooks/useMpcnFinancials";
-import { format } from "date-fns";
 
 interface InvestmentChartsProps {
   investments: Investment[];
@@ -89,19 +88,8 @@ export function InvestmentCharts({ investments }: InvestmentChartsProps) {
       .slice(0, 8);
   }, [investments]);
 
-  // Generate financial explanation from latest periods
-  const latestExplanation = useMemo(() => {
-    if (financials.length < 1) return null;
-    const current = financials[0];
-    const previous = financials.length > 1 ? financials[1] : null;
-    const explanation = generateFinancialExplanation(current, previous);
-    return {
-      periodLabel: format(new Date(current.profit_date), "MMMM yyyy"),
-      ...explanation,
-      disclosureNotes: current.disclosure_notes || undefined,
-      adjustmentNotes: current.correction_reason || undefined,
-    };
-  }, [financials]);
+  // Get the latest finalized financial period for narrative display
+  const latestPeriodId = financials.length > 0 ? financials[0].id : null;
 
   if (investments.length === 0) {
     return null;
@@ -109,15 +97,9 @@ export function InvestmentCharts({ investments }: InvestmentChartsProps) {
 
   return (
     <div className="space-y-4">
-      {/* Financial Explanation - Why This Changed */}
-      {latestExplanation && (
-        <FinancialExplanationCard
-          periodLabel={latestExplanation.periodLabel}
-          periodSummary={latestExplanation.summary}
-          drivers={latestExplanation.drivers}
-          adjustmentNotes={latestExplanation.adjustmentNotes}
-          disclosureNotes={latestExplanation.disclosureNotes}
-        />
+      {/* Financial Narrative - Why This Changed */}
+      {latestPeriodId && (
+        <FinancialNarrativeCard periodId={latestPeriodId} />
       )}
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
