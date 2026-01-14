@@ -40,6 +40,8 @@ function NotificationItem({
     const titleLower = notification.title.toLowerCase();
     if (titleLower.includes("report")) return "/reports";
     if (titleLower.includes("task")) return "/tasks";
+    if (titleLower.includes("skill") || titleLower.includes("learning") || titleLower.includes("growth")) return "/profile";
+    if (titleLower.includes("resolution")) return "/governance";
     return null;
   };
 
