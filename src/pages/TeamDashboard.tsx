@@ -10,9 +10,11 @@ import { PeriodEarningsTable } from "@/components/team/PeriodEarningsTable";
 import { TeamPerformanceCharts } from "@/components/team/TeamPerformanceCharts";
 import { TeamGroupsView } from "@/components/team/TeamGroupsView";
 import { OverseerFilters } from "@/components/team/OverseerFilters";
+import { WorkerLeaderboard } from "@/components/team/WorkerLeaderboard";
+import { TaskAssignmentDialog } from "@/components/tasks/TaskAssignmentDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClipboardList, FileText, Users, BarChart3, DollarSign, Building2 } from "lucide-react";
+import { ClipboardList, FileText, Users, BarChart3, DollarSign, Building2, Trophy } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { OverseerFilters as FilterType } from "@/hooks/useOverseerData";
 
@@ -46,6 +48,10 @@ export default function TeamDashboard() {
                 <Users className="h-4 w-4" />
                 Individual Performance
               </TabsTrigger>
+              <TabsTrigger value="leaderboard" className="flex items-center gap-2">
+                <Trophy className="h-4 w-4" />
+                Leaderboard
+              </TabsTrigger>
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 Analytics
@@ -70,6 +76,10 @@ export default function TeamDashboard() {
 
             <TabsContent value="performance">
               <MemberPerformanceTable filters={filters} />
+            </TabsContent>
+
+            <TabsContent value="leaderboard">
+              <WorkerLeaderboard limit={20} />
             </TabsContent>
 
             <TabsContent value="analytics">
@@ -117,11 +127,14 @@ export default function TeamDashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Team Dashboard</h1>
-          <p className="text-muted-foreground">
-            Overview of your team's tasks and reports
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Team Dashboard</h1>
+            <p className="text-muted-foreground">
+              Overview of your team's tasks and reports
+            </p>
+          </div>
+          <TaskAssignmentDialog />
         </div>
 
         <TeamStats />
@@ -137,6 +150,10 @@ export default function TeamDashboard() {
                 <TabsTrigger value="reports" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   Reports
+                </TabsTrigger>
+                <TabsTrigger value="leaderboard" className="flex items-center gap-2">
+                  <Trophy className="h-4 w-4" />
+                  Leaderboard
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="tasks">
@@ -164,6 +181,9 @@ export default function TeamDashboard() {
                     <TeamReportsTable />
                   </CardContent>
                 </Card>
+              </TabsContent>
+              <TabsContent value="leaderboard">
+                <WorkerLeaderboard limit={10} />
               </TabsContent>
             </Tabs>
           </div>

@@ -53,7 +53,7 @@ export interface CreateTaskInput {
   due_date?: string;
   hours_worked: number;
   estimated_hours?: number;
-  base_rate: number;
+  base_rate?: number;
   current_rate?: number;
   progress_percent?: number;
   external_task_id?: string;
@@ -67,6 +67,10 @@ export interface CreateTaskInput {
   review_type?: string;
   payment_logic_type?: string;
   failure_handling_policy?: string;
+  // Assignment fields
+  assigned_to?: string;
+  assigned_by?: string;
+  status?: string;
 }
 
 export function useTasks() {
@@ -92,18 +96,22 @@ export function useCreateTask() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (input: CreateTaskInput) => {
+    mutationFn: async (input: CreateTaskInput & { assigned_to?: string }) => {
       if (!user) throw new Error("Not authenticated");
 
+      // For task assignment, use assigned_to as the user_id
+      const targetUserId = input.assigned_to || user.id;
+      const isAssignment = !!input.assigned_to;
+
       const insertData = {
-        user_id: user.id,
+        user_id: targetUserId,
         title: input.title,
         description: input.description,
         platform: input.platform,
         work_date: input.work_date,
-        hours_worked: input.hours_worked,
-        base_rate: input.base_rate,
-        current_rate: input.current_rate ?? input.base_rate,
+        hours_worked: input.hours_worked || 0,
+        base_rate: input.base_rate ?? 0,
+        current_rate: input.current_rate ?? input.base_rate ?? 0,
         task_type: input.task_type || "other",
         due_date: input.due_date,
         estimated_hours: input.estimated_hours ?? 0,
@@ -119,6 +127,9 @@ export function useCreateTask() {
         review_type: input.review_type || "team_lead",
         payment_logic_type: input.payment_logic_type || "fixed",
         failure_handling_policy: input.failure_handling_policy || "revision",
+        // Assignment fields
+        status: input.status || (isAssignment ? "assigned" : "pending"),
+        assigned_by: isAssignment ? user.id : null,
       };
 
       const { data, error } = await supabase
@@ -130,9 +141,10 @@ export function useCreateTask() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Task created successfully");
+      queryClient.invalidateQueries({ queryKey: ["team-tasks"] });
+      toast.success(variables.assigned_to ? "Task assigned successfully" : "Task created successfully");
     },
     onError: (error) => {
       toast.error("Failed to create task: " + error.message);
