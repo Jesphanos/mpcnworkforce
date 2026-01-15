@@ -8,6 +8,7 @@ import { OverseerStats } from "@/components/team/OverseerStats";
 import { MemberPerformanceTable } from "@/components/team/MemberPerformanceTable";
 import { PeriodEarningsTable } from "@/components/team/PeriodEarningsTable";
 import { TeamPerformanceCharts } from "@/components/team/TeamPerformanceCharts";
+import { TeamPerformanceChart } from "@/components/team/TeamPerformanceChart";
 import { TeamGroupsView } from "@/components/team/TeamGroupsView";
 import { OverseerFilters } from "@/components/team/OverseerFilters";
 import { WorkerLeaderboard } from "@/components/team/WorkerLeaderboard";
@@ -71,7 +72,10 @@ export default function TeamDashboard() {
             </TabsList>
 
             <TabsContent value="teams">
-              <TeamGroupsView filters={filters} />
+              <div className="space-y-6">
+                <TeamPerformanceChart />
+                <TeamGroupsView filters={filters} />
+              </div>
             </TabsContent>
 
             <TabsContent value="performance">

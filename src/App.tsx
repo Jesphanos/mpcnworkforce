@@ -19,6 +19,7 @@ import Settings from "./pages/Settings";
 import Governance from "./pages/Governance";
 import NotFound from "./pages/NotFound";
 import AccessDenied from "./pages/AccessDenied";
+import WorkerProfile from "./pages/WorkerProfile";
 
 const queryClient = new QueryClient();
 
@@ -117,6 +118,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={["report_admin", "user_admin", "general_overseer"]}>
                   <Governance />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/worker/:userId"
+              element={
+                <ProtectedRoute allowedRoles={["team_lead", "report_admin", "user_admin", "general_overseer"]}>
+                  <WorkerProfile />
                 </ProtectedRoute>
               }
             />

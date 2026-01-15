@@ -22,6 +22,10 @@ interface TeamMember {
   role: string;
   assigned_by: string | null;
   assigned_at: string;
+  is_active?: boolean;
+  transfer_reason?: string | null;
+  transferred_from_team?: string | null;
+  transferred_at?: string | null;
 }
 
 export function useTeams() {
@@ -142,7 +146,7 @@ export function useTeamMembers(teamId?: string) {
     mutationFn: async ({ teamId, userId, role = "member" }: { teamId: string; userId: string; role?: string }) => {
       const { data, error } = await supabase
         .from("team_members")
-        .insert({ team_id: teamId, user_id: userId, role, assigned_by: user!.id })
+        .insert({ team_id: teamId, user_id: userId, role, assigned_by: user!.id, is_active: true })
         .select()
         .single();
       
@@ -158,15 +162,61 @@ export function useTeamMembers(teamId?: string) {
     },
   });
 
+  /**
+   * Transfer a member to a new team with mandatory reason
+   * Uses the transfer_team_membership database function
+   */
+  const transferMember = useMutation({
+    mutationFn: async ({ 
+      userId, 
+      newTeamId, 
+      transferReason 
+    }: { 
+      userId: string; 
+      newTeamId: string; 
+      transferReason: string;
+    }) => {
+      const { data, error } = await supabase.rpc("transfer_team_membership", {
+        p_user_id: userId,
+        p_new_team_id: newTeamId,
+        p_transfer_reason: transferReason,
+        p_transferred_by: user!.id,
+      });
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+      toast.success("Member transferred to new team");
+    },
+    onError: (error) => {
+      toast.error("Failed to transfer member: " + error.message);
+    },
+  });
+
   const removeMember = useMutation({
-    mutationFn: async ({ teamId, userId }: { teamId: string; userId: string }) => {
+    mutationFn: async ({ teamId, userId, reason }: { teamId: string; userId: string; reason?: string }) => {
+      // Deactivate membership rather than delete to preserve history
       const { error } = await supabase
         .from("team_members")
-        .delete()
+        .update({ 
+          is_active: false,
+          transferred_at: new Date().toISOString(),
+        })
         .eq("team_id", teamId)
         .eq("user_id", userId);
       
       if (error) throw error;
+
+      // Log removal in audit
+      await supabase.from("audit_logs").insert({
+        action: "team_removal",
+        entity_type: "team_member",
+        entity_id: `${teamId}:${userId}`,
+        performed_by: user!.id,
+        notes: reason || "Member removed from team",
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-members"] });
@@ -181,6 +231,7 @@ export function useTeamMembers(teamId?: string) {
     members: membersQuery.data || [],
     isLoading: membersQuery.isLoading,
     assignMember,
+    transferMember,
     removeMember,
   };
 }
