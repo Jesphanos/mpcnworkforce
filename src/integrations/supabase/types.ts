@@ -1107,30 +1107,49 @@ export type Database = {
           assigned_at: string
           assigned_by: string | null
           id: string
+          is_active: boolean | null
           role: string
           team_id: string
+          transfer_reason: string | null
+          transferred_at: string | null
+          transferred_from_team: string | null
           user_id: string
         }
         Insert: {
           assigned_at?: string
           assigned_by?: string | null
           id?: string
+          is_active?: boolean | null
           role?: string
           team_id: string
+          transfer_reason?: string | null
+          transferred_at?: string | null
+          transferred_from_team?: string | null
           user_id: string
         }
         Update: {
           assigned_at?: string
           assigned_by?: string | null
           id?: string
+          is_active?: boolean | null
           role?: string
           team_id?: string
+          transfer_reason?: string | null
+          transferred_at?: string | null
+          transferred_from_team?: string | null
           user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "team_members_team_id_fkey"
             columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_transferred_from_team_fkey"
+            columns: ["transferred_from_team"]
             isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
@@ -1324,6 +1343,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_delete_user: {
+        Args: { actor_id: string; target_id: string }
+        Returns: boolean
+      }
+      can_modify_role: {
+        Args: {
+          actor_id: string
+          new_role: Database["public"]["Enums"]["app_role"]
+          target_current_role: Database["public"]["Enums"]["app_role"]
+          target_id: string
+        }
+        Returns: boolean
+      }
       can_override_role: {
         Args: {
           _target_role: Database["public"]["Enums"]["app_role"]
@@ -1331,8 +1363,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      change_user_role_with_audit: {
+        Args: {
+          p_actor_id: string
+          p_new_role: Database["public"]["Enums"]["app_role"]
+          p_reason: string
+          p_target_user_id: string
+        }
+        Returns: boolean
+      }
       get_general_overseer_email: { Args: never; Returns: string }
       get_role_level: {
+        Args: { role_name: Database["public"]["Enums"]["app_role"] }
+        Returns: number
+      }
+      get_role_tier: {
         Args: { role_name: Database["public"]["Enums"]["app_role"] }
         Returns: number
       }
@@ -1356,6 +1401,15 @@ export type Database = {
           p_notes?: string
           p_performed_by: string
           p_previous_values?: Json
+        }
+        Returns: string
+      }
+      transfer_team_membership: {
+        Args: {
+          p_new_team_id: string
+          p_transfer_reason: string
+          p_transferred_by: string
+          p_user_id: string
         }
         Returns: string
       }
