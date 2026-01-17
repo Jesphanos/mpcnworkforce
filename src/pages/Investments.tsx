@@ -5,7 +5,7 @@ import { InvestmentForm } from "@/components/investments/InvestmentForm";
 import { InvestmentsTable } from "@/components/investments/InvestmentsTable";
 import { InvestmentStats } from "@/components/investments/InvestmentStats";
 import { InvestmentCharts } from "@/components/investments/InvestmentCharts";
-import { InvestorDashboard } from "@/components/investments/InvestorDashboard";
+import { ComprehensiveInvestorDashboard } from "@/components/investments/ComprehensiveInvestorDashboard";
 import { FinancialManagement } from "@/components/investments/FinancialManagement";
 import { useInvestments } from "@/hooks/useInvestments";
 import { useAuth } from "@/contexts/AuthContext";
@@ -36,7 +36,7 @@ export default function Investments() {
     );
   }
 
-  // If user is only an investor (no admin access), show just their dashboard
+  // If user is only an investor (no admin access), show comprehensive investor dashboard
   if (showInvestorTab && !canManage) {
     return (
       <DashboardLayout>
@@ -44,10 +44,10 @@ export default function Investments() {
           <div>
             <h1 className="text-2xl font-bold text-foreground">My Investments</h1>
             <p className="text-muted-foreground">
-              Track your investment portfolio and returns
+              Track your investment portfolio, returns, and withdrawals
             </p>
           </div>
-          <InvestorDashboard />
+          <ComprehensiveInvestorDashboard />
         </div>
       </DashboardLayout>
     );
@@ -96,7 +96,7 @@ export default function Investments() {
             )}
 
             <TabsContent value="my-investments">
-              <InvestorDashboard />
+              <ComprehensiveInvestorDashboard />
             </TabsContent>
           </Tabs>
         ) : (
