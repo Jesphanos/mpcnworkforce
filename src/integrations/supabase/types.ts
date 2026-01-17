@@ -347,48 +347,231 @@ export type Database = {
           created_at: string
           created_by: string
           current_value: number
+          expected_return_model: string | null
+          gross_profit: number | null
+          holding_period_days: number | null
           id: string
           initial_amount: number
+          investment_scope:
+            | Database["public"]["Enums"]["investment_scope"]
+            | null
           investment_type: string
+          investor_id: string | null
+          investor_share: number | null
+          is_reinvestment: boolean | null
+          loss_amount: number | null
+          maturity_date: string | null
           name: string
+          net_profit: number | null
           notes: string | null
+          operational_deduction: number | null
+          parent_investment_id: string | null
           percentage_of_pool: number | null
           platform: string
           purchase_date: string
+          risk_level:
+            | Database["public"]["Enums"]["investment_risk_level"]
+            | null
           status: string
+          target_project_id: string | null
+          target_team_id: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           created_by: string
           current_value: number
+          expected_return_model?: string | null
+          gross_profit?: number | null
+          holding_period_days?: number | null
           id?: string
           initial_amount: number
+          investment_scope?:
+            | Database["public"]["Enums"]["investment_scope"]
+            | null
           investment_type: string
+          investor_id?: string | null
+          investor_share?: number | null
+          is_reinvestment?: boolean | null
+          loss_amount?: number | null
+          maturity_date?: string | null
           name: string
+          net_profit?: number | null
           notes?: string | null
+          operational_deduction?: number | null
+          parent_investment_id?: string | null
           percentage_of_pool?: number | null
           platform: string
           purchase_date: string
+          risk_level?:
+            | Database["public"]["Enums"]["investment_risk_level"]
+            | null
           status?: string
+          target_project_id?: string | null
+          target_team_id?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           created_by?: string
           current_value?: number
+          expected_return_model?: string | null
+          gross_profit?: number | null
+          holding_period_days?: number | null
           id?: string
           initial_amount?: number
+          investment_scope?:
+            | Database["public"]["Enums"]["investment_scope"]
+            | null
           investment_type?: string
+          investor_id?: string | null
+          investor_share?: number | null
+          is_reinvestment?: boolean | null
+          loss_amount?: number | null
+          maturity_date?: string | null
           name?: string
+          net_profit?: number | null
           notes?: string | null
+          operational_deduction?: number | null
+          parent_investment_id?: string | null
           percentage_of_pool?: number | null
           platform?: string
           purchase_date?: string
+          risk_level?:
+            | Database["public"]["Enums"]["investment_risk_level"]
+            | null
           status?: string
+          target_project_id?: string | null
+          target_team_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "investments_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investments_parent_investment_id_fkey"
+            columns: ["parent_investment_id"]
+            isOneToOne: false
+            referencedRelation: "investments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investments_target_team_id_fkey"
+            columns: ["target_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investor_audit_log: {
+        Row: {
+          action_type: string
+          amount: number | null
+          created_at: string
+          description: string | null
+          id: string
+          investor_id: string
+          performed_by: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+        }
+        Insert: {
+          action_type: string
+          amount?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          investor_id: string
+          performed_by?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+        }
+        Update: {
+          action_type?: string
+          amount?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          investor_id?: string
+          performed_by?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_audit_log_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_audit_log_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investor_notices: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_global: boolean | null
+          message: string
+          notice_type: string | null
+          published_at: string
+          target_investor_type:
+            | Database["public"]["Enums"]["investor_type"]
+            | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_global?: boolean | null
+          message: string
+          notice_type?: string | null
+          published_at?: string
+          target_investor_type?:
+            | Database["public"]["Enums"]["investor_type"]
+            | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_global?: boolean | null
+          message?: string
+          notice_type?: string | null
+          published_at?: string
+          target_investor_type?:
+            | Database["public"]["Enums"]["investor_type"]
+            | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_notices_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       leadership_signals: {
         Row: {
@@ -644,6 +827,13 @@ export type Database = {
           full_name: string | null
           id: string
           initial_investment: number | null
+          investor_entity_type: string | null
+          investor_type: Database["public"]["Enums"]["investor_type"] | null
+          investor_verification_status:
+            | Database["public"]["Enums"]["investor_verification_status"]
+            | null
+          investor_verified_at: string | null
+          investor_verified_by: string | null
           is_investor: boolean | null
           jurisdiction: string | null
           language_preference: string | null
@@ -652,6 +842,8 @@ export type Database = {
           referred_by: string | null
           skills: string[] | null
           timezone: string | null
+          total_reinvested: number | null
+          total_withdrawn: number | null
           updated_at: string
         }
         Insert: {
@@ -664,6 +856,13 @@ export type Database = {
           full_name?: string | null
           id: string
           initial_investment?: number | null
+          investor_entity_type?: string | null
+          investor_type?: Database["public"]["Enums"]["investor_type"] | null
+          investor_verification_status?:
+            | Database["public"]["Enums"]["investor_verification_status"]
+            | null
+          investor_verified_at?: string | null
+          investor_verified_by?: string | null
           is_investor?: boolean | null
           jurisdiction?: string | null
           language_preference?: string | null
@@ -672,6 +871,8 @@ export type Database = {
           referred_by?: string | null
           skills?: string[] | null
           timezone?: string | null
+          total_reinvested?: number | null
+          total_withdrawn?: number | null
           updated_at?: string
         }
         Update: {
@@ -684,6 +885,13 @@ export type Database = {
           full_name?: string | null
           id?: string
           initial_investment?: number | null
+          investor_entity_type?: string | null
+          investor_type?: Database["public"]["Enums"]["investor_type"] | null
+          investor_verification_status?:
+            | Database["public"]["Enums"]["investor_verification_status"]
+            | null
+          investor_verified_at?: string | null
+          investor_verified_by?: string | null
           is_investor?: boolean | null
           jurisdiction?: string | null
           language_preference?: string | null
@@ -692,6 +900,8 @@ export type Database = {
           referred_by?: string | null
           skills?: string[] | null
           timezone?: string | null
+          total_reinvested?: number | null
+          total_withdrawn?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -1221,6 +1431,89 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawal_requests: {
+        Row: {
+          available_balance: number
+          created_at: string
+          id: string
+          investment_id: string | null
+          investor_id: string
+          notes: string | null
+          paid_at: string | null
+          paid_by: string | null
+          rejection_reason: string | null
+          requested_amount: number
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["withdrawal_status"] | null
+          updated_at: string
+        }
+        Insert: {
+          available_balance: number
+          created_at?: string
+          id?: string
+          investment_id?: string | null
+          investor_id: string
+          notes?: string | null
+          paid_at?: string | null
+          paid_by?: string | null
+          rejection_reason?: string | null
+          requested_amount: number
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"] | null
+          updated_at?: string
+        }
+        Update: {
+          available_balance?: number
+          created_at?: string
+          id?: string
+          investment_id?: string | null
+          investor_id?: string
+          notes?: string | null
+          paid_at?: string | null
+          paid_by?: string | null
+          rejection_reason?: string | null
+          requested_amount?: number
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_requests_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "investments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_reports: {
         Row: {
           admin_override_reason: string | null
@@ -1404,6 +1697,18 @@ export type Database = {
         }
         Returns: string
       }
+      log_investor_action: {
+        Args: {
+          p_action_type: string
+          p_amount: number
+          p_description?: string
+          p_investor_id: string
+          p_performed_by?: string
+          p_related_entity_id?: string
+          p_related_entity_type?: string
+        }
+        Returns: string
+      }
       transfer_team_membership: {
         Args: {
           p_new_team_id: string
@@ -1425,6 +1730,20 @@ export type Database = {
         | "general_overseer"
       attention_level: "informational" | "support_needed" | "review_required"
       financial_period_status: "draft" | "finalized" | "corrected"
+      investment_risk_level: "low" | "medium" | "high"
+      investment_scope: "general_fund" | "project_specific" | "team_specific"
+      investment_status:
+        | "active"
+        | "matured"
+        | "loss"
+        | "recovered"
+        | "withdrawn"
+      investor_type:
+        | "financial"
+        | "strategic"
+        | "employee_investor"
+        | "founding"
+      investor_verification_status: "pending" | "verified" | "rejected"
       resolution_status:
         | "open"
         | "under_review"
@@ -1441,6 +1760,7 @@ export type Database = {
         | "quality_assurance"
         | "project_management"
         | "other"
+      withdrawal_status: "requested" | "approved" | "paid" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1579,6 +1899,22 @@ export const Constants = {
       ],
       attention_level: ["informational", "support_needed", "review_required"],
       financial_period_status: ["draft", "finalized", "corrected"],
+      investment_risk_level: ["low", "medium", "high"],
+      investment_scope: ["general_fund", "project_specific", "team_specific"],
+      investment_status: [
+        "active",
+        "matured",
+        "loss",
+        "recovered",
+        "withdrawn",
+      ],
+      investor_type: [
+        "financial",
+        "strategic",
+        "employee_investor",
+        "founding",
+      ],
+      investor_verification_status: ["pending", "verified", "rejected"],
       resolution_status: [
         "open",
         "under_review",
@@ -1597,6 +1933,7 @@ export const Constants = {
         "project_management",
         "other",
       ],
+      withdrawal_status: ["requested", "approved", "paid", "rejected"],
     },
   },
 } as const
