@@ -6,11 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Building2 } from "lucide-react";
+import { Loader2, Building2, TrendingUp, Briefcase } from "lucide-react";
 import { z } from "zod";
 import { SignupPhoneField, COUNTRIES } from "@/components/auth/SignupPhoneField";
 import { supabase } from "@/integrations/supabase/client";
+
+type AccountType = "employee" | "investor" | "both";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -21,6 +24,7 @@ export default function Auth() {
   const [fullName, setFullName] = useState("");
   const [countryCode, setCountryCode] = useState("US");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [accountType, setAccountType] = useState<AccountType>("employee");
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   
@@ -114,10 +118,11 @@ export default function Auth() {
       return;
     }
     
-    // Save phone number and country to profile if provided
-    if (newUser && (phoneNumber || countryCode)) {
+    // Save phone number, country, and investor status to profile
+    if (newUser) {
       const selectedCountry = COUNTRIES.find(c => c.code === countryCode);
       const fullPhone = phoneNumber ? `${selectedCountry?.dialCode} ${phoneNumber}` : null;
+      const isInvestor = accountType === "investor" || accountType === "both";
       
       await supabase
         .from("profiles")
@@ -125,6 +130,8 @@ export default function Auth() {
           phone_number: fullPhone,
           country: countryCode,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          is_investor: isInvestor,
+          investor_type: isInvestor ? "employee_investor" : null,
         })
         .eq("id", newUser.id);
     }
@@ -301,12 +308,101 @@ export default function Auth() {
                       onCountryChange={setCountryCode}
                       onPhoneChange={setPhoneNumber}
                     />
+                    
+                    {/* Account Type Selection */}
+                    <div className="space-y-3">
+                      <Label>I want to join as</Label>
+                      <div className="grid gap-3">
+                        <label 
+                          className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                            accountType === "employee" ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="accountType"
+                            value="employee"
+                            checked={accountType === "employee"}
+                            onChange={() => setAccountType("employee")}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <Briefcase className="h-4 w-4 text-primary" />
+                              <span className="font-medium text-sm">Employee Only</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Join as a workforce member. You can become an investor later.
+                            </p>
+                          </div>
+                        </label>
+                        
+                        <label 
+                          className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                            accountType === "investor" ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="accountType"
+                            value="investor"
+                            checked={accountType === "investor"}
+                            onChange={() => setAccountType("investor")}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="h-4 w-4 text-green-600" />
+                              <span className="font-medium text-sm">Investor Only</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Invest in MPCN and track your returns. No workforce duties.
+                            </p>
+                          </div>
+                        </label>
+                        
+                        <label 
+                          className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                            accountType === "both" ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="accountType"
+                            value="both"
+                            checked={accountType === "both"}
+                            onChange={() => setAccountType("both")}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <Briefcase className="h-4 w-4 text-primary" />
+                              <TrendingUp className="h-4 w-4 text-green-600" />
+                              <span className="font-medium text-sm">Employee + Investor</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Work in MPCN and invest. Separate dashboards for each role.
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
                     <div className="bg-muted/50 p-3 rounded-lg space-y-1">
                       <p className="text-xs font-medium text-muted-foreground">What happens next:</p>
                       <ul className="text-xs text-muted-foreground space-y-0.5">
-                        <li>• You'll be assigned the default Employee role</li>
-                        <li>• Complete your profile with skills and preferences</li>
-                        <li>• Your team lead will be notified of your registration</li>
+                        {(accountType === "employee" || accountType === "both") && (
+                          <>
+                            <li>• You'll be assigned the default Employee role</li>
+                            <li>• Complete your profile with skills and preferences</li>
+                          </>
+                        )}
+                        {(accountType === "investor" || accountType === "both") && (
+                          <>
+                            <li>• Access the Investments page to manage your portfolio</li>
+                            <li>• View MPCN performance and track returns</li>
+                          </>
+                        )}
                       </ul>
                     </div>
                     <Button type="submit" className="w-full" disabled={isLoading}>

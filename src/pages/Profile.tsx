@@ -33,6 +33,7 @@ import { ExternalAccountsSection } from "@/components/employee/ExternalAccountsS
 import { SkillProgressionChart } from "@/components/profile/SkillProgressionChart";
 import { InternationalSettingsSection } from "@/components/profile/InternationalSettingsSection";
 import { GovernanceCharter } from "@/components/settings/GovernanceCharter";
+import { BecomeInvestorCard } from "@/components/profile/BecomeInvestorCard";
 import { Loader2, User, Mail, Shield, Trash2, Copy, CheckCircle, Heart, ChevronDown } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -277,6 +278,9 @@ export default function Profile() {
 
         {/* External Accounts */}
         <ExternalAccountsSection />
+
+        {/* Become Investor Card */}
+        <BecomeInvestorCard />
 
         {/* Governance Charter - Collapsible */}
         <Collapsible>
