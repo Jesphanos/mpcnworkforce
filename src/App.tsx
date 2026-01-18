@@ -12,6 +12,7 @@ import UserManagement from "./pages/UserManagement";
 import Reports from "./pages/Reports";
 import FinanceHR from "./pages/FinanceHR";
 import Investments from "./pages/Investments";
+import InvestorProfile from "./pages/InvestorProfile";
 import Tasks from "./pages/Tasks";
 import TeamDashboard from "./pages/TeamDashboard";
 import ActivityHistory from "./pages/ActivityHistory";
@@ -76,9 +77,17 @@ const App = () => (
             <Route
               path="/investments"
               element={
-                <ProtectedRoute allowedRoles={["investment_admin", "general_overseer"]}>
+                <ProtectedRoute allowedRoles={["investment_admin", "general_overseer"]} allowInvestors>
                   <Investments />
-              </ProtectedRoute>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/investor-profile"
+              element={
+                <ProtectedRoute>
+                  <InvestorProfile />
+                </ProtectedRoute>
               }
             />
             <Route

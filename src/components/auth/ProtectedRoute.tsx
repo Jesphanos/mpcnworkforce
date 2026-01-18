@@ -7,10 +7,11 @@ type AppRole = "employee" | "team_lead" | "report_admin" | "finance_hr_admin" | 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRoles?: AppRole[];
+  allowInvestors?: boolean;
 }
 
-export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { user, loading, hasRole } = useAuth();
+export function ProtectedRoute({ children, allowedRoles, allowInvestors }: ProtectedRouteProps) {
+  const { user, profile, loading, hasRole } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -26,8 +27,10 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   }
 
   if (allowedRoles && allowedRoles.length > 0) {
-    const hasAccess = allowedRoles.some(role => hasRole(role));
-    if (!hasAccess) {
+    const hasRoleAccess = allowedRoles.some(role => hasRole(role));
+    const isInvestorWithAccess = allowInvestors && profile?.is_investor;
+    
+    if (!hasRoleAccess && !isInvestorWithAccess) {
       return <Navigate to="/access-denied" replace />;
     }
   }
