@@ -164,6 +164,7 @@ const roleMenus: Record<AppRole, { main: MenuItem[]; admin?: MenuItem[]; adminLa
 
 // Investor-specific menu (appended for is_investor flag)
 const investorMenu: MenuItem[] = [
+  { title: "Investor Profile", url: "/investor-profile", icon: User },
   { title: "My Investments", url: "/investments", icon: Wallet },
 ];
 
