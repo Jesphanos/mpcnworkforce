@@ -5,6 +5,8 @@ import { SlaAlertBanner } from "@/components/notifications/SlaAlertBanner";
 import { useReportNotifications } from "@/hooks/useReportNotifications";
 import { useSlaBreachAlerts } from "@/hooks/useSlaBreachAlerts";
 import { useCapabilities } from "@/hooks/useCapabilities";
+import { CommandPalette } from "@/components/ui/command-palette";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -22,6 +24,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <SidebarProvider>
+      <CommandPalette />
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
@@ -32,7 +35,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           )}
           <main className="flex-1 p-6 bg-background overflow-auto">
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </main>
         </div>
       </div>
