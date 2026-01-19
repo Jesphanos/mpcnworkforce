@@ -40,7 +40,9 @@ import { useCapabilities } from "@/hooks/useCapabilities";
 
 type AppRole = 
   | "employee" 
+  | "trader"
   | "team_lead" 
+  | "department_head"
   | "report_admin" 
   | "finance_hr_admin" 
   | "investment_admin" 
@@ -54,28 +56,41 @@ interface MenuItem {
 }
 
 /**
- * Role-based navigation structure
- * Each role has a distinct menu reflecting their authority level
+ * MPCN Role-based navigation structure
+ * 
+ * Authority Tiers:
+ * - Tier 0: General Overseer (Supreme Authority)
+ * - Tier 1: Administrators (System managers - NOT General Overseer)
+ * - Tier 2: Management (Team Leads, Department Heads)
+ * - Tier 3: Operational (Workers, Traders)
  */
 const roleMenus: Record<AppRole, { main: MenuItem[]; admin?: MenuItem[]; adminLabel?: string }> = {
-  // Worker: Execution layer - own work only
+  // Tier 3: Worker - Execution layer - own work only
   employee: {
     main: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
       { title: "My Tasks", url: "/tasks", icon: ClipboardList },
       { title: "My Reports", url: "/reports", icon: FileText },
-      { title: "Trading", url: "/trading", icon: CandlestickChart },
       { title: "My Profile", url: "/profile", icon: User },
     ],
   },
 
-  // Team Lead: First-level review
+  // Tier 3: Trader - Trading execution
+  trader: {
+    main: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Trading", url: "/trading", icon: CandlestickChart },
+      { title: "My Reports", url: "/reports", icon: FileText },
+      { title: "My Profile", url: "/profile", icon: User },
+    ],
+  },
+
+  // Tier 2: Team Lead - First-level review
   team_lead: {
     main: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
       { title: "My Tasks", url: "/tasks", icon: ClipboardList },
       { title: "My Reports", url: "/reports", icon: FileText },
-      { title: "Trading", url: "/trading", icon: CandlestickChart },
       { title: "My Profile", url: "/profile", icon: User },
     ],
     adminLabel: "Team Management",
@@ -85,7 +100,21 @@ const roleMenus: Record<AppRole, { main: MenuItem[]; admin?: MenuItem[]; adminLa
     ],
   },
 
-  // Report Admin: Quality & governance
+  // Tier 2: Department Head - Department oversight
+  department_head: {
+    main: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "My Profile", url: "/profile", icon: User },
+    ],
+    adminLabel: "Department Management",
+    admin: [
+      { title: "Teams Overview", url: "/team", icon: UsersRound },
+      { title: "Department Reports", url: "/reports", icon: FileText },
+      { title: "Activity Logs", url: "/activity", icon: Activity },
+    ],
+  },
+
+  // Tier 1: Report Admin - Quality & governance
   report_admin: {
     main: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -101,7 +130,7 @@ const roleMenus: Record<AppRole, { main: MenuItem[]; admin?: MenuItem[]; adminLa
     ],
   },
 
-  // Finance/HR Admin: Payroll & HR
+  // Tier 1: Finance/HR Admin - Payroll & HR
   finance_hr_admin: {
     main: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -116,7 +145,7 @@ const roleMenus: Record<AppRole, { main: MenuItem[]; admin?: MenuItem[]; adminLa
     ],
   },
 
-  // Investment Admin: Investments & financials
+  // Tier 1: Investment Admin - Investments & financials
   investment_admin: {
     main: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -129,7 +158,7 @@ const roleMenus: Record<AppRole, { main: MenuItem[]; admin?: MenuItem[]; adminLa
     ],
   },
 
-  // User Admin: User management
+  // Tier 1: User Admin - User management
   user_admin: {
     main: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -144,13 +173,13 @@ const roleMenus: Record<AppRole, { main: MenuItem[]; admin?: MenuItem[]; adminLa
     ],
   },
 
-  // General Overseer: Strategic oversight
+  // Tier 0: General Overseer - SUPREME AUTHORITY (NOT Administrator)
   general_overseer: {
     main: [
-      { title: "Global Overview", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Command Center", url: "/dashboard", icon: LayoutDashboard },
       { title: "My Profile", url: "/profile", icon: User },
     ],
-    adminLabel: "Strategic Oversight",
+    adminLabel: "Supreme Oversight",
     admin: [
       { title: "Governance", url: "/governance", icon: Scale },
       { title: "Organization", url: "/team", icon: Building2 },
@@ -187,10 +216,12 @@ export function AppSidebar() {
   };
 
   const getRoleLabel = (role: string | null) => {
-    if (!role) return "Employee";
+    if (!role) return "Team Member";
     const labels: Record<string, string> = {
-      employee: "Employee",
+      employee: "Team Member",
+      trader: "Trader",
       team_lead: "Team Lead",
+      department_head: "Dept Head",
       report_admin: "Report Admin",
       finance_hr_admin: "Finance & HR",
       investment_admin: "Investment Admin",
@@ -202,7 +233,7 @@ export function AppSidebar() {
 
   const getRoleBadgeVariant = (role: string | null): "default" | "secondary" | "outline" => {
     if (role === "general_overseer") return "default";
-    if (role?.includes("admin") || role === "team_lead") return "secondary";
+    if (role?.includes("admin") || role === "team_lead" || role === "department_head") return "secondary";
     return "outline";
   };
 
