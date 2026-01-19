@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,13 +19,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { SkillsSection } from "@/components/employee/SkillsSection";
@@ -34,7 +27,9 @@ import { SkillProgressionChart } from "@/components/profile/SkillProgressionChar
 import { InternationalSettingsSection } from "@/components/profile/InternationalSettingsSection";
 import { GovernanceCharter } from "@/components/settings/GovernanceCharter";
 import { BecomeInvestorCard } from "@/components/profile/BecomeInvestorCard";
-import { Loader2, User, Mail, Shield, Trash2, Copy, CheckCircle, Heart, ChevronDown } from "lucide-react";
+import { AvatarUpload } from "@/components/profile/AvatarUpload";
+import { SecurityTab } from "@/components/profile/SecurityTab";
+import { Loader2, User, Mail, Shield, Trash2, Copy, CheckCircle, Heart, ChevronDown, Lock } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function Profile() {
@@ -45,6 +40,7 @@ export default function Profile() {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [fullName, setFullName] = useState(profile?.full_name || "");
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || null);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
   const getInitials = (name: string | null) => {
@@ -122,44 +118,57 @@ export default function Profile() {
       <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
         <div>
           <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
-          <p className="text-muted-foreground">Manage your personal information</p>
+          <p className="text-muted-foreground">Manage your personal information and security</p>
         </div>
 
-        {/* Profile Card */}
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={profile?.avatar_url || undefined} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                  {getInitials(profile?.full_name)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                  <h2 className="text-xl font-semibold text-foreground">
-                    {profile?.full_name || "User"}
-                  </h2>
-                  <Badge variant="secondary" className="w-fit">
-                    {getRoleLabel(role)}
-                  </Badge>
+        <Tabs defaultValue="profile" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="profile" className="gap-2">
+              <User className="h-4 w-4" />
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="security" className="gap-2">
+              <Lock className="h-4 w-4" />
+              Security
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="profile" className="space-y-6">
+            {/* Profile Card */}
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                  <AvatarUpload
+                    userId={user?.id || ""}
+                    currentAvatarUrl={avatarUrl}
+                    fullName={profile?.full_name}
+                    onUploadComplete={setAvatarUrl}
+                  />
+                  <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <h2 className="text-xl font-semibold text-foreground">
+                        {profile?.full_name || "User"}
+                      </h2>
+                      <Badge variant="secondary" className="w-fit">
+                        {getRoleLabel(role)}
+                      </Badge>
+                    </div>
+                    <p className="text-muted-foreground mt-1">{user?.email}</p>
+                  </div>
+                  <Button
+                    variant={isEditing ? "outline" : "default"}
+                    onClick={() => {
+                      if (isEditing) {
+                        setFullName(profile?.full_name || "");
+                      }
+                      setIsEditing(!isEditing);
+                    }}
+                  >
+                    {isEditing ? "Cancel" : "Edit Profile"}
+                  </Button>
                 </div>
-                <p className="text-muted-foreground mt-1">{user?.email}</p>
-              </div>
-              <Button
-                variant={isEditing ? "outline" : "default"}
-                onClick={() => {
-                  if (isEditing) {
-                    setFullName(profile?.full_name || "");
-                  }
-                  setIsEditing(!isEditing);
-                }}
-              >
-                {isEditing ? "Cancel" : "Edit Profile"}
-              </Button>
-            </div>
-          </CardHeader>
-        </Card>
+              </CardHeader>
+            </Card>
 
         {/* Personal Information */}
         <Card>
@@ -372,6 +381,12 @@ export default function Profile() {
             </div>
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="security">
+            <SecurityTab />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
