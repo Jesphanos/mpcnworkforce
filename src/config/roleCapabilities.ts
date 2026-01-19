@@ -10,7 +10,9 @@
 
 export type AppRole = 
   | "employee" 
+  | "trader"
   | "team_lead" 
+  | "department_head"
   | "report_admin" 
   | "finance_hr_admin" 
   | "investment_admin" 
@@ -105,6 +107,42 @@ export const roleCapabilities: Record<AppRole, RoleCapabilities> = {
     canModifyApprovedRates: false,
   },
 
+  trader: {
+    // Report & Task
+    canSubmitReports: true,
+    canSubmitTasks: true,
+    canApproveReports: false,
+    canApproveTasks: false,
+    canOverrideReports: false,
+    canOverrideTasks: false,
+    // Team
+    canViewOwnTeam: true,
+    canViewAllTeams: false,
+    canManageTeams: false,
+    canAssignTeamMembers: false,
+    // User Management
+    canViewAllUsers: false,
+    canManageUsers: false,
+    canAssignRoles: false,
+    // Finance
+    canViewPayroll: false,
+    canManagePayroll: false,
+    canManageSalaryPeriods: false,
+    // Investment
+    canViewInvestments: false,
+    canManageInvestments: false,
+    canViewOwnReturns: true,
+    canManageFinancials: false,
+    // Audit & Settings
+    canViewAuditLogs: false,
+    canManageSettings: false,
+    canManagePlatforms: false,
+    // Override Authority
+    canOverrideAdminDecisions: false,
+    canReopenClosedPeriods: false,
+    canModifyApprovedRates: false,
+  },
+
   team_lead: {
     // Report & Task
     canSubmitReports: true,
@@ -133,6 +171,42 @@ export const roleCapabilities: Record<AppRole, RoleCapabilities> = {
     canManageFinancials: false,
     // Audit & Settings
     canViewAuditLogs: false,
+    canManageSettings: false,
+    canManagePlatforms: false,
+    // Override Authority
+    canOverrideAdminDecisions: false,
+    canReopenClosedPeriods: false,
+    canModifyApprovedRates: false,
+  },
+
+  department_head: {
+    // Report & Task
+    canSubmitReports: false,
+    canSubmitTasks: false,
+    canApproveReports: true, // Can approve within department
+    canApproveTasks: true,
+    canOverrideReports: false,
+    canOverrideTasks: false,
+    // Team
+    canViewOwnTeam: true,
+    canViewAllTeams: true, // View all teams in department
+    canManageTeams: true,
+    canAssignTeamMembers: true, // Within department
+    // User Management
+    canViewAllUsers: false,
+    canManageUsers: false,
+    canAssignRoles: false,
+    // Finance
+    canViewPayroll: false,
+    canManagePayroll: false,
+    canManageSalaryPeriods: false,
+    // Investment
+    canViewInvestments: false,
+    canManageInvestments: false,
+    canViewOwnReturns: true,
+    canManageFinancials: false,
+    // Audit & Settings
+    canViewAuditLogs: true, // Department-level audit access
     canManageSettings: false,
     canManagePlatforms: false,
     // Override Authority
