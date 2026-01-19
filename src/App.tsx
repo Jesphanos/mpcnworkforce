@@ -13,6 +13,7 @@ import Reports from "./pages/Reports";
 import FinanceHR from "./pages/FinanceHR";
 import Investments from "./pages/Investments";
 import InvestorProfile from "./pages/InvestorProfile";
+import Trading from "./pages/Trading";
 import Tasks from "./pages/Tasks";
 import TeamDashboard from "./pages/TeamDashboard";
 import ActivityHistory from "./pages/ActivityHistory";
@@ -87,6 +88,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <InvestorProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/trading"
+              element={
+                <ProtectedRoute>
+                  <Trading />
                 </ProtectedRoute>
               }
             />
