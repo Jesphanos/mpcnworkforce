@@ -7,10 +7,11 @@ import { InvestmentStats } from "@/components/investments/InvestmentStats";
 import { InvestmentCharts } from "@/components/investments/InvestmentCharts";
 import { ComprehensiveInvestorDashboard } from "@/components/investments/ComprehensiveInvestorDashboard";
 import { FinancialManagement } from "@/components/investments/FinancialManagement";
+import { InvestorVerificationPanel } from "@/components/investments/InvestorVerificationPanel";
 import { useInvestments } from "@/hooks/useInvestments";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCapabilities } from "@/hooks/useCapabilities";
-import { TrendingUp, Landmark, FileText } from "lucide-react";
+import { TrendingUp, Landmark, FileText, UserCheck } from "lucide-react";
 
 export default function Investments() {
   const { data: investments, isLoading } = useInvestments();
@@ -63,47 +64,54 @@ export default function Investments() {
           </p>
         </div>
 
-        {showInvestorTab && canManage ? (
+        {canManage ? (
           <Tabs defaultValue="portfolio" className="space-y-6">
             <TabsList>
               <TabsTrigger value="portfolio" className="gap-2">
                 <Landmark className="h-4 w-4" />
                 Portfolio
               </TabsTrigger>
-              {canManage && (
-                <TabsTrigger value="financials" className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  Financials
+              <TabsTrigger value="financials" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Financials
+              </TabsTrigger>
+              <TabsTrigger value="verification" className="gap-2">
+                <UserCheck className="h-4 w-4" />
+                Verification
+              </TabsTrigger>
+              {showInvestorTab && (
+                <TabsTrigger value="my-investments" className="gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  My Investments
                 </TabsTrigger>
               )}
-              <TabsTrigger value="my-investments" className="gap-2">
-                <TrendingUp className="h-4 w-4" />
-                My Investments
-              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="portfolio" className="space-y-6">
               <InvestmentStats investments={investments || []} />
               <InvestmentCharts investments={investments || []} />
-              {canManage && <InvestmentForm />}
+              <InvestmentForm />
               <InvestmentsTable investments={investments || []} />
             </TabsContent>
 
-            {canManage && (
-              <TabsContent value="financials" className="space-y-6">
-                <FinancialManagement />
+            <TabsContent value="financials" className="space-y-6">
+              <FinancialManagement />
+            </TabsContent>
+
+            <TabsContent value="verification" className="space-y-6">
+              <InvestorVerificationPanel />
+            </TabsContent>
+
+            {showInvestorTab && (
+              <TabsContent value="my-investments">
+                <ComprehensiveInvestorDashboard />
               </TabsContent>
             )}
-
-            <TabsContent value="my-investments">
-              <ComprehensiveInvestorDashboard />
-            </TabsContent>
           </Tabs>
         ) : (
           <>
             <InvestmentStats investments={investments || []} />
             <InvestmentCharts investments={investments || []} />
-            {canManage && <InvestmentForm />}
             <InvestmentsTable investments={investments || []} />
           </>
         )}

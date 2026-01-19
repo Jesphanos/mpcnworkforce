@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useCreateWorkReport } from "@/hooks/useWorkReports";
+import { PlatformIcon } from "@/components/ui/PlatformIcon";
 
 const platforms = [
   "Upwork",
@@ -93,7 +94,9 @@ export function ReportSubmissionForm() {
                       </FormControl>
                       <SelectContent>
                         {platforms.map((p) => (
-                          <SelectItem key={p} value={p}>{p}</SelectItem>
+                          <SelectItem key={p} value={p}>
+                            <PlatformIcon platform={p} size="sm" showLabel />
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

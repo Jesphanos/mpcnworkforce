@@ -26,6 +26,7 @@ import {
   useDeleteExternalAccount,
 } from "@/hooks/useExternalAccounts";
 import { ExternalLink, Plus, Trash2, CheckCircle2, Clock, Link2 } from "lucide-react";
+import { PlatformIcon } from "@/components/ui/PlatformIcon";
 
 const PLATFORMS = [
   "Upwork",
@@ -127,7 +128,7 @@ export function ExternalAccountsSection() {
                       <SelectContent>
                         {PLATFORMS.map((p) => (
                           <SelectItem key={p} value={p}>
-                            {p}
+                            <PlatformIcon platform={p} size="sm" showLabel />
                           </SelectItem>
                         ))}
                       </SelectContent>
