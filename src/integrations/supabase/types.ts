@@ -2313,6 +2313,8 @@ export type Database = {
         | "investment_admin"
         | "user_admin"
         | "general_overseer"
+        | "trader"
+        | "department_head"
       attention_level: "informational" | "support_needed" | "review_required"
       financial_period_status: "draft" | "finalized" | "corrected"
       investment_risk_level: "low" | "medium" | "high"
@@ -2490,6 +2492,8 @@ export const Constants = {
         "investment_admin",
         "user_admin",
         "general_overseer",
+        "trader",
+        "department_head",
       ],
       attention_level: ["informational", "support_needed", "review_required"],
       financial_period_status: ["draft", "finalized", "corrected"],

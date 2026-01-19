@@ -58,6 +58,28 @@ export const ROLE_AUTHORITY: Record<AppRole, RoleAuthorityConfig> = {
     ],
     accountability: "Your submissions are reviewed for quality, with feedback designed to help you improve.",
   },
+
+  trader: {
+    role: "trader",
+    displayName: "Trader",
+    philosophy: "I execute with discipline, not emotion",
+    bannerTitle: "Trade Execution",
+    bannerDescription: "Execute trades following approved strategies. All positions are monitored and logged.",
+    bannerVariant: "info",
+    icon: Users,
+    responsibilities: [
+      "Execute trades per approved strategies",
+      "Manage positions within risk limits",
+      "Document trade rationale",
+      "Report daily P&L",
+    ],
+    constraints: [
+      "Cannot exceed position limits",
+      "Cannot trade unapproved instruments",
+      "Must follow risk management rules",
+    ],
+    accountability: "All trades are logged with timestamps and reviewed for compliance.",
+  },
   
   team_lead: {
     role: "team_lead",
@@ -102,6 +124,28 @@ export const ROLE_AUTHORITY: Record<AppRole, RoleAuthorityConfig> = {
       "Actions are visible to General Overseer",
     ],
     accountability: "Every override action is logged with your justification, visible to the General Overseer.",
+  },
+
+  department_head: {
+    role: "department_head",
+    displayName: "Department Head",
+    philosophy: "I build organizational capacity",
+    bannerTitle: "Department Management",
+    bannerDescription: "Manage department structure and team leads. You cannot override admin decisions but can escalate.",
+    bannerVariant: "constraint",
+    icon: Scale,
+    responsibilities: [
+      "Structure department teams",
+      "Assign team leads",
+      "Monitor department performance",
+      "Escalate issues to administrators",
+    ],
+    constraints: [
+      "Cannot override administrator decisions",
+      "Cannot assign administrator roles",
+      "Decisions are logged and reviewable",
+    ],
+    accountability: "Department management decisions are logged and visible to administrators.",
   },
   
   finance_hr_admin: {

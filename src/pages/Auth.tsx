@@ -9,16 +9,49 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Building2, TrendingUp, Briefcase } from "lucide-react";
+import { Loader2, Building2, TrendingUp, Briefcase, ArrowLeft, ChevronRight } from "lucide-react";
 import { z } from "zod";
 import { SignupPhoneField, COUNTRIES } from "@/components/auth/SignupPhoneField";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
+import { RoleSelectionGrid, LoginRoleType } from "@/components/auth/RoleSelectionGrid";
 import { supabase } from "@/integrations/supabase/client";
 
 type AccountType = "employee" | "investor" | "both";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
+
+// Role-specific helper text for login context
+const ROLE_CONTEXT: Record<LoginRoleType, { title: string; description: string }> = {
+  employee: {
+    title: "Team Member Login",
+    description: "Submit your tasks and reports, track your progress",
+  },
+  trader: {
+    title: "Trader Login", 
+    description: "Execute trades and manage your positions",
+  },
+  team_lead: {
+    title: "Team Lead Login",
+    description: "Review team submissions and provide guidance",
+  },
+  department_head: {
+    title: "Department Head Login",
+    description: "Manage your department and team structures",
+  },
+  administrator: {
+    title: "Administrator Login",
+    description: "System configuration and operational management",
+  },
+  general_overseer: {
+    title: "General Overseer Login",
+    description: "Supreme authority — full governance control",
+  },
+  investor: {
+    title: "Investor Login",
+    description: "Access your portfolio and track returns",
+  },
+};
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -29,6 +62,8 @@ export default function Auth() {
   const [accountType, setAccountType] = useState<AccountType>("employee");
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
+  const [selectedLoginRole, setSelectedLoginRole] = useState<LoginRoleType | null>(null);
+  const [showRoleSelection, setShowRoleSelection] = useState(true);
   
   const { signIn, signUp, resetPassword, user } = useAuth();
   const navigate = useNavigate();
@@ -169,6 +204,9 @@ export default function Auth() {
     }
   };
 
+  // Get context text based on selected role
+  const roleContext = selectedLoginRole ? ROLE_CONTEXT[selectedLoginRole] : null;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md animate-fade-in">
@@ -176,19 +214,21 @@ export default function Auth() {
           <div className="h-16 w-16 rounded-xl gradient-primary flex items-center justify-center mb-4">
             <Building2 className="h-8 w-8 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Workforce Hub</h1>
-          <p className="text-muted-foreground">Employee Management System</p>
+          <h1 className="text-2xl font-bold text-foreground">MPCN Workforce Hub</h1>
+          <p className="text-muted-foreground">Role-Based Access Control</p>
         </div>
 
         <Card className="border-border shadow-lg">
           <CardHeader className="space-y-1">
             <CardTitle className="text-xl">
-              {mode === "login" && "Welcome back"}
+              {mode === "login" && showRoleSelection && "Select Your Role"}
+              {mode === "login" && !showRoleSelection && (roleContext?.title || "Welcome back")}
               {mode === "signup" && "Create an account"}
               {mode === "forgot" && "Reset password"}
             </CardTitle>
             <CardDescription>
-              {mode === "login" && "Enter your credentials to access your account"}
+              {mode === "login" && showRoleSelection && "Choose the role that matches your MPCN position"}
+              {mode === "login" && !showRoleSelection && (roleContext?.description || "Enter your credentials")}
               {mode === "signup" && "Fill in your details to get started"}
               {mode === "forgot" && "We'll send you a reset link"}
             </CardDescription>
@@ -221,49 +261,93 @@ export default function Auth() {
                 </Button>
               </form>
             ) : (
-              <Tabs value={mode} onValueChange={(v) => setMode(v as "login" | "signup")}>
+              <Tabs value={mode} onValueChange={(v) => { setMode(v as "login" | "signup"); setShowRoleSelection(true); }}>
                 <TabsList className="grid w-full grid-cols-2 mb-6">
                   <TabsTrigger value="login">Login</TabsTrigger>
                   <TabsTrigger value="signup">Sign Up</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="login">
-                  <form onSubmit={handleLogin} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="login-email">Email</Label>
-                      <Input
-                        id="login-email"
-                        type="email"
-                        placeholder="name@company.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="login-password">Password</Label>
-                      <Input
-                        id="login-password"
-                        type="password"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Sign In
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="link"
-                      className="w-full text-muted-foreground"
-                      onClick={() => setMode("forgot")}
-                    >
-                      Forgot password?
-                    </Button>
-                  </form>
+                  <AnimatePresence mode="wait">
+                    {showRoleSelection ? (
+                      <motion.div
+                        key="role-selection"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="space-y-4"
+                      >
+                        <RoleSelectionGrid
+                          selectedRole={selectedLoginRole}
+                          onRoleSelect={(role) => setSelectedLoginRole(role)}
+                        />
+                        <Button 
+                          type="button" 
+                          className="w-full"
+                          disabled={!selectedLoginRole}
+                          onClick={() => setShowRoleSelection(false)}
+                        >
+                          Continue as {selectedLoginRole ? ROLE_CONTEXT[selectedLoginRole]?.title.replace(" Login", "") : "Selected Role"}
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="login-form"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                      >
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="mb-4 -ml-2 text-muted-foreground"
+                          onClick={() => setShowRoleSelection(true)}
+                        >
+                          <ArrowLeft className="mr-2 h-4 w-4" />
+                          Change role
+                        </Button>
+                        
+                        <form onSubmit={handleLogin} className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="login-email">Email</Label>
+                            <Input
+                              id="login-email"
+                              type="email"
+                              placeholder="name@company.com"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="login-password">Password</Label>
+                            <Input
+                              id="login-password"
+                              type="password"
+                              placeholder="••••••••"
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              required
+                            />
+                          </div>
+                          <Button type="submit" className="w-full" disabled={isLoading}>
+                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Sign In
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="link"
+                            className="w-full text-muted-foreground"
+                            onClick={() => setMode("forgot")}
+                          >
+                            Forgot password?
+                          </Button>
+                        </form>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </TabsContent>
                 
                 <TabsContent value="signup">
