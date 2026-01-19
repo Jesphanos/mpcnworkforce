@@ -5,13 +5,14 @@ import { InvestmentForm } from "@/components/investments/InvestmentForm";
 import { InvestmentsTable } from "@/components/investments/InvestmentsTable";
 import { InvestmentStats } from "@/components/investments/InvestmentStats";
 import { InvestmentCharts } from "@/components/investments/InvestmentCharts";
+import { InvestmentCalculator } from "@/components/investments/InvestmentCalculator";
 import { ComprehensiveInvestorDashboard } from "@/components/investments/ComprehensiveInvestorDashboard";
 import { FinancialManagement } from "@/components/investments/FinancialManagement";
 import { InvestorVerificationPanel } from "@/components/investments/InvestorVerificationPanel";
 import { useInvestments } from "@/hooks/useInvestments";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCapabilities } from "@/hooks/useCapabilities";
-import { TrendingUp, Landmark, FileText, UserCheck } from "lucide-react";
+import { TrendingUp, Landmark, FileText, UserCheck, Calculator } from "lucide-react";
 
 export default function Investments() {
   const { data: investments, isLoading } = useInvestments();
@@ -71,6 +72,10 @@ export default function Investments() {
                 <Landmark className="h-4 w-4" />
                 Portfolio
               </TabsTrigger>
+              <TabsTrigger value="calculator" className="gap-2">
+                <Calculator className="h-4 w-4" />
+                Calculator
+              </TabsTrigger>
               <TabsTrigger value="financials" className="gap-2">
                 <FileText className="h-4 w-4" />
                 Financials
@@ -92,6 +97,10 @@ export default function Investments() {
               <InvestmentCharts investments={investments || []} />
               <InvestmentForm />
               <InvestmentsTable investments={investments || []} />
+            </TabsContent>
+
+            <TabsContent value="calculator" className="space-y-6">
+              <InvestmentCalculator />
             </TabsContent>
 
             <TabsContent value="financials" className="space-y-6">

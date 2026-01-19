@@ -1,26 +1,76 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import { RoleAuthorityBanner } from "@/components/ui/RoleAuthorityBanner";
 import { ReportSubmissionForm } from "@/components/reports/ReportSubmissionForm";
 import { ReportsTable } from "@/components/reports/ReportsTable";
 import { ReportsStats } from "@/components/reports/ReportsStats";
 import { ReportsCharts } from "@/components/reports/ReportsCharts";
+import { ReportBulkActions } from "@/components/reports/ReportBulkActions";
 import { AuditLogsTable } from "@/components/audit/AuditLogsTable";
-import { useWorkReports } from "@/hooks/useWorkReports";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { usePaginatedWorkReports } from "@/hooks/usePaginatedWorkReports";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBulkSelection } from "@/components/ui/bulk-actions";
+import { Search } from "lucide-react";
 
 export default function Reports() {
-  const { data: reports, isLoading } = useWorkReports();
   const { hasRole, user } = useAuth();
   const isTeamLead = hasRole("team_lead");
   const isAdmin = hasRole("report_admin");
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState(isAdmin || isTeamLead ? "review" : "my-reports");
+  
+  // Paginated data for different tabs
+  const myReportsQuery = usePaginatedWorkReports({ 
+    searchQuery,
+    // For my-reports, the hook already filters by user
+  });
+  
+  const pendingQuery = usePaginatedWorkReports({
+    finalStatus: "pending",
+    teamLeadStatus: undefined,
+    searchQuery,
+  });
+  
+  const overridesQuery = usePaginatedWorkReports({
+    teamLeadStatus: "rejected",
+    finalStatus: "pending",
+    searchQuery,
+  });
+  
+  const allReportsQuery = usePaginatedWorkReports({ searchQuery });
 
-  const myReports = reports?.filter((r) => r.user_id === user?.id) || [];
-  const pendingReports = reports?.filter((r) => r.final_status === "pending" && !r.team_lead_status) || [];
-  const rejectedByTL = reports?.filter((r) => r.team_lead_status === "rejected" && r.final_status === "pending") || [];
+  // Bulk selection
+  const myReportsBulk = useBulkSelection<string>((id) => id);
+  const reviewBulk = useBulkSelection<string>((id) => id);
 
-  if (isLoading) {
+  const getActiveQuery = () => {
+    switch (activeTab) {
+      case "my-reports":
+        return myReportsQuery;
+      case "review":
+        return pendingQuery;
+      case "overrides":
+        return overridesQuery;
+      case "all":
+        return allReportsQuery;
+      default:
+        return myReportsQuery;
+    }
+  };
+
+  const { data: reports, pagination, isLoading } = getActiveQuery();
+  
+  // Filter my reports client-side (until the hook is enhanced)
+  const myReports = activeTab === "my-reports" 
+    ? reports.filter((r) => r.user_id === user?.id)
+    : reports;
+
+  if (isLoading && reports.length === 0) {
     return (
       <DashboardLayout>
         <div className="space-y-6">
@@ -67,20 +117,35 @@ export default function Reports() {
         )}
 
         <ReportsStats reports={myReports} />
-
         <ReportsCharts reports={myReports} />
 
-        <Tabs defaultValue={isAdmin || isTeamLead ? "review" : "my-reports"} className="space-y-4">
+        {/* Search */}
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search reports..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        <Tabs 
+          defaultValue={isAdmin || isTeamLead ? "review" : "my-reports"} 
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-4"
+        >
           <TabsList>
             <TabsTrigger value="my-reports">My Reports</TabsTrigger>
             {(isTeamLead || isAdmin) && (
               <TabsTrigger value="review">
-                Review ({pendingReports.length})
+                Review ({pendingQuery.data.length})
               </TabsTrigger>
             )}
             {isAdmin && (
               <TabsTrigger value="overrides">
-                Needs Override ({rejectedByTL.length})
+                Needs Override ({overridesQuery.data.length})
               </TabsTrigger>
             )}
             {isAdmin && <TabsTrigger value="all">All Reports</TabsTrigger>}
@@ -90,11 +155,22 @@ export default function Reports() {
           <TabsContent value="my-reports" className="space-y-4">
             <ReportSubmissionForm />
             <ReportsTable reports={myReports} />
+            <DataTablePagination pagination={pagination} />
           </TabsContent>
 
           {(isTeamLead || isAdmin) && (
             <TabsContent value="review" className="space-y-4">
-              <ReportsTable reports={pendingReports} showActions showRateEdit />
+              <ReportBulkActions
+                selectedIds={reviewBulk.selectedItems}
+                reports={pendingQuery.data}
+                onClearSelection={reviewBulk.clearSelection}
+              />
+              <ReportsTable 
+                reports={pendingQuery.data} 
+                showActions 
+                showRateEdit 
+              />
+              <DataTablePagination pagination={pendingQuery.pagination} />
             </TabsContent>
           )}
 
@@ -106,13 +182,15 @@ export default function Reports() {
                   These reports were rejected by team leads but can be overridden by admins.
                 </p>
               </div>
-              <ReportsTable reports={rejectedByTL} showActions showRateEdit />
+              <ReportsTable reports={overridesQuery.data} showActions showRateEdit />
+              <DataTablePagination pagination={overridesQuery.pagination} />
             </TabsContent>
           )}
 
           {isAdmin && (
             <TabsContent value="all" className="space-y-4">
-              <ReportsTable reports={reports || []} showActions showRateEdit />
+              <ReportsTable reports={allReportsQuery.data} showActions showRateEdit />
+              <DataTablePagination pagination={allReportsQuery.pagination} />
             </TabsContent>
           )}
 
