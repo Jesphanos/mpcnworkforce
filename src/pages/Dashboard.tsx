@@ -2,11 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
-import { WorkerDashboard } from "@/components/dashboard/WorkerDashboard";
-import { TeamLeadDashboard } from "@/components/dashboard/TeamLeadDashboard";
-import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
-import { OverseerDashboard } from "@/components/dashboard/OverseerDashboard";
-import { InvestorDashboardView } from "@/components/dashboard/InvestorDashboardView";
+import { resolveDashboard, getRoleLabel } from "@/components/dashboard/DashboardRegistry";
 import { useCapabilities } from "@/hooks/useCapabilities";
 import { Button } from "@/components/ui/button";
 import { DateRange } from "react-day-picker";
@@ -40,54 +36,8 @@ export default function Dashboard() {
     exportDashboardToPDF({ stats, trends: trends || [], platforms: platforms || [], dateRange });
   };
 
-  const getRoleLabel = (role: string | null) => {
-    if (!role) return "Employee";
-    const labels: Record<string, string> = {
-      employee: "Employee",
-      team_lead: "Team Lead",
-      report_admin: "Report Admin",
-      finance_hr_admin: "Finance & HR",
-      investment_admin: "Investment Admin",
-      user_admin: "User Admin",
-      general_overseer: "General Overseer",
-    };
-    return labels[role] || role;
-  };
-
-  // Determine which dashboard to show based on role
-  const renderDashboard = () => {
-    // Investor-only users (no workforce role)
-    if (isInvestor() && role === "employee" && !profile?.full_name) {
-      return <InvestorDashboardView />;
-    }
-
-    // General Overseer
-    if (isOverseer()) {
-      return <OverseerDashboard dateRange={dateRange} />;
-    }
-
-    // Domain admins
-    if (role === "report_admin") {
-      return <AdminDashboard dateRange={dateRange} adminType="report_admin" />;
-    }
-    if (role === "finance_hr_admin") {
-      return <AdminDashboard dateRange={dateRange} adminType="finance_hr_admin" />;
-    }
-    if (role === "investment_admin") {
-      return <AdminDashboard dateRange={dateRange} adminType="investment_admin" />;
-    }
-    if (role === "user_admin") {
-      return <AdminDashboard dateRange={dateRange} adminType="user_admin" />;
-    }
-
-    // Team Lead
-    if (isTeamLead()) {
-      return <TeamLeadDashboard dateRange={dateRange} />;
-    }
-
-    // Default: Worker dashboard
-    return <WorkerDashboard dateRange={dateRange} />;
-  };
+  // Determine if user is investor-only (has investor flag but default employee role with no workforce activity)
+  const isInvestorOnly = isInvestor() && role === "employee" && !profile?.full_name;
 
   return (
     <DashboardLayout>
@@ -115,8 +65,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Role-specific Dashboard */}
-        {renderDashboard()}
+        {/* Role-specific Dashboard - using registry pattern */}
+        {resolveDashboard({ role, isInvestorOnly, dateRange })}
       </div>
     </DashboardLayout>
   );

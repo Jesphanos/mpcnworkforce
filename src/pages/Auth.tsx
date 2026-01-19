@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Building2, TrendingUp, Briefcase } from "lucide-react";
 import { z } from "zod";
 import { SignupPhoneField, COUNTRIES } from "@/components/auth/SignupPhoneField";
+import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
 import { supabase } from "@/integrations/supabase/client";
 
 type AccountType = "employee" | "investor" | "both";
@@ -298,9 +300,7 @@ export default function Auth() {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Must be at least 6 characters
-                      </p>
+                      <PasswordStrengthIndicator password={password} />
                     </div>
                     <SignupPhoneField
                       countryCode={countryCode}
