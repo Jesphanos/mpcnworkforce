@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { TaskAuditDialog } from "./TaskAuditDialog";
 import { ContributionWeightingPanel } from "./ContributionWeightingPanel";
 import { supabase } from "@/integrations/supabase/client";
+import { PlatformIcon } from "@/components/ui/PlatformIcon";
 
 interface TasksTableProps {
   tasks: Task[];
@@ -190,7 +191,9 @@ export function TasksTable({ tasks, showActions = false, showRateEdit = false }:
                       {format(new Date(task.work_date), "MMM d, yyyy")}
                     </TableCell>
                     <TableCell>{task.title}</TableCell>
-                    <TableCell>{task.platform}</TableCell>
+                    <TableCell>
+                      <PlatformIcon platform={task.platform} size="sm" showLabel />
+                    </TableCell>
                     <TableCell>{task.hours_worked}h</TableCell>
                     <TableCell>
                       {showRateEdit && task.final_status === "pending" ? (

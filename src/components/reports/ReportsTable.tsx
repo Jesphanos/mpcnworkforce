@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { WorkReport, useUpdateReportStatus, useTeamLeadReportReview, useAdminReportOverride, useUpdateReportRate } from "@/hooks/useWorkReports";
 import { useAuth } from "@/contexts/AuthContext";
 import { ReportAuditDialog } from "./ReportAuditDialog";
+import { PlatformIcon } from "@/components/ui/PlatformIcon";
 
 interface ReportsTableProps {
   reports: WorkReport[];
@@ -169,7 +170,9 @@ export function ReportsTable({ reports, showActions = false, showRateEdit = fals
                     <TableCell className="font-medium">
                       {format(new Date(report.work_date), "MMM d, yyyy")}
                     </TableCell>
-                    <TableCell>{report.platform}</TableCell>
+                    <TableCell>
+                      <PlatformIcon platform={report.platform} size="sm" showLabel />
+                    </TableCell>
                     <TableCell>{report.hours_worked}h</TableCell>
                     <TableCell>${Number(report.earnings).toFixed(2)}</TableCell>
                     {showRateEdit && (
