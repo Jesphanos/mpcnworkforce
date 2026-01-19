@@ -1410,6 +1410,591 @@ export type Database = {
           },
         ]
       }
+      trader_alerts: {
+        Row: {
+          acknowledged: boolean
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          created_at: string
+          id: string
+          message: string
+          related_trade_id: string | null
+          resolution_notes: string | null
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          trader_id: string
+          triggered_action: string | null
+        }
+        Insert: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: string
+          created_at?: string
+          id?: string
+          message: string
+          related_trade_id?: string | null
+          resolution_notes?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          trader_id: string
+          triggered_action?: string | null
+        }
+        Update: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          created_at?: string
+          id?: string
+          message?: string
+          related_trade_id?: string | null
+          resolution_notes?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          trader_id?: string
+          triggered_action?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trader_alerts_related_trade_id_fkey"
+            columns: ["related_trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trader_alerts_trader_id_fkey"
+            columns: ["trader_id"]
+            isOneToOne: false
+            referencedRelation: "trader_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trader_certifications: {
+        Row: {
+          certificate_url: string | null
+          certification_date: string
+          certification_name: string
+          created_at: string
+          expiry_date: string | null
+          id: string
+          school_id: string
+          trader_id: string
+          verified: boolean
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          certificate_url?: string | null
+          certification_date: string
+          certification_name: string
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          school_id: string
+          trader_id: string
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          certificate_url?: string | null
+          certification_date?: string
+          certification_name?: string
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          school_id?: string
+          trader_id?: string
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trader_certifications_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "trading_schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trader_certifications_trader_id_fkey"
+            columns: ["trader_id"]
+            isOneToOne: false
+            referencedRelation: "trader_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trader_daily_reports: {
+        Row: {
+          created_at: string
+          id: string
+          max_drawdown: number | null
+          net_pnl: number
+          net_pnl_percentage: number
+          notes: string | null
+          report_date: string
+          rules_breached_count: number
+          rules_followed_count: number
+          trader_id: string
+          trades_taken: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_drawdown?: number | null
+          net_pnl?: number
+          net_pnl_percentage?: number
+          notes?: string | null
+          report_date: string
+          rules_breached_count?: number
+          rules_followed_count?: number
+          trader_id: string
+          trades_taken?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_drawdown?: number | null
+          net_pnl?: number
+          net_pnl_percentage?: number
+          notes?: string | null
+          report_date?: string
+          rules_breached_count?: number
+          rules_followed_count?: number
+          trader_id?: string
+          trades_taken?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trader_daily_reports_trader_id_fkey"
+            columns: ["trader_id"]
+            isOneToOne: false
+            referencedRelation: "trader_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trader_kpi_scores: {
+        Row: {
+          action_taken: string | null
+          action_taken_at: string | null
+          action_taken_by: string | null
+          average_r_multiple: number | null
+          calculated_by: string | null
+          consistency_score: number
+          created_at: string
+          expectancy: number | null
+          id: string
+          max_drawdown: number | null
+          notes: string | null
+          period_end: string
+          period_start: string
+          profitability_score: number
+          recommended_action: string | null
+          risk_discipline_score: number
+          strategy_execution_score: number
+          total_score: number | null
+          total_trades: number
+          trader_id: string
+          updated_at: string
+          win_rate: number | null
+          winning_trades: number
+        }
+        Insert: {
+          action_taken?: string | null
+          action_taken_at?: string | null
+          action_taken_by?: string | null
+          average_r_multiple?: number | null
+          calculated_by?: string | null
+          consistency_score?: number
+          created_at?: string
+          expectancy?: number | null
+          id?: string
+          max_drawdown?: number | null
+          notes?: string | null
+          period_end: string
+          period_start: string
+          profitability_score?: number
+          recommended_action?: string | null
+          risk_discipline_score?: number
+          strategy_execution_score?: number
+          total_score?: number | null
+          total_trades?: number
+          trader_id: string
+          updated_at?: string
+          win_rate?: number | null
+          winning_trades?: number
+        }
+        Update: {
+          action_taken?: string | null
+          action_taken_at?: string | null
+          action_taken_by?: string | null
+          average_r_multiple?: number | null
+          calculated_by?: string | null
+          consistency_score?: number
+          created_at?: string
+          expectancy?: number | null
+          id?: string
+          max_drawdown?: number | null
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          profitability_score?: number
+          recommended_action?: string | null
+          risk_discipline_score?: number
+          strategy_execution_score?: number
+          total_score?: number | null
+          total_trades?: number
+          trader_id?: string
+          updated_at?: string
+          win_rate?: number | null
+          winning_trades?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trader_kpi_scores_trader_id_fkey"
+            columns: ["trader_id"]
+            isOneToOne: false
+            referencedRelation: "trader_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trader_profiles: {
+        Row: {
+          capital_protection_acknowledged_at: string | null
+          capital_tier: number
+          certification_id: string | null
+          classification: Database["public"]["Enums"]["trader_classification"]
+          created_at: string
+          demo_phase_completed: boolean
+          ethics_acknowledged_at: string | null
+          id: string
+          is_active: boolean
+          last_review_date: string | null
+          live_trading_enabled: boolean
+          loss_policy_acknowledged_at: string | null
+          markets_approved: Database["public"]["Enums"]["market_type"][] | null
+          next_review_date: string | null
+          onboarding_completed: boolean
+          risk_tier: number
+          suspended_at: string | null
+          suspension_reason: string | null
+          trading_school_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capital_protection_acknowledged_at?: string | null
+          capital_tier?: number
+          certification_id?: string | null
+          classification?: Database["public"]["Enums"]["trader_classification"]
+          created_at?: string
+          demo_phase_completed?: boolean
+          ethics_acknowledged_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_review_date?: string | null
+          live_trading_enabled?: boolean
+          loss_policy_acknowledged_at?: string | null
+          markets_approved?: Database["public"]["Enums"]["market_type"][] | null
+          next_review_date?: string | null
+          onboarding_completed?: boolean
+          risk_tier?: number
+          suspended_at?: string | null
+          suspension_reason?: string | null
+          trading_school_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capital_protection_acknowledged_at?: string | null
+          capital_tier?: number
+          certification_id?: string | null
+          classification?: Database["public"]["Enums"]["trader_classification"]
+          created_at?: string
+          demo_phase_completed?: boolean
+          ethics_acknowledged_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_review_date?: string | null
+          live_trading_enabled?: boolean
+          loss_policy_acknowledged_at?: string | null
+          markets_approved?: Database["public"]["Enums"]["market_type"][] | null
+          next_review_date?: string | null
+          onboarding_completed?: boolean
+          risk_tier?: number
+          suspended_at?: string | null
+          suspension_reason?: string | null
+          trading_school_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trader_risk_limits: {
+        Row: {
+          created_at: string
+          daily_loss_limit: number
+          id: string
+          max_leverage: number | null
+          max_open_trades: number
+          max_position_size: number | null
+          max_risk_per_trade: number
+          notes: string | null
+          set_at: string
+          set_by: string
+          trader_id: string
+          updated_at: string
+          weekly_loss_limit: number
+        }
+        Insert: {
+          created_at?: string
+          daily_loss_limit?: number
+          id?: string
+          max_leverage?: number | null
+          max_open_trades?: number
+          max_position_size?: number | null
+          max_risk_per_trade?: number
+          notes?: string | null
+          set_at?: string
+          set_by: string
+          trader_id: string
+          updated_at?: string
+          weekly_loss_limit?: number
+        }
+        Update: {
+          created_at?: string
+          daily_loss_limit?: number
+          id?: string
+          max_leverage?: number | null
+          max_open_trades?: number
+          max_position_size?: number | null
+          max_risk_per_trade?: number
+          notes?: string | null
+          set_at?: string
+          set_by?: string
+          trader_id?: string
+          updated_at?: string
+          weekly_loss_limit?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trader_risk_limits_trader_id_fkey"
+            columns: ["trader_id"]
+            isOneToOne: true
+            referencedRelation: "trader_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trades: {
+        Row: {
+          created_at: string
+          direction: string
+          emotional_state: string | null
+          entry_price: number
+          entry_time: string
+          execution_notes: string | null
+          exit_price: number | null
+          exit_time: string | null
+          external_trade_id: string | null
+          id: string
+          instrument: string
+          is_demo: boolean
+          market: Database["public"]["Enums"]["market_type"]
+          platform: string | null
+          pnl_amount: number | null
+          pnl_percentage: number | null
+          position_size: number
+          pre_trade_checklist_completed: boolean
+          r_multiple: number | null
+          risk_percentage: number
+          rule_violations: string[] | null
+          rules_followed: boolean | null
+          screenshots_url: string[] | null
+          status: Database["public"]["Enums"]["trade_status"]
+          stop_loss: number
+          strategy_id: string | null
+          take_profit: number | null
+          trade_rationale: string | null
+          trader_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          emotional_state?: string | null
+          entry_price: number
+          entry_time?: string
+          execution_notes?: string | null
+          exit_price?: number | null
+          exit_time?: string | null
+          external_trade_id?: string | null
+          id?: string
+          instrument: string
+          is_demo?: boolean
+          market: Database["public"]["Enums"]["market_type"]
+          platform?: string | null
+          pnl_amount?: number | null
+          pnl_percentage?: number | null
+          position_size: number
+          pre_trade_checklist_completed?: boolean
+          r_multiple?: number | null
+          risk_percentage: number
+          rule_violations?: string[] | null
+          rules_followed?: boolean | null
+          screenshots_url?: string[] | null
+          status?: Database["public"]["Enums"]["trade_status"]
+          stop_loss: number
+          strategy_id?: string | null
+          take_profit?: number | null
+          trade_rationale?: string | null
+          trader_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          emotional_state?: string | null
+          entry_price?: number
+          entry_time?: string
+          execution_notes?: string | null
+          exit_price?: number | null
+          exit_time?: string | null
+          external_trade_id?: string | null
+          id?: string
+          instrument?: string
+          is_demo?: boolean
+          market?: Database["public"]["Enums"]["market_type"]
+          platform?: string | null
+          pnl_amount?: number | null
+          pnl_percentage?: number | null
+          position_size?: number
+          pre_trade_checklist_completed?: boolean
+          r_multiple?: number | null
+          risk_percentage?: number
+          rule_violations?: string[] | null
+          rules_followed?: boolean | null
+          screenshots_url?: string[] | null
+          status?: Database["public"]["Enums"]["trade_status"]
+          stop_loss?: number
+          strategy_id?: string | null
+          take_profit?: number | null
+          trade_rationale?: string | null
+          trader_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trades_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "trading_strategies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trades_trader_id_fkey"
+            columns: ["trader_id"]
+            isOneToOne: false
+            referencedRelation: "trader_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trading_schools: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          contact_email: string | null
+          created_at: string
+          id: string
+          is_approved: boolean
+          name: string
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          name: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          name?: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      trading_strategies: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_approved: boolean
+          markets: Database["public"]["Enums"]["market_type"][]
+          min_classification: Database["public"]["Enums"]["trader_classification"]
+          name: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_approved?: boolean
+          markets?: Database["public"]["Enums"]["market_type"][]
+          min_classification?: Database["public"]["Enums"]["trader_classification"]
+          name: string
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_approved?: boolean
+          markets?: Database["public"]["Enums"]["market_type"][]
+          min_classification?: Database["public"]["Enums"]["trader_classification"]
+          name?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1744,6 +2329,13 @@ export type Database = {
         | "employee_investor"
         | "founding"
       investor_verification_status: "pending" | "verified" | "rejected"
+      market_type:
+        | "forex"
+        | "crypto"
+        | "stocks"
+        | "commodities"
+        | "indices"
+        | "options"
       resolution_status:
         | "open"
         | "under_review"
@@ -1760,6 +2352,8 @@ export type Database = {
         | "quality_assurance"
         | "project_management"
         | "other"
+      trade_status: "open" | "closed" | "cancelled"
+      trader_classification: "trainee" | "junior" | "senior" | "lead"
       withdrawal_status: "requested" | "approved" | "paid" | "rejected"
     }
     CompositeTypes: {
@@ -1915,6 +2509,14 @@ export const Constants = {
         "founding",
       ],
       investor_verification_status: ["pending", "verified", "rejected"],
+      market_type: [
+        "forex",
+        "crypto",
+        "stocks",
+        "commodities",
+        "indices",
+        "options",
+      ],
       resolution_status: [
         "open",
         "under_review",
@@ -1933,6 +2535,8 @@ export const Constants = {
         "project_management",
         "other",
       ],
+      trade_status: ["open", "closed", "cancelled"],
+      trader_classification: ["trainee", "junior", "senior", "lead"],
       withdrawal_status: ["requested", "approved", "paid", "rejected"],
     },
   },
