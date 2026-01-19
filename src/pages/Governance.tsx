@@ -4,9 +4,11 @@ import { AttentionSignalsList } from "@/components/governance/AttentionSignalsLi
 import { AdminResolutionPanel } from "@/components/governance/AdminResolutionPanel";
 import { DepartmentManagement } from "@/components/governance/DepartmentManagement";
 import { DepartmentHierarchy } from "@/components/governance/DepartmentHierarchy";
-import { Shield, MessageCircle, Building2, AlertTriangle, FolderTree } from "lucide-react";
+import { SlaAlertBanner } from "@/components/notifications/SlaAlertBanner";
+import { Shield, MessageCircle, Building2, FolderTree } from "lucide-react";
 import { useAttentionSignals } from "@/hooks/useAttentionSignals";
 import { useResolutionRequests } from "@/hooks/useResolutionRequests";
+import { useSlaBreachAlerts } from "@/hooks/useSlaBreachAlerts";
 import { Badge } from "@/components/ui/badge";
 import { useSearchParams } from "react-router-dom";
 
@@ -16,12 +18,12 @@ export default function Governance() {
   
   const { data: signals } = useAttentionSignals({ unresolvedOnly: true });
   const { data: requests } = useResolutionRequests();
+  
+  // Initialize SLA breach monitoring
+  useSlaBreachAlerts();
 
   const unresolvedSignals = signals?.filter(s => !s.resolved_at).length || 0;
   const openRequests = requests?.filter(r => r.status !== "resolved").length || 0;
-  const overdueRequests = requests?.filter(
-    r => r.sla_due_at && new Date(r.sla_due_at) < new Date() && r.status !== "resolved"
-  ).length || 0;
 
   return (
     <DashboardLayout>
@@ -33,15 +35,10 @@ export default function Governance() {
               Manage attention signals, resolution requests, and organizational structure
             </p>
           </div>
-          {overdueRequests > 0 && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/10 text-destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <span className="text-sm font-medium">
-                {overdueRequests} SLA {overdueRequests === 1 ? "breach" : "breaches"}
-              </span>
-            </div>
-          )}
         </div>
+
+        {/* SLA Breach Alert Banner */}
+        <SlaAlertBanner />
 
         <Tabs defaultValue={defaultTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-none lg:flex">
