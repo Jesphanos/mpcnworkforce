@@ -31,6 +31,7 @@ import {
   PieChart,
   Wallet,
   Scale,
+  CandlestickChart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -63,6 +64,7 @@ const roleMenus: Record<AppRole, { main: MenuItem[]; admin?: MenuItem[]; adminLa
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
       { title: "My Tasks", url: "/tasks", icon: ClipboardList },
       { title: "My Reports", url: "/reports", icon: FileText },
+      { title: "Trading", url: "/trading", icon: CandlestickChart },
       { title: "My Profile", url: "/profile", icon: User },
     ],
   },
@@ -73,6 +75,7 @@ const roleMenus: Record<AppRole, { main: MenuItem[]; admin?: MenuItem[]; adminLa
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
       { title: "My Tasks", url: "/tasks", icon: ClipboardList },
       { title: "My Reports", url: "/reports", icon: FileText },
+      { title: "Trading", url: "/trading", icon: CandlestickChart },
       { title: "My Profile", url: "/profile", icon: User },
     ],
     adminLabel: "Team Management",
@@ -153,6 +156,7 @@ const roleMenus: Record<AppRole, { main: MenuItem[]; admin?: MenuItem[]; adminLa
       { title: "Organization", url: "/team", icon: Building2 },
       { title: "System Inbox", url: "/reports", icon: FileText },
       { title: "Overrides", url: "/reports?tab=overrides", icon: Shield },
+      { title: "Trading Desk", url: "/trading", icon: CandlestickChart },
       { title: "Audit Trail", url: "/activity", icon: Activity },
       { title: "Finance & HR", url: "/finance-hr", icon: DollarSign },
       { title: "Investments", url: "/investments", icon: TrendingUp },
