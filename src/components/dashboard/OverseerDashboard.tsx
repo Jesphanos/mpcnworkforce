@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleAuthorityBanner } from "@/components/ui/RoleAuthorityBanner";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useWorkReports } from "@/hooks/useWorkReports";
@@ -12,6 +13,7 @@ import { TrendsChart } from "@/components/dashboard/TrendsChart";
 import { PlatformChart } from "@/components/dashboard/PlatformChart";
 import { AttentionSignalsList } from "@/components/governance/AttentionSignalsList";
 import { LeadershipOverviewCard } from "@/components/leadership/LeadershipOverviewCard";
+import { OverseerCommandLayer } from "@/components/dashboard/OverseerCommandLayer";
 import { 
   Building2,
   Users,
