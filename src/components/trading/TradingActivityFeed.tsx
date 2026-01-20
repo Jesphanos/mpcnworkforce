@@ -86,8 +86,15 @@ const activityColors = {
   warning: "text-warning bg-warning/10",
 };
 
-export function TradingActivityFeed({ className }: { className?: string }) {
-  const [activities] = useState<ActivityItem[]>(mockActivities);
+interface TradingActivityFeedProps {
+  className?: string;
+  traderId?: string;
+  maxItems?: number;
+}
+
+export function TradingActivityFeed({ className, traderId, maxItems = 10 }: TradingActivityFeedProps) {
+  // In production, this would fetch real activities based on traderId
+  const [activities] = useState<ActivityItem[]>(mockActivities.slice(0, maxItems));
 
   return (
     <Card className={cn("", className)}>
@@ -98,7 +105,7 @@ export function TradingActivityFeed({ className }: { className?: string }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="h-[300px]">
+        <ScrollArea className="h-[350px]">
           <div className="space-y-1 p-4 pt-0">
             <AnimatePresence>
               {activities.map((activity, index) => {
