@@ -4,8 +4,9 @@ import { AttentionSignalsList } from "@/components/governance/AttentionSignalsLi
 import { AdminResolutionPanel } from "@/components/governance/AdminResolutionPanel";
 import { DepartmentManagement } from "@/components/governance/DepartmentManagement";
 import { DepartmentHierarchy } from "@/components/governance/DepartmentHierarchy";
+import { AdminLearningDashboard } from "@/components/learning/AdminLearningDashboard";
 import { SlaAlertBanner } from "@/components/notifications/SlaAlertBanner";
-import { Shield, MessageCircle, Building2, FolderTree } from "lucide-react";
+import { Shield, MessageCircle, Building2, FolderTree, GraduationCap } from "lucide-react";
 import { useAttentionSignals } from "@/hooks/useAttentionSignals";
 import { useResolutionRequests } from "@/hooks/useResolutionRequests";
 import { useSlaBreachAlerts } from "@/hooks/useSlaBreachAlerts";
@@ -41,7 +42,7 @@ export default function Governance() {
         <SlaAlertBanner />
 
         <Tabs defaultValue={defaultTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-none lg:flex">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-none lg:flex">
             <TabsTrigger value="signals" className="gap-2">
               <Shield className="h-4 w-4" />
               <span className="hidden sm:inline">Attention</span> Signals
@@ -60,6 +61,10 @@ export default function Governance() {
                 </Badge>
               )}
             </TabsTrigger>
+            <TabsTrigger value="learning" className="gap-2">
+              <GraduationCap className="h-4 w-4" />
+              <span className="hidden sm:inline">Learning</span> Progress
+            </TabsTrigger>
             <TabsTrigger value="departments" className="gap-2">
               <Building2 className="h-4 w-4" />
               Departments
@@ -76,6 +81,10 @@ export default function Governance() {
 
           <TabsContent value="requests" className="space-y-6">
             <AdminResolutionPanel />
+          </TabsContent>
+
+          <TabsContent value="learning" className="space-y-6">
+            <AdminLearningDashboard />
           </TabsContent>
 
           <TabsContent value="departments" className="space-y-6">
