@@ -19,6 +19,17 @@ import {
   HandHeart,
   Sparkles,
 } from "lucide-react";
+import { generateCompendiumPdf } from "@/lib/compendiumPdfGenerator";
+import { toast } from "sonner";
+
+const handleDownloadPdf = () => {
+  try {
+    generateCompendiumPdf();
+    toast.success("Compendium PDF downloaded successfully!");
+  } catch (error) {
+    toast.error("Failed to generate PDF");
+  }
+};
 
 interface WealthCompendiumDialogProps {
   open: boolean;
@@ -180,9 +191,7 @@ const compendiumSections = [
 
 export function WealthCompendiumDialog({ open, onOpenChange }: WealthCompendiumDialogProps) {
   const handleDownload = () => {
-    // In a real implementation, this would generate and download a PDF
-    // For now, we show the content inline
-    alert("PDF download feature coming soon. Content is available below.");
+    handleDownloadPdf();
   };
 
   return (

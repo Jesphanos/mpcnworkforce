@@ -612,6 +612,42 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_certificates: {
+        Row: {
+          certificate_name: string
+          certificate_type: string
+          created_at: string
+          id: string
+          issued_at: string
+          issued_by: string | null
+          metadata: Json | null
+          modules_completed: string[]
+          user_id: string
+        }
+        Insert: {
+          certificate_name: string
+          certificate_type: string
+          created_at?: string
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          metadata?: Json | null
+          modules_completed: string[]
+          user_id: string
+        }
+        Update: {
+          certificate_name?: string
+          certificate_type?: string
+          created_at?: string
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          metadata?: Json | null
+          modules_completed?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
       learning_insights: {
         Row: {
           created_at: string
@@ -651,6 +687,45 @@ export type Database = {
           user_id?: string
           what_to_improve?: string | null
           what_went_well?: string | null
+        }
+        Relationships: []
+      }
+      learning_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          module_group: string
+          module_id: string
+          notes: string | null
+          progress_percentage: number | null
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          module_group: string
+          module_id: string
+          notes?: string | null
+          progress_percentage?: number | null
+          started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          module_group?: string
+          module_id?: string
+          notes?: string | null
+          progress_percentage?: number | null
+          started_at?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -819,6 +894,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          certifications: string[] | null
           country: string | null
           created_at: string
           currency_preference: string | null
@@ -837,6 +913,8 @@ export type Database = {
           is_investor: boolean | null
           jurisdiction: string | null
           language_preference: string | null
+          learning_path: string | null
+          learning_started_at: string | null
           phone_number: string | null
           referral_code: string | null
           referred_by: string | null
@@ -848,6 +926,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          certifications?: string[] | null
           country?: string | null
           created_at?: string
           currency_preference?: string | null
@@ -866,6 +945,8 @@ export type Database = {
           is_investor?: boolean | null
           jurisdiction?: string | null
           language_preference?: string | null
+          learning_path?: string | null
+          learning_started_at?: string | null
           phone_number?: string | null
           referral_code?: string | null
           referred_by?: string | null
@@ -877,6 +958,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          certifications?: string[] | null
           country?: string | null
           created_at?: string
           currency_preference?: string | null
@@ -895,6 +977,8 @@ export type Database = {
           is_investor?: boolean | null
           jurisdiction?: string | null
           language_preference?: string | null
+          learning_path?: string | null
+          learning_started_at?: string | null
           phone_number?: string | null
           referral_code?: string | null
           referred_by?: string | null
@@ -2250,6 +2334,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_certification_eligibility: {
+        Args: { p_certificate_type: string; p_user_id: string }
+        Returns: boolean
+      }
       get_general_overseer_email: { Args: never; Returns: string }
       get_role_level: {
         Args: { role_name: Database["public"]["Enums"]["app_role"] }
@@ -2269,6 +2357,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      issue_learning_certificate: {
+        Args: {
+          p_certificate_name: string
+          p_certificate_type: string
+          p_modules_completed: string[]
+          p_user_id: string
+        }
+        Returns: string
       }
       log_audit_event: {
         Args: {

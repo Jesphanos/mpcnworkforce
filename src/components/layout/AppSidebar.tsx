@@ -31,6 +31,7 @@ import {
   Scale,
   CandlestickChart,
   Landmark,
+  GraduationCap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -242,6 +243,11 @@ const traderMenu: MenuItem[] = [
   { title: "Trading Terminal", url: "/trading", icon: CandlestickChart },
 ];
 
+// Development menu (available for all roles)
+const developmentMenu: MenuItem[] = [
+  { title: "MPCN Learn", url: "/learn", icon: GraduationCap },
+];
+
 export function AppSidebar() {
   const { profile, role, signOut } = useAuth();
   const { isInvestor, isOverseer, isTrader } = useCapabilities();
@@ -429,6 +435,31 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+
+        {/* Development Section (Available for all roles) */}
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs uppercase tracking-wider">
+            Development
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {developmentMenu.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+                      activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-4">
