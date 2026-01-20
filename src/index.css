@@ -58,6 +58,15 @@
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(199 89% 48%) 100%);
     --gradient-dark: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(217 33% 17%) 100%);
+
+    /* Trading Terminal Colors */
+    --trading-positive: 142 76% 42%;
+    --trading-negative: 0 72% 51%;
+    --trading-neutral: 220 9% 46%;
+    --trading-accent: 45 93% 47%;
+    --trading-bg: 222 47% 6%;
+    --trading-card: 222 47% 10%;
+    --trading-glow: 217 91% 60%;
   }
 
   .dark {
@@ -107,6 +116,15 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 33% 13%;
     --sidebar-ring: 217 91% 60%;
+
+    /* Trading Terminal Colors - Dark Mode Optimized */
+    --trading-positive: 142 76% 52%;
+    --trading-negative: 0 84% 60%;
+    --trading-neutral: 220 9% 56%;
+    --trading-accent: 45 93% 55%;
+    --trading-bg: 222 47% 4%;
+    --trading-card: 222 47% 8%;
+    --trading-glow: 217 91% 65%;
   }
 }
 
@@ -127,5 +145,68 @@
   
   .gradient-dark {
     background: var(--gradient-dark);
+  }
+
+  /* Trading-specific utilities */
+  .trading-bg {
+    background-color: hsl(var(--trading-bg));
+  }
+
+  .trading-card {
+    background-color: hsl(var(--trading-card));
+    border-color: hsl(var(--trading-glow) / 0.1);
+  }
+
+  .trading-glow {
+    box-shadow: 0 0 20px hsl(var(--trading-glow) / 0.15);
+  }
+
+  .trading-glow-positive {
+    box-shadow: 0 0 20px hsl(var(--trading-positive) / 0.2);
+  }
+
+  .trading-glow-negative {
+    box-shadow: 0 0 20px hsl(var(--trading-negative) / 0.2);
+  }
+
+  .glassmorphism {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .gradient-long {
+    background: linear-gradient(135deg, hsl(var(--trading-positive)) 0%, hsl(142 76% 30%) 100%);
+  }
+
+  .gradient-short {
+    background: linear-gradient(135deg, hsl(var(--trading-negative)) 0%, hsl(0 72% 35%) 100%);
+  }
+
+  @keyframes trading-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .animate-trading-pulse {
+    animation: trading-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 10px hsl(var(--trading-glow) / 0.2); }
+    50% { box-shadow: 0 0 25px hsl(var(--trading-glow) / 0.4); }
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes number-slide {
+    0% { transform: translateY(100%); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  .animate-number-slide {
+    animation: number-slide 0.3s ease-out;
   }
 }

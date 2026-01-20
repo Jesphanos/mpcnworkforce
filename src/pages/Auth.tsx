@@ -7,16 +7,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Building2, TrendingUp, Briefcase, ArrowLeft, ChevronRight } from "lucide-react";
+import { 
+  Loader2, 
+  Building2, 
+  TrendingUp, 
+  Briefcase, 
+  ArrowLeft, 
+  ChevronRight,
+  Mail,
+  Phone,
+  User,
+  LineChart,
+} from "lucide-react";
 import { z } from "zod";
 import { SignupPhoneField, COUNTRIES } from "@/components/auth/SignupPhoneField";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
 import { RoleSelectionGrid, LoginRoleType } from "@/components/auth/RoleSelectionGrid";
+import { PhoneLoginForm } from "@/components/auth/PhoneLoginForm";
+import { MpcnIdLoginForm } from "@/components/auth/MpcnIdLoginForm";
 import { supabase } from "@/integrations/supabase/client";
 
-type AccountType = "employee" | "investor" | "both";
+type AccountType = "employee" | "investor" | "both" | "trader";
+type LoginMethod = "email" | "phone" | "mpcn_id";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -53,6 +66,12 @@ const ROLE_CONTEXT: Record<LoginRoleType, { title: string; description: string }
   },
 };
 
+const LOGIN_METHODS = [
+  { id: "email" as const, label: "Email", icon: Mail },
+  { id: "phone" as const, label: "Phone", icon: Phone },
+  { id: "mpcn_id" as const, label: "MPCN ID", icon: User },
+];
+
 export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,6 +83,7 @@ export default function Auth() {
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   const [selectedLoginRole, setSelectedLoginRole] = useState<LoginRoleType | null>(null);
   const [showRoleSelection, setShowRoleSelection] = useState(true);
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>("email");
   
   const { signIn, signUp, resetPassword, user } = useAuth();
   const navigate = useNavigate();
@@ -155,7 +175,7 @@ export default function Auth() {
       return;
     }
     
-    // Save phone number, country, and investor status to profile
+    // Save phone number, country, and investor/trader status to profile
     if (newUser) {
       const selectedCountry = COUNTRIES.find(c => c.code === countryCode);
       const fullPhone = phoneNumber ? `${selectedCountry?.dialCode} ${phoneNumber}` : null;
@@ -171,6 +191,17 @@ export default function Auth() {
           investor_type: isInvestor ? "employee_investor" : null,
         })
         .eq("id", newUser.id);
+
+      // For trader accounts, redirect to trading onboarding after signup
+      if (accountType === "trader") {
+        setIsLoading(false);
+        toast({
+          title: "Account Created",
+          description: "Complete trader onboarding to access the trading environment",
+        });
+        navigate("/trading");
+        return;
+      }
     }
     
     setIsLoading(false);
@@ -309,42 +340,101 @@ export default function Auth() {
                           Change role
                         </Button>
                         
-                        <form onSubmit={handleLogin} className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="login-email">Email</Label>
-                            <Input
-                              id="login-email"
-                              type="email"
-                              placeholder="name@company.com"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="login-password">Password</Label>
-                            <Input
-                              id="login-password"
-                              type="password"
-                              placeholder="••••••••"
-                              value={password}
-                              onChange={(e) => setPassword(e.target.value)}
-                              required
-                            />
-                          </div>
-                          <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Sign In
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="link"
-                            className="w-full text-muted-foreground"
-                            onClick={() => setMode("forgot")}
-                          >
-                            Forgot password?
-                          </Button>
-                        </form>
+                        {/* Login Method Selector */}
+                        <div className="flex gap-1 p-1 bg-muted rounded-lg mb-4">
+                          {LOGIN_METHODS.map((method) => {
+                            const Icon = method.icon;
+                            return (
+                              <button
+                                key={method.id}
+                                type="button"
+                                onClick={() => setLoginMethod(method.id)}
+                                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+                                  loginMethod === method.id
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                                }`}
+                              >
+                                <Icon className="h-4 w-4" />
+                                <span className="hidden sm:inline">{method.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <AnimatePresence mode="wait">
+                          {loginMethod === "email" && (
+                            <motion.form
+                              key="email-login"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              onSubmit={handleLogin}
+                              className="space-y-4"
+                            >
+                              <div className="space-y-2">
+                                <Label htmlFor="login-email">Email</Label>
+                                <Input
+                                  id="login-email"
+                                  type="email"
+                                  placeholder="name@company.com"
+                                  value={email}
+                                  onChange={(e) => setEmail(e.target.value)}
+                                  required
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="login-password">Password</Label>
+                                <Input
+                                  id="login-password"
+                                  type="password"
+                                  placeholder="••••••••"
+                                  value={password}
+                                  onChange={(e) => setPassword(e.target.value)}
+                                  required
+                                />
+                              </div>
+                              <Button type="submit" className="w-full" disabled={isLoading}>
+                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Sign In
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="link"
+                                className="w-full text-muted-foreground"
+                                onClick={() => setMode("forgot")}
+                              >
+                                Forgot password?
+                              </Button>
+                            </motion.form>
+                          )}
+                          
+                          {loginMethod === "phone" && (
+                            <motion.div
+                              key="phone-login"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                            >
+                              <PhoneLoginForm 
+                                onSuccess={() => navigate(from, { replace: true })}
+                              />
+                            </motion.div>
+                          )}
+                          
+                          {loginMethod === "mpcn_id" && (
+                            <motion.div
+                              key="mpcn-login"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                            >
+                              <MpcnIdLoginForm 
+                                onSuccess={() => navigate(from, { replace: true })}
+                              />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -413,10 +503,34 @@ export default function Auth() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <Briefcase className="h-4 w-4 text-primary" />
-                              <span className="font-medium text-sm">Employee Only</span>
+                              <span className="font-medium text-sm">Employee</span>
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
                               Join as a workforce member. You can become an investor later.
+                            </p>
+                          </div>
+                        </label>
+
+                        <label 
+                          className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                            accountType === "trader" ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="accountType"
+                            value="trader"
+                            checked={accountType === "trader"}
+                            onChange={() => setAccountType("trader")}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <LineChart className="h-4 w-4 text-warning" />
+                              <span className="font-medium text-sm">Trader</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Join the MPCN trading desk. Demo access first, live after evaluation.
                             </p>
                           </div>
                         </label>
@@ -436,7 +550,7 @@ export default function Auth() {
                           />
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <TrendingUp className="h-4 w-4 text-green-600" />
+                              <TrendingUp className="h-4 w-4 text-success" />
                               <span className="font-medium text-sm">Investor Only</span>
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
@@ -461,7 +575,7 @@ export default function Auth() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <Briefcase className="h-4 w-4 text-primary" />
-                              <TrendingUp className="h-4 w-4 text-green-600" />
+                              <TrendingUp className="h-4 w-4 text-success" />
                               <span className="font-medium text-sm">Employee + Investor</span>
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
@@ -475,6 +589,13 @@ export default function Auth() {
                     <div className="bg-muted/50 p-3 rounded-lg space-y-1">
                       <p className="text-xs font-medium text-muted-foreground">What happens next:</p>
                       <ul className="text-xs text-muted-foreground space-y-0.5">
+                        {accountType === "trader" && (
+                          <>
+                            <li>• Complete trader onboarding with ethics acknowledgment</li>
+                            <li>• Start with demo trading to prove your skills</li>
+                            <li>• Earn access to live trading after evaluation</li>
+                          </>
+                        )}
                         {(accountType === "employee" || accountType === "both") && (
                           <>
                             <li>• You'll be assigned the default Employee role</li>
