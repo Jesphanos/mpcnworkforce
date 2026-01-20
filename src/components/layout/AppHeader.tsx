@@ -3,10 +3,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { MarketStatusIndicator } from "@/components/trading/MarketStatusIndicator";
+import { useCapabilities } from "@/hooks/useCapabilities";
 
 export function AppHeader() {
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const { isTrader, isOverseer } = useCapabilities();
 
   const getInitials = (name: string | null) => {
     if (!name) return "U";
@@ -29,7 +32,14 @@ export function AppHeader() {
         </div>
       </div>
       
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
+        {/* Market Status for traders */}
+        {(isTrader() || isOverseer()) && (
+          <div className="hidden md:block">
+            <MarketStatusIndicator compact />
+          </div>
+        )}
+        
         <NotificationBell />
         
         <Avatar 
