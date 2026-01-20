@@ -30,6 +30,7 @@ import { BecomeInvestorCard } from "@/components/profile/BecomeInvestorCard";
 import { BecomeTraderCard } from "@/components/profile/BecomeTraderCard";
 import { AvatarUpload } from "@/components/profile/AvatarUpload";
 import { SecurityTab } from "@/components/profile/SecurityTab";
+import { TwoFactorSetupDialog } from "@/components/auth/TwoFactorSetupDialog";
 import { Loader2, User, Mail, Shield, Trash2, Copy, CheckCircle, Heart, ChevronDown, Lock } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 

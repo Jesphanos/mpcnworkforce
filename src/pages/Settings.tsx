@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PlatformSettingsTable } from "@/components/settings/PlatformSettingsTable";
 import { SystemPreferences } from "@/components/settings/SystemPreferences";
 import { GovernanceCharter } from "@/components/settings/GovernanceCharter";
-import { Layers, Sliders, Heart } from "lucide-react";
+import { ThemeToggle } from "@/components/settings/ThemeToggle";
+import { Layers, Sliders, Heart, Palette } from "lucide-react";
 
 export default function Settings() {
   return (
@@ -26,6 +27,10 @@ export default function Settings() {
             <TabsTrigger value="preferences" className="flex items-center gap-2">
               <Sliders className="h-4 w-4" />
               Preferences
+            </TabsTrigger>
+            <TabsTrigger value="appearance" className="flex items-center gap-2">
+              <Palette className="h-4 w-4" />
+              Appearance
             </TabsTrigger>
             <TabsTrigger value="charter" className="flex items-center gap-2">
               <Heart className="h-4 w-4" />
@@ -57,6 +62,10 @@ export default function Settings() {
               </div>
               <SystemPreferences />
             </div>
+          </TabsContent>
+
+          <TabsContent value="appearance">
+            <ThemeToggle />
           </TabsContent>
 
           <TabsContent value="charter">
