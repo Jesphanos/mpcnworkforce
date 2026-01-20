@@ -52,7 +52,11 @@ interface UserWithRole {
   team_id?: string;
 }
 
-const ALL_ROLES: AppRole[] = ["employee", "team_lead", "report_admin", "finance_hr_admin", "investment_admin", "user_admin"];
+// Roles available for user_admin to assign (cannot assign general_overseer)
+const ADMIN_ASSIGNABLE_ROLES: AppRole[] = ["employee", "trader", "team_lead", "department_head", "report_admin", "finance_hr_admin", "investment_admin", "user_admin"];
+
+// Only General Overseer can see/assign this
+const OVERSEER_ONLY_ROLES: AppRole[] = ["general_overseer"];
 
 export default function UserManagement() {
   const { user, hasRole, role: currentUserRole } = useAuth();
@@ -371,9 +375,13 @@ export default function UserManagement() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            {u.id === user?.id || u.role === "general_overseer" ? (
+                            {/* Cannot modify self, general_overseer (unless you ARE overseer), or protected users */}
+                            {u.id === user?.id || (u.role === "general_overseer" && currentUserRole !== "general_overseer") ? (
                               <Badge variant={getRoleBadgeVariant(u.role)}>
                                 {getRoleLabel(u.role)}
+                                {u.role === "general_overseer" && currentUserRole !== "general_overseer" && (
+                                  <Shield className="ml-1 h-3 w-3" />
+                                )}
                               </Badge>
                             ) : (
                               <Select
@@ -385,7 +393,13 @@ export default function UserManagement() {
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {ALL_ROLES.map((role) => (
+                                  {ADMIN_ASSIGNABLE_ROLES.map((role) => (
+                                    <SelectItem key={role} value={role}>
+                                      {getRoleLabel(role)}
+                                    </SelectItem>
+                                  ))}
+                                  {/* Only General Overseer can assign the supreme role */}
+                                  {currentUserRole === "general_overseer" && OVERSEER_ONLY_ROLES.map((role) => (
                                     <SelectItem key={role} value={role}>
                                       {getRoleLabel(role)}
                                     </SelectItem>
@@ -419,6 +433,11 @@ export default function UserManagement() {
                             <Badge variant="outline" className="text-muted-foreground">
                               Current User
                             </Badge>
+                          ) : u.role === "general_overseer" && currentUserRole !== "general_overseer" ? (
+                            <Badge variant="outline" className="text-muted-foreground">
+                              <Shield className="h-3 w-3 mr-1" />
+                              Protected
+                            </Badge>
                           ) : (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
@@ -427,6 +446,7 @@ export default function UserManagement() {
                                   size="sm"
                                   className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                   disabled={deletingUserId === u.id}
+                                  aria-label="Delete user"
                                 >
                                   {deletingUserId === u.id ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
