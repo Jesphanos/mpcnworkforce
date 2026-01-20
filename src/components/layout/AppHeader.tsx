@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ViewOptionsMenu } from "@/components/layout/ViewOptionsMenu";
+import { HelpCenter } from "@/components/help/HelpCenter";
+import { KeyboardShortcutsDialog } from "@/components/ui/keyboard-shortcuts";
+import { ConnectionStatus } from "@/components/ui/offline-indicator";
 import { MarketStatusIndicator } from "@/components/trading/MarketStatusIndicator";
 import { useCapabilities } from "@/hooks/useCapabilities";
 
@@ -31,21 +34,24 @@ export function AppHeader() {
             Welcome back, {profile?.full_name?.split(" ")[0] || "User"}
           </h1>
         </div>
+        <ConnectionStatus />
       </div>
       
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         {/* Market Status for traders */}
         {(isTrader() || isOverseer()) && (
-          <div className="hidden md:block">
+          <div className="hidden md:block mr-2">
             <MarketStatusIndicator compact />
           </div>
         )}
         
+        <KeyboardShortcutsDialog />
+        <HelpCenter />
         <ViewOptionsMenu />
         <NotificationBell />
         
         <Avatar 
-          className="h-9 w-9 sm:hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+          className="h-9 w-9 sm:hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all ml-2"
           onClick={() => navigate("/profile")}
         >
           <AvatarImage src={profile?.avatar_url || undefined} />
