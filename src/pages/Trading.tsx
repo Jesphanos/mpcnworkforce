@@ -6,6 +6,8 @@ import { TradeExecutionForm } from "@/components/trading/TradeExecutionForm";
 import { TradeJournal } from "@/components/trading/TradeJournal";
 import { TradingRealtimeStatus } from "@/components/trading/TradingRealtimeStatus";
 import { EquityCurveChart } from "@/components/trading/EquityCurveChart";
+import { GlobalTimeBar } from "@/components/trading/GlobalTimeBar";
+import { TradingActivityFeed } from "@/components/trading/TradingActivityFeed";
 import { useTraderProfile, useTraderTrades } from "@/hooks/useTrading";
 import { useRealtimeTrades } from "@/hooks/useRealtimeTrades";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -59,10 +61,15 @@ export default function Trading() {
 
   return (
     <DashboardLayout>
+      {/* Global Time Bar */}
+      <div className="-mx-4 -mt-4 mb-6 lg:-mx-6 lg:-mt-6">
+        <GlobalTimeBar />
+      </div>
+
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Trading</h1>
+            <h1 className="text-2xl font-bold text-foreground">Trading Terminal</h1>
             <p className="text-muted-foreground">
               Manage your trades, track performance, and maintain discipline
             </p>
@@ -95,11 +102,25 @@ export default function Trading() {
           </TabsList>
 
           <TabsContent value="dashboard">
-            <TraderDashboard />
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <TraderDashboard />
+              </div>
+              <div className="lg:col-span-1">
+                <TradingActivityFeed traderId={profile.id} maxItems={10} />
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="execute">
-            <TradeExecutionForm />
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <TradeExecutionForm />
+              </div>
+              <div className="lg:col-span-1">
+                <TradingActivityFeed traderId={profile.id} maxItems={5} />
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="journal">

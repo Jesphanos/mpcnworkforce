@@ -2,45 +2,95 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Activity, Moon, Sun } from "lucide-react";
+import { Activity, Moon, Sun, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MarketSession {
   name: string;
+  timezone: string;
+  openHour: number;
+  closeHour: number;
   status: "open" | "closed" | "pre-market" | "after-hours";
   icon: React.ElementType;
 }
 
 function getMarketSessions(): MarketSession[] {
   const now = new Date();
-  const utcHours = now.getUTCHours();
-  
-  // Simplified market session logic
-  const sessions: MarketSession[] = [];
-  
-  // Forex is 24/5
   const dayOfWeek = now.getUTCDay();
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
   
+  const sessions: MarketSession[] = [];
+  
+  // Forex - Check if weekend
   sessions.push({
     name: "Forex",
+    timezone: "UTC",
+    openHour: 0,
+    closeHour: 24,
     status: isWeekend ? "closed" : "open",
     icon: Activity,
   });
   
-  // US Stock Market (9:30 AM - 4:00 PM EST = 14:30 - 21:00 UTC)
-  if (utcHours >= 14 && utcHours < 21) {
-    sessions.push({ name: "NYSE", status: "open", icon: Sun });
-  } else if (utcHours >= 13 && utcHours < 14) {
-    sessions.push({ name: "NYSE", status: "pre-market", icon: Sun });
-  } else if (utcHours >= 21 && utcHours < 24) {
-    sessions.push({ name: "NYSE", status: "after-hours", icon: Moon });
-  } else {
-    sessions.push({ name: "NYSE", status: "closed", icon: Moon });
+  // NYSE - 9:30 AM - 4:00 PM EST (14:30 - 21:00 UTC)
+  // Adjusting for DST would require more complex logic
+  const nyTime = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
+  const nyHour = nyTime.getHours();
+  const nyMinute = nyTime.getMinutes();
+  const nyDay = nyTime.getDay();
+  
+  let nyseStatus: "open" | "closed" | "pre-market" | "after-hours" = "closed";
+  if (nyDay >= 1 && nyDay <= 5) {
+    if ((nyHour === 9 && nyMinute >= 30) || (nyHour > 9 && nyHour < 16)) {
+      nyseStatus = "open";
+    } else if (nyHour >= 4 && (nyHour < 9 || (nyHour === 9 && nyMinute < 30))) {
+      nyseStatus = "pre-market";
+    } else if (nyHour >= 16 && nyHour < 20) {
+      nyseStatus = "after-hours";
+    }
   }
   
+  sessions.push({
+    name: "NYSE",
+    timezone: "America/New_York",
+    openHour: 9,
+    closeHour: 16,
+    status: nyseStatus,
+    icon: nyseStatus === "open" ? Sun : Moon,
+  });
+  
+  // LSE - 8:00 AM - 4:30 PM GMT (adjust for BST)
+  const londonTime = new Date(now.toLocaleString("en-US", { timeZone: "Europe/London" }));
+  const londonHour = londonTime.getHours();
+  const londonMinute = londonTime.getMinutes();
+  const londonDay = londonTime.getDay();
+  
+  let lseStatus: "open" | "closed" | "pre-market" | "after-hours" = "closed";
+  if (londonDay >= 1 && londonDay <= 5) {
+    if (londonHour >= 8 && (londonHour < 16 || (londonHour === 16 && londonMinute < 30))) {
+      lseStatus = "open";
+    } else if (londonHour >= 7 && londonHour < 8) {
+      lseStatus = "pre-market";
+    }
+  }
+  
+  sessions.push({
+    name: "LSE",
+    timezone: "Europe/London",
+    openHour: 8,
+    closeHour: 16,
+    status: lseStatus,
+    icon: lseStatus === "open" ? Sun : Moon,
+  });
+  
   // Crypto is 24/7
-  sessions.push({ name: "Crypto", status: "open", icon: Activity });
+  sessions.push({
+    name: "Crypto",
+    timezone: "UTC",
+    openHour: 0,
+    closeHour: 24,
+    status: "open",
+    icon: TrendingUp,
+  });
   
   return sessions;
 }
@@ -55,7 +105,7 @@ export function MarketStatusIndicator({ compact = false }: { compact?: boolean }
     const interval = setInterval(() => {
       setCurrentTime(new Date());
       setSessions(getMarketSessions());
-    }, 60000); // Update every minute
+    }, 30000); // Update every 30 seconds for accuracy
 
     return () => clearInterval(interval);
   }, []);
@@ -73,7 +123,7 @@ export function MarketStatusIndicator({ compact = false }: { compact?: boolean }
               transition={{ repeat: Infinity, duration: 2 }}
               className={cn(
                 "w-2 h-2 rounded-full",
-                hasOpenMarkets ? "bg-success" : "bg-muted-foreground"
+                hasOpenMarkets ? "bg-trading-positive" : "bg-muted-foreground"
               )}
             />
             <span className="text-xs text-muted-foreground hidden sm:inline">
@@ -89,14 +139,19 @@ export function MarketStatusIndicator({ compact = false }: { compact?: boolean }
                 <span className="text-xs">{session.name}</span>
                 <Badge
                   variant={session.status === "open" ? "default" : "secondary"}
-                  className="text-[10px] capitalize"
+                  className={cn(
+                    "text-[10px] capitalize",
+                    session.status === "open" && "bg-trading-positive/20 text-trading-positive",
+                    session.status === "pre-market" && "bg-warning/20 text-warning",
+                    session.status === "after-hours" && "bg-info/20 text-info"
+                  )}
                 >
                   {session.status}
                 </Badge>
               </div>
             ))}
             <p className="text-[10px] text-muted-foreground pt-2 border-t">
-              UTC: {currentTime.toUTCString().slice(17, 22)}
+              Your time: {currentTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
             </p>
           </div>
         </TooltipContent>
@@ -112,11 +167,13 @@ export function MarketStatusIndicator({ compact = false }: { compact?: boolean }
           <Tooltip key={session.name}>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-1.5 cursor-help">
-                <div
+                <motion.div
+                  animate={session.status === "open" ? { scale: [1, 1.15, 1] } : {}}
+                  transition={{ repeat: Infinity, duration: 2 }}
                   className={cn(
                     "w-2 h-2 rounded-full",
-                    session.status === "open" && "bg-success",
-                    session.status === "closed" && "bg-muted-foreground",
+                    session.status === "open" && "bg-trading-positive",
+                    session.status === "closed" && "bg-muted-foreground/50",
                     session.status === "pre-market" && "bg-warning",
                     session.status === "after-hours" && "bg-info"
                   )}
@@ -125,7 +182,10 @@ export function MarketStatusIndicator({ compact = false }: { compact?: boolean }
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              {session.name}: {session.status}
+              <div className="text-xs space-y-1">
+                <p className="font-medium">{session.name}</p>
+                <p className="capitalize">{session.status}</p>
+              </div>
             </TooltipContent>
           </Tooltip>
         );
