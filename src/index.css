@@ -136,6 +136,43 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
+
+  /* Layout Density Variants */
+  [data-density="compact"] {
+    --spacing-unit: 0.75;
+  }
+  
+  [data-density="comfortable"] {
+    --spacing-unit: 1;
+  }
+  
+  [data-density="spacious"] {
+    --spacing-unit: 1.25;
+  }
+
+  [data-density="compact"] .space-y-6 {
+    @apply space-y-4;
+  }
+
+  [data-density="spacious"] .space-y-6 {
+    @apply space-y-8;
+  }
+
+  [data-density="compact"] .gap-6 {
+    @apply gap-4;
+  }
+
+  [data-density="spacious"] .gap-6 {
+    @apply gap-8;
+  }
+
+  [data-density="compact"] .p-6 {
+    @apply p-4;
+  }
+
+  [data-density="spacious"] .p-6 {
+    @apply p-8;
+  }
 }
 
 @layer utilities {

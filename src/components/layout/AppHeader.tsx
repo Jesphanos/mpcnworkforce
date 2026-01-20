@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { ViewOptionsMenu } from "@/components/layout/ViewOptionsMenu";
 import { MarketStatusIndicator } from "@/components/trading/MarketStatusIndicator";
 import { useCapabilities } from "@/hooks/useCapabilities";
 
@@ -40,6 +41,7 @@ export function AppHeader() {
           </div>
         )}
         
+        <ViewOptionsMenu />
         <NotificationBell />
         
         <Avatar 
