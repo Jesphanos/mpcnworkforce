@@ -1,3 +1,4 @@
+import { useMemo, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, DollarSign, CheckCircle, XCircle, TrendingUp } from "lucide-react";
 import { WorkReport } from "@/hooks/useWorkReports";
@@ -6,12 +7,16 @@ interface ReportsStatsProps {
   reports: WorkReport[];
 }
 
-export function ReportsStats({ reports }: ReportsStatsProps) {
-  const totalHours = reports.reduce((acc, r) => acc + Number(r.hours_worked), 0);
-  const totalEarnings = reports.reduce((acc, r) => acc + Number(r.earnings), 0);
-  const approvedReports = reports.filter((r) => r.status === "approved").length;
-  const pendingReports = reports.filter((r) => r.status === "pending").length;
-  const avgHourlyRate = totalHours > 0 ? totalEarnings / totalHours : 0;
+export const ReportsStats = memo(function ReportsStats({ reports }: ReportsStatsProps) {
+  const { totalHours, totalEarnings, approvedReports, pendingReports, avgHourlyRate } = useMemo(() => {
+    const totalHours = reports.reduce((acc, r) => acc + Number(r.hours_worked), 0);
+    const totalEarnings = reports.reduce((acc, r) => acc + Number(r.earnings), 0);
+    const approvedReports = reports.filter((r) => r.status === "approved").length;
+    const pendingReports = reports.filter((r) => r.status === "pending").length;
+    const avgHourlyRate = totalHours > 0 ? totalEarnings / totalHours : 0;
+    
+    return { totalHours, totalEarnings, approvedReports, pendingReports, avgHourlyRate };
+  }, [reports]);
 
   const stats = [
     {
@@ -70,4 +75,4 @@ export function ReportsStats({ reports }: ReportsStatsProps) {
       ))}
     </div>
   );
-}
+});

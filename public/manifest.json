@@ -1,0 +1,19 @@
+{
+  "name": "MPCN Workforce",
+  "short_name": "MPCN",
+  "description": "Enterprise Work Management Platform for tracking freelancing work, salaries, investments, and team collaboration.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "finance"]
+}

@@ -5,15 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
+import { useActiveSessions } from "@/hooks/useActiveSessions";
 import { 
   Shield, 
   Key, 
   Loader2, 
   Monitor, 
   Smartphone, 
+  Tablet,
   Globe,
   Clock,
   CheckCircle2
@@ -74,17 +77,14 @@ export function SecurityTab() {
     }
   };
 
-  // Mock session data - in production, fetch from auth session
-  const sessions = [
-    {
-      id: "current",
-      device: "Desktop",
-      browser: "Chrome on Windows",
-      location: "Lagos, Nigeria",
-      lastActive: "Now",
-      isCurrent: true,
-    },
-  ];
+  // Fetch real session data from Supabase auth
+  const { sessions, isLoading: sessionsLoading } = useActiveSessions();
+
+  const getDeviceIcon = (device: string) => {
+    if (device === "Mobile") return Smartphone;
+    if (device === "Tablet") return Tablet;
+    return Monitor;
+  };
 
   return (
     <div className="space-y-6">
@@ -180,47 +180,55 @@ export function SecurityTab() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          {sessions.map((session) => (
-            <motion.div
-              key={session.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center justify-between p-4 rounded-lg border"
-            >
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                  {session.device === "Desktop" ? (
-                    <Monitor className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <Smartphone className="h-5 w-5 text-muted-foreground" />
+          {sessionsLoading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+          ) : sessions.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No active sessions found.</p>
+          ) : (
+            sessions.map((session) => {
+              const DeviceIcon = getDeviceIcon(session.device);
+              return (
+                <motion.div
+                  key={session.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center justify-between p-4 rounded-lg border"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                      <DeviceIcon className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{session.browser}</p>
+                        {session.isCurrent && (
+                          <Badge variant="secondary" className="text-xs">Current</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Globe className="h-3 w-3" />
+                          {session.location}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {session.lastActive}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  {!session.isCurrent && (
+                    <Button variant="outline" size="sm" className="text-destructive">
+                      Revoke
+                    </Button>
                   )}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium">{session.browser}</p>
-                    {session.isCurrent && (
-                      <Badge variant="secondary" className="text-xs">Current</Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Globe className="h-3 w-3" />
-                      {session.location}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {session.lastActive}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              {!session.isCurrent && (
-                <Button variant="outline" size="sm" className="text-destructive">
-                  Revoke
-                </Button>
-              )}
-            </motion.div>
-          ))}
+                </motion.div>
+              );
+            })
+          )}
           <p className="text-xs text-muted-foreground pt-2">
             If you see any unfamiliar sessions, revoke them immediately and change your password.
           </p>
