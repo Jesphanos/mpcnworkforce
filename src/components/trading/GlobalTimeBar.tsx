@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import { motion } from "framer-motion";
 import { Clock, Globe, Sun, Moon, Sunrise, Sunset } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -86,22 +86,75 @@ function getDayIcon(hour: number) {
   return Moon;
 }
 
-export function GlobalTimeBar() {
+// Memoized market item to prevent re-renders
+const MarketItem = memo(function MarketItem({ 
+  market, 
+  now 
+}: { 
+  market: MarketSession; 
+  now: Date;
+}) {
+  const status = getMarketStatus(market, now);
+  const time = getTimeInTimezone(market.timezone);
+  
+  return (
+    <Tooltip key={market.name}>
+      <TooltipTrigger asChild>
+        <div className="flex items-center gap-1.5 shrink-0 cursor-help">
+          <motion.div
+            animate={status === "open" ? { scale: [1, 1.2, 1] } : {}}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className={cn(
+              "w-1.5 h-1.5 rounded-full",
+              status === "open" && "bg-trading-positive",
+              status === "pre-market" && "bg-warning",
+              status === "after-hours" && "bg-info",
+              status === "closed" && "bg-muted-foreground/50"
+            )}
+          />
+          <span className={cn("text-xs font-medium", market.color)}>
+            {market.name}
+          </span>
+          <span className="text-xs font-mono text-muted-foreground">
+            {time}
+          </span>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">
+        <div className="text-xs space-y-1">
+          <p className="font-medium">{market.city} Stock Exchange</p>
+          <p>Hours: {market.openHour}:00 - {market.closeHour}:00 local</p>
+          <Badge 
+            variant={status === "open" ? "default" : "secondary"} 
+            className="capitalize text-[10px]"
+          >
+            {status}
+          </Badge>
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
+});
+
+export const GlobalTimeBar = memo(function GlobalTimeBar() {
   const [now, setNow] = useState(new Date());
-  const [userTimezone] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone);
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 1000);
+    // Update every 5 seconds instead of 1 second to reduce re-renders
+    const interval = setInterval(() => setNow(new Date()), 5000);
     return () => clearInterval(interval);
   }, []);
 
   const utcHour = now.getUTCHours();
   const localHour = now.getHours();
-  const DayIcon = getDayIcon(localHour);
-  const activeForexSessions = getActiveForexSessions(utcHour);
+  const DayIcon = useMemo(() => getDayIcon(localHour), [localHour]);
+  const activeForexSessions = useMemo(() => getActiveForexSessions(utcHour), [utcHour]);
   const isWeekend = now.getDay() === 0 || now.getDay() === 6;
 
-  const openMarkets = MAJOR_MARKETS.filter(m => getMarketStatus(m, now) === "open");
+  const openMarkets = useMemo(
+    () => MAJOR_MARKETS.filter(m => getMarketStatus(m, now) === "open"),
+    [now]
+  );
 
   return (
     <div className="w-full bg-trading-bg/95 backdrop-blur-sm border-b border-border/50 py-2 px-4">
@@ -142,50 +195,11 @@ export function GlobalTimeBar() {
         {/* Separator */}
         <div className="h-6 w-px bg-border hidden lg:block" />
 
-        {/* Major Market Clocks */}
+        {/* Major Market Clocks - Now using memoized components */}
         <div className="flex items-center gap-3 overflow-x-auto py-1 hidden lg:flex">
-          {MAJOR_MARKETS.slice(0, 5).map((market) => {
-            const status = getMarketStatus(market, now);
-            const time = getTimeInTimezone(market.timezone);
-            
-            return (
-              <Tooltip key={market.name}>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1.5 shrink-0 cursor-help">
-                    <motion.div
-                      animate={status === "open" ? { scale: [1, 1.2, 1] } : {}}
-                      transition={{ repeat: Infinity, duration: 2 }}
-                      className={cn(
-                        "w-1.5 h-1.5 rounded-full",
-                        status === "open" && "bg-trading-positive",
-                        status === "pre-market" && "bg-warning",
-                        status === "after-hours" && "bg-info",
-                        status === "closed" && "bg-muted-foreground/50"
-                      )}
-                    />
-                    <span className={cn("text-xs font-medium", market.color)}>
-                      {market.name}
-                    </span>
-                    <span className="text-xs font-mono text-muted-foreground">
-                      {time}
-                    </span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <div className="text-xs space-y-1">
-                    <p className="font-medium">{market.city} Stock Exchange</p>
-                    <p>Hours: {market.openHour}:00 - {market.closeHour}:00 local</p>
-                    <Badge 
-                      variant={status === "open" ? "default" : "secondary"} 
-                      className="capitalize text-[10px]"
-                    >
-                      {status}
-                    </Badge>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            );
-          })}
+          {MAJOR_MARKETS.slice(0, 5).map((market) => (
+            <MarketItem key={market.name} market={market} now={now} />
+          ))}
         </div>
 
         {/* Separator */}
@@ -226,4 +240,4 @@ export function GlobalTimeBar() {
       </div>
     </div>
   );
-}
+});
