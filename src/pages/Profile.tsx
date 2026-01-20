@@ -27,6 +27,7 @@ import { SkillProgressionChart } from "@/components/profile/SkillProgressionChar
 import { InternationalSettingsSection } from "@/components/profile/InternationalSettingsSection";
 import { GovernanceCharter } from "@/components/settings/GovernanceCharter";
 import { BecomeInvestorCard } from "@/components/profile/BecomeInvestorCard";
+import { BecomeTraderCard } from "@/components/profile/BecomeTraderCard";
 import { AvatarUpload } from "@/components/profile/AvatarUpload";
 import { SecurityTab } from "@/components/profile/SecurityTab";
 import { Loader2, User, Mail, Shield, Trash2, Copy, CheckCircle, Heart, ChevronDown, Lock } from "lucide-react";
@@ -290,6 +291,9 @@ export default function Profile() {
 
         {/* Become Investor Card */}
         <BecomeInvestorCard />
+
+        {/* Become Trader Card */}
+        <BecomeTraderCard />
 
         {/* Governance Charter - Collapsible */}
         <Collapsible>

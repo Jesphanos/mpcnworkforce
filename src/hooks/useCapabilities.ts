@@ -77,6 +77,13 @@ export function useCapabilities() {
   };
 
   /**
+   * Check if user is a trader (based on role)
+   */
+  const isTrader = (): boolean => {
+    return role === "trader";
+  };
+
+  /**
    * Get the current user's role
    */
   const currentRole = role;
@@ -90,5 +97,6 @@ export function useCapabilities() {
     isOverseer,
     isTeamLead,
     isInvestor,
+    isTrader,
   };
 }
