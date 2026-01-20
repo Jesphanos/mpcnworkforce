@@ -8,6 +8,7 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
+  CommandShortcut,
 } from "@/components/ui/command";
 import {
   LayoutDashboard,
@@ -26,9 +27,15 @@ import {
   Search,
   Plus,
   Bell,
+  BookOpen,
+  Target,
+  BarChart3,
+  Keyboard,
+  AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCapabilities } from "@/hooks/useCapabilities";
+import { toast } from "sonner";
 
 interface CommandPaletteProps {
   open?: boolean;
@@ -39,23 +46,58 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { signOut, role, profile } = useAuth();
-  const { isAdmin, isOverseer, isTeamLead, isInvestor, can } = useCapabilities();
+  const { isAdmin, isOverseer, isTeamLead, isInvestor, isTrader, can } = useCapabilities();
 
   const isOpen = controlledOpen ?? open;
   const setIsOpen = onOpenChange ?? setOpen;
 
-  // Global keyboard shortcut
+  // Global keyboard shortcuts
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
+      // Command palette: Cmd/Ctrl + K
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setIsOpen(!isOpen);
+      }
+
+      // Trading shortcuts (only when not in input/textarea)
+      const target = e.target as HTMLElement;
+      const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA";
+      
+      if (!isInput && isTrader()) {
+        // T: Open trading page
+        if (e.key === "t" && !e.metaKey && !e.ctrlKey) {
+          navigate("/trading");
+          toast.info("Navigated to Trading Terminal");
+        }
+        // J: Open trade journal
+        if (e.key === "j" && !e.metaKey && !e.ctrlKey) {
+          navigate("/trading?tab=journal");
+          toast.info("Opened Trade Journal");
+        }
+        // N: New trade
+        if (e.key === "n" && !e.metaKey && !e.ctrlKey) {
+          navigate("/trading?tab=execute");
+          toast.info("Ready to log new trade");
+        }
+      }
+
+      // General shortcuts
+      if (!isInput) {
+        // D: Dashboard
+        if (e.key === "d" && !e.metaKey && !e.ctrlKey) {
+          navigate("/dashboard");
+        }
+        // P: Profile
+        if (e.key === "p" && !e.metaKey && !e.ctrlKey) {
+          navigate("/profile");
+        }
       }
     };
 
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, [isOpen, setIsOpen]);
+  }, [isOpen, setIsOpen, navigate, isTrader]);
 
   const runCommand = useCallback((command: () => void) => {
     setIsOpen(false);
@@ -63,11 +105,19 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
   }, [setIsOpen]);
 
   const navigationItems = [
-    { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard", always: true },
-    { label: "My Profile", icon: User, path: "/profile", always: true },
+    { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard", always: true, shortcut: "D" },
+    { label: "My Profile", icon: User, path: "/profile", always: true, shortcut: "P" },
     { label: "Reports", icon: FileText, path: "/reports", show: role === "employee" || isTeamLead() || can("canApproveReports") },
-    { label: "Trading", icon: CandlestickChart, path: "/trading", always: true },
+    { label: "Trading Terminal", icon: CandlestickChart, path: "/trading", show: isTrader() || isOverseer(), shortcut: "T" },
     { label: "Activity History", icon: Activity, path: "/activity", always: true },
+  ];
+
+  const tradingItems = [
+    { label: "Log New Trade", icon: Plus, action: () => navigate("/trading?tab=execute"), show: isTrader() || isOverseer(), shortcut: "N" },
+    { label: "Trade Journal", icon: BookOpen, action: () => navigate("/trading?tab=journal"), show: isTrader() || isOverseer(), shortcut: "J" },
+    { label: "Analytics", icon: BarChart3, action: () => navigate("/trading?tab=analytics"), show: isTrader() || isOverseer() },
+    { label: "View Open Positions", icon: Target, action: () => { navigate("/trading"); toast.info("Viewing open positions"); }, show: isTrader() || isOverseer() },
+    { label: "Check Risk Limits", icon: AlertTriangle, action: () => { navigate("/trading"); toast.info("Risk control panel visible"); }, show: isTrader() || isOverseer() },
   ];
 
   const adminItems = [
@@ -81,6 +131,7 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
   const quickActions = [
     { label: "Submit New Report", icon: Plus, action: () => navigate("/reports?action=new"), show: role === "employee" || isTeamLead() },
     { label: "View Notifications", icon: Bell, action: () => navigate("/activity"), always: true },
+    { label: "Keyboard Shortcuts", icon: Keyboard, action: () => toast.info("Shortcuts: T=Trading, J=Journal, N=New Trade, D=Dashboard, P=Profile"), always: true },
   ];
 
   return (
@@ -99,9 +150,31 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
               >
                 <item.icon className="mr-2 h-4 w-4" />
                 {item.label}
+                {item.shortcut && <CommandShortcut>{item.shortcut}</CommandShortcut>}
               </CommandItem>
             ))}
         </CommandGroup>
+
+        {/* Trading Quick Actions */}
+        {tradingItems.some(item => item.show) && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="Trading">
+              {tradingItems
+                .filter(item => item.show)
+                .map(item => (
+                  <CommandItem
+                    key={item.label}
+                    onSelect={() => runCommand(item.action)}
+                  >
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {item.label}
+                    {item.shortcut && <CommandShortcut>{item.shortcut}</CommandShortcut>}
+                  </CommandItem>
+                ))}
+            </CommandGroup>
+          </>
+        )}
 
         {adminItems.some(item => item.show) && (
           <>
