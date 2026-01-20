@@ -25,6 +25,7 @@ import Department from "./pages/Department";
 import NotFound from "./pages/NotFound";
 import AccessDenied from "./pages/AccessDenied";
 import WorkerProfile from "./pages/WorkerProfile";
+import Learn from "./pages/Learn";
 
 const queryClient = new QueryClient();
 
@@ -157,6 +158,14 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={["team_lead", "report_admin", "user_admin", "general_overseer"]}>
                     <WorkerProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/learn"
+                element={
+                  <ProtectedRoute>
+                    <Learn />
                   </ProtectedRoute>
                 }
               />
