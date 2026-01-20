@@ -3,8 +3,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { RealtimeNotificationsProvider } from "@/components/providers/RealtimeNotificationsProvider";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
@@ -19,6 +21,7 @@ import TeamDashboard from "./pages/TeamDashboard";
 import ActivityHistory from "./pages/ActivityHistory";
 import Settings from "./pages/Settings";
 import Governance from "./pages/Governance";
+import Department from "./pages/Department";
 import NotFound from "./pages/NotFound";
 import AccessDenied from "./pages/AccessDenied";
 import WorkerProfile from "./pages/WorkerProfile";
@@ -27,12 +30,14 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <RealtimeNotificationsProvider>
+              <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/auth" element={<Auth />} />
             <Route
@@ -131,29 +136,39 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/governance"
-              element={
-                <ProtectedRoute allowedRoles={["report_admin", "user_admin", "general_overseer"]}>
-                  <Governance />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/worker/:userId"
-              element={
-                <ProtectedRoute allowedRoles={["team_lead", "report_admin", "user_admin", "general_overseer"]}>
-                  <WorkerProfile />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/access-denied" element={<AccessDenied />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              <Route
+                path="/governance"
+                element={
+                  <ProtectedRoute allowedRoles={["report_admin", "user_admin", "general_overseer"]}>
+                    <Governance />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/department"
+                element={
+                  <ProtectedRoute allowedRoles={["department_head", "user_admin", "general_overseer"]}>
+                    <Department />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/worker/:userId"
+                element={
+                  <ProtectedRoute allowedRoles={["team_lead", "report_admin", "user_admin", "general_overseer"]}>
+                    <WorkerProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/access-denied" element={<AccessDenied />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </RealtimeNotificationsProvider>
         </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
