@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 import { 
   ArrowLeft, 
   Clock, 
@@ -15,21 +16,24 @@ import {
   Shield,
   Quote,
   Lightbulb,
+  Play,
+  Loader2,
 } from "lucide-react";
 import { type LearningModule, type ModuleContent } from "@/config/mpcnLearnConfig";
+import { useLearningProgress } from "@/hooks/useLearningProgress";
 import { motion } from "framer-motion";
 
 interface ModuleViewerProps {
   module: LearningModule;
   onBack: () => void;
-  onComplete: () => void;
+  onComplete?: () => void;
 }
 
 const variantStyles = {
-  info: { bg: "bg-blue-50 dark:bg-blue-950/30", border: "border-blue-200 dark:border-blue-800", icon: Info, iconColor: "text-blue-600" },
-  warning: { bg: "bg-amber-50 dark:bg-amber-950/30", border: "border-amber-200 dark:border-amber-800", icon: AlertTriangle, iconColor: "text-amber-600" },
-  faith: { bg: "bg-rose-50 dark:bg-rose-950/30", border: "border-rose-200 dark:border-rose-800", icon: Heart, iconColor: "text-rose-600" },
-  governance: { bg: "bg-purple-50 dark:bg-purple-950/30", border: "border-purple-200 dark:border-purple-800", icon: Shield, iconColor: "text-purple-600" },
+  info: { bg: "bg-info/10", border: "border-info/20", icon: Info, iconColor: "text-info" },
+  warning: { bg: "bg-warning/10", border: "border-warning/20", icon: AlertTriangle, iconColor: "text-warning" },
+  faith: { bg: "bg-destructive/5", border: "border-destructive/20", icon: Heart, iconColor: "text-destructive" },
+  governance: { bg: "bg-primary/5", border: "border-primary/20", icon: Shield, iconColor: "text-primary" },
 };
 
 function ContentBlock({ content }: { content: ModuleContent }) {
@@ -58,8 +62,8 @@ function ContentBlock({ content }: { content: ModuleContent }) {
     
     case "scripture":
       return (
-        <div className="relative pl-6 py-4 border-l-4 border-rose-300 dark:border-rose-700 bg-rose-50/50 dark:bg-rose-950/20 rounded-r-lg">
-          <Quote className="absolute left-2 top-4 h-4 w-4 text-rose-400" />
+        <div className="relative pl-6 py-4 border-l-4 border-destructive/30 bg-destructive/5 rounded-r-lg">
+          <Quote className="absolute left-2 top-4 h-4 w-4 text-destructive/50" />
           <p className="italic text-foreground">{content.content}</p>
         </div>
       );
@@ -68,7 +72,7 @@ function ContentBlock({ content }: { content: ModuleContent }) {
       return (
         <div className="p-4 rounded-lg bg-muted/50 border border-muted">
           <div className="flex items-start gap-3">
-            <Lightbulb className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+            <Lightbulb className="h-5 w-5 text-warning mt-0.5 shrink-0" />
             <p className="text-muted-foreground italic">{content.content}</p>
           </div>
         </div>
@@ -93,6 +97,38 @@ function ContentBlock({ content }: { content: ModuleContent }) {
 }
 
 export function ModuleViewer({ module, onBack, onComplete }: ModuleViewerProps) {
+  const { 
+    getModuleProgress, 
+    startModule, 
+    completeModule, 
+    updateProgress,
+    isLoading 
+  } = useLearningProgress();
+
+  const moduleProgress = getModuleProgress(module.id);
+  const isStarted = !!moduleProgress;
+  const isCompleted = moduleProgress?.completed_at !== null;
+  const progressPercent = moduleProgress?.progress_percentage || 0;
+
+  const handleStart = async () => {
+    await startModule.mutateAsync({ 
+      moduleId: module.id, 
+      moduleGroup: module.groupId 
+    });
+  };
+
+  const handleComplete = async () => {
+    await completeModule.mutateAsync({ moduleId: module.id });
+    onComplete?.();
+  };
+
+  const handleUpdateProgress = async (percent: number) => {
+    await updateProgress.mutateAsync({ 
+      moduleId: module.id, 
+      progress: percent 
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -106,18 +142,69 @@ export function ModuleViewer({ module, onBack, onComplete }: ModuleViewerProps) 
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="outline" className="font-mono">
                 {module.code}
               </Badge>
               {module.isOptional && (
                 <Badge variant="secondary">Optional</Badge>
               )}
+              {isCompleted && (
+                <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  Completed
+                </Badge>
+              )}
+              {isStarted && !isCompleted && (
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                  <Play className="h-3 w-3 mr-1" />
+                  In Progress
+                </Badge>
+              )}
             </div>
             <h1 className="text-2xl font-bold mt-1">{module.title}</h1>
           </div>
         </div>
       </motion.div>
+
+      {/* Progress Bar (if started) */}
+      {isStarted && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.05 }}
+        >
+          <Card className="border-primary/20">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Your Progress</span>
+                <span className="text-sm text-muted-foreground">{progressPercent}%</span>
+              </div>
+              <Progress value={progressPercent} className="h-2" />
+              {!isCompleted && progressPercent > 0 && progressPercent < 100 && (
+                <div className="flex gap-2 mt-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleUpdateProgress(Math.min(progressPercent + 25, 100))}
+                    disabled={updateProgress.isPending}
+                  >
+                    +25%
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleUpdateProgress(100)}
+                    disabled={updateProgress.isPending}
+                  >
+                    Mark 100%
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Module Info Card */}
       <motion.div
@@ -191,10 +278,10 @@ export function ModuleViewer({ module, onBack, onComplete }: ModuleViewerProps) 
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.4 }}
         >
-          <Card className="border-rose-200 dark:border-rose-800">
+          <Card className="border-destructive/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <Heart className="h-5 w-5 text-rose-500" />
+                <Heart className="h-5 w-5 text-destructive" />
                 Scripture References
               </CardTitle>
               <CardDescription>
@@ -207,7 +294,7 @@ export function ModuleViewer({ module, onBack, onComplete }: ModuleViewerProps) 
                   <div key={index}>
                     {index > 0 && <Separator className="my-4" />}
                     <div className="space-y-2">
-                      <p className="font-medium text-rose-600 dark:text-rose-400">
+                      <p className="font-medium text-destructive">
                         {scripture.reference}
                       </p>
                       <p className="italic text-foreground">"{scripture.text}"</p>
@@ -236,10 +323,31 @@ export function ModuleViewer({ module, onBack, onComplete }: ModuleViewerProps) 
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Modules
         </Button>
-        <Button onClick={onComplete}>
-          <CheckCircle2 className="h-4 w-4 mr-2" />
-          Mark as Complete
-        </Button>
+        
+        {!isStarted ? (
+          <Button 
+            onClick={handleStart}
+            disabled={startModule.isPending}
+          >
+            {startModule.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            <Play className="h-4 w-4 mr-2" />
+            Start Module
+          </Button>
+        ) : isCompleted ? (
+          <Button variant="outline" disabled>
+            <CheckCircle2 className="h-4 w-4 mr-2" />
+            Completed
+          </Button>
+        ) : (
+          <Button 
+            onClick={handleComplete}
+            disabled={completeModule.isPending}
+          >
+            {completeModule.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            <CheckCircle2 className="h-4 w-4 mr-2" />
+            Mark as Complete
+          </Button>
+        )}
       </motion.div>
     </div>
   );

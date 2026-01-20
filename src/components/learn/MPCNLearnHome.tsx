@@ -16,8 +16,11 @@ import {
   Clock,
   Sparkles,
   Download,
+  CheckCircle2,
+  Play,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLearningProgress } from "@/hooks/useLearningProgress";
 import { 
   MODULE_GROUPS, 
   MPCN_LEARN_CHARTER,
@@ -39,15 +42,16 @@ const iconMap = {
 } as const;
 
 const colorMap = {
-  blue: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  purple: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
-  orange: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
-  green: "bg-green-500/10 text-green-600 dark:text-green-400",
-  rose: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+  blue: "bg-primary/10 text-primary",
+  purple: "bg-secondary/20 text-secondary-foreground",
+  orange: "bg-warning/10 text-warning",
+  green: "bg-accent/20 text-accent-foreground",
+  rose: "bg-destructive/10 text-destructive",
 } as const;
 
 export function MPCNLearnHome() {
   const { role } = useAuth();
+  const { progress, certificates, getProgressStats, getModuleProgress } = useLearningProgress();
   const [selectedModule, setSelectedModule] = useState<LearningModule | null>(null);
   const [showCompendium, setShowCompendium] = useState(false);
   
@@ -55,20 +59,16 @@ export function MPCNLearnHome() {
   const availableModules = getModulesForRole(role as any);
   const groupedModules = getModulesByGroup(availableModules);
   
-  // Calculate progress (mock for now - would be stored in DB)
-  const completedCount = 0; // Would come from user progress data
-  const totalModules = availableModules.length;
-  const progressPercent = totalModules > 0 ? (completedCount / totalModules) * 100 : 0;
+  // Calculate progress from actual data
+  const stats = getProgressStats();
+  const progressPercent = stats.completionRate;
 
   if (selectedModule) {
     return (
       <ModuleViewer 
         module={selectedModule} 
         onBack={() => setSelectedModule(null)}
-        onComplete={() => {
-          // Would save completion to database
-          setSelectedModule(null);
-        }}
+        onComplete={() => setSelectedModule(null)}
       />
     );
   }
@@ -98,7 +98,7 @@ export function MPCNLearnHome() {
               {MPCN_LEARN_CHARTER.mission}
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Heart className="h-4 w-4 text-rose-500" />
+              <Heart className="h-4 w-4 text-destructive" />
               <span className="italic">"Anchored in faith. Governed with integrity. Built for growth."</span>
             </div>
           </CardContent>
@@ -113,30 +113,39 @@ export function MPCNLearnHome() {
       >
         <Card>
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Award className="h-5 w-5 text-primary" />
                   Your Learning Journey
                 </CardTitle>
                 <CardDescription>
-                  {completedCount} of {totalModules} modules available for your role
+                  {stats.completedModules} of {stats.totalModules} modules completed
+                  {stats.inProgressModules > 0 && ` • ${stats.inProgressModules} in progress`}
                 </CardDescription>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setShowCompendium(true)}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Wealth Compendium
-              </Button>
+              <div className="flex gap-2">
+                {certificates.length > 0 && (
+                  <Badge variant="secondary" className="gap-1">
+                    <Award className="h-3 w-3" />
+                    {certificates.length} Certificate{certificates.length > 1 ? "s" : ""}
+                  </Badge>
+                )}
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowCompendium(true)}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Wealth Compendium
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Progress</span>
+                <span>Overall Progress</span>
                 <span className="text-muted-foreground">{Math.round(progressPercent)}%</span>
               </div>
               <Progress value={progressPercent} className="h-2" />
@@ -155,6 +164,12 @@ export function MPCNLearnHome() {
           const Icon = iconMap[group.icon as keyof typeof iconMap] || BookOpen;
           const colorClass = colorMap[group.color as keyof typeof colorMap] || colorMap.blue;
           
+          // Calculate group progress
+          const groupCompleted = modules.filter(m => {
+            const mp = getModuleProgress(m.id);
+            return mp?.completed_at !== null;
+          }).length;
+          
           return (
             <motion.div
               key={groupId}
@@ -164,58 +179,82 @@ export function MPCNLearnHome() {
             >
               <Card>
                 <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${colorClass}`}>
-                      <Icon className="h-5 w-5" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${colorClass}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">{group.title}</CardTitle>
+                        <CardDescription>{group.description}</CardDescription>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{group.title}</CardTitle>
-                      <CardDescription>{group.description}</CardDescription>
-                    </div>
+                    <Badge variant="outline">
+                      {groupCompleted}/{modules.length}
+                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="max-h-[400px]">
                     <div className="space-y-2">
-                      {modules.map((module, index) => (
-                        <div key={module.id}>
-                          {index > 0 && <Separator className="my-2" />}
-                          <div 
-                            className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                            onClick={() => setSelectedModule(module)}
-                          >
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="text-xs font-mono">
-                                  {module.code}
-                                </Badge>
-                                <span className="font-medium">{module.title}</span>
-                                {module.isOptional && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    Optional
+                      {modules.map((module, index) => {
+                        const moduleProgress = getModuleProgress(module.id);
+                        const isStarted = !!moduleProgress;
+                        const isCompleted = moduleProgress?.completed_at !== null;
+                        const progressPct = moduleProgress?.progress_percentage || 0;
+                        
+                        return (
+                          <div key={module.id}>
+                            {index > 0 && <Separator className="my-2" />}
+                            <div 
+                              className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                              onClick={() => setSelectedModule(module)}
+                            >
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Badge variant="outline" className="text-xs font-mono">
+                                    {module.code}
                                   </Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {module.objective}
-                              </p>
-                              <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {module.estimatedMinutes} min
-                                </span>
-                                {module.scriptures && module.scriptures.length > 0 && (
+                                  <span className="font-medium">{module.title}</span>
+                                  {module.isOptional && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      Optional
+                                    </Badge>
+                                  )}
+                                  {isCompleted && (
+                                    <Badge className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
+                                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                                      Done
+                                    </Badge>
+                                  )}
+                                  {isStarted && !isCompleted && (
+                                    <Badge className="text-xs bg-primary/10 text-primary border-primary/20">
+                                      <Play className="h-3 w-3 mr-1" />
+                                      {progressPct}%
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {module.objective}
+                                </p>
+                                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                                   <span className="flex items-center gap-1">
-                                    <Heart className="h-3 w-3 text-rose-500" />
-                                    {module.scriptures.length} scriptures
+                                    <Clock className="h-3 w-3" />
+                                    {module.estimatedMinutes} min
                                   </span>
-                                )}
+                                  {module.scriptures && module.scriptures.length > 0 && (
+                                    <span className="flex items-center gap-1">
+                                      <Heart className="h-3 w-3 text-destructive" />
+                                      {module.scriptures.length} scriptures
+                                    </span>
+                                  )}
+                                </div>
                               </div>
+                              <ChevronRight className="h-5 w-5 text-muted-foreground" />
                             </div>
-                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </ScrollArea>
                 </CardContent>
