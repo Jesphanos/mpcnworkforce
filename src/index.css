@@ -247,3 +247,41 @@
     animation: number-slide 0.3s ease-out;
   }
 }
+
+/* Reduce Motion */
+.reduce-motion,
+.reduce-motion * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  --border: 220 20% 30%;
+  --ring: 220 100% 50%;
+}
+
+.high-contrast.dark {
+  --border: 220 20% 70%;
+  --foreground: 0 0% 100%;
+  --muted-foreground: 0 0% 85%;
+}
+
+/* Line Spacing */
+[data-line-spacing="relaxed"] {
+  line-height: 1.75;
+}
+
+[data-line-spacing="loose"] {
+  line-height: 2;
+}
+
+/* Auth Page Professional Styling */
+.auth-gradient {
+  background: linear-gradient(135deg, hsl(217 91% 60% / 0.1) 0%, hsl(199 89% 48% / 0.05) 50%, hsl(217 91% 60% / 0.1) 100%);
+}
+
+.auth-card-glow {
+  box-shadow: 0 0 60px -15px hsl(217 91% 60% / 0.2);
+}
