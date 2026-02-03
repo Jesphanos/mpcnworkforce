@@ -1,4 +1,18 @@
-import { Eye, Sun, Moon, Monitor, Type, Layout, Minus, Plus } from "lucide-react";
+import { 
+  Eye, 
+  Sun, 
+  Moon, 
+  Monitor, 
+  Type, 
+  Layout, 
+  Minus, 
+  Plus,
+  PanelLeftClose,
+  PanelLeft,
+  Sparkles,
+  AlignJustify,
+  Contrast,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,24 +27,53 @@ import {
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const FONT_SIZE_KEY = "mpcn-font-size";
 const LAYOUT_DENSITY_KEY = "mpcn-layout-density";
+const REDUCE_MOTION_KEY = "mpcn-reduce-motion";
+const HIGH_CONTRAST_KEY = "mpcn-high-contrast";
+const LINE_SPACING_KEY = "mpcn-line-spacing";
 
 export function ViewOptionsMenu() {
   const { theme, setTheme } = useTheme();
+  const { state: sidebarState, toggleSidebar } = useSidebar();
+  
   const [fontSize, setFontSize] = useState(() => {
     if (typeof window !== "undefined") {
       return parseInt(localStorage.getItem(FONT_SIZE_KEY) || "100", 10);
     }
     return 100;
   });
+  
   const [layoutDensity, setLayoutDensity] = useState<"comfortable" | "compact" | "spacious">(() => {
     if (typeof window !== "undefined") {
       return (localStorage.getItem(LAYOUT_DENSITY_KEY) as "comfortable" | "compact" | "spacious") || "comfortable";
     }
     return "comfortable";
+  });
+
+  const [reduceMotion, setReduceMotion] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(REDUCE_MOTION_KEY) === "true";
+    }
+    return false;
+  });
+
+  const [highContrast, setHighContrast] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(HIGH_CONTRAST_KEY) === "true";
+    }
+    return false;
+  });
+
+  const [lineSpacing, setLineSpacing] = useState<"normal" | "relaxed" | "loose">(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem(LINE_SPACING_KEY) as "normal" | "relaxed" | "loose") || "normal";
+    }
+    return "normal";
   });
 
   useEffect(() => {
@@ -43,8 +86,40 @@ export function ViewOptionsMenu() {
     localStorage.setItem(LAYOUT_DENSITY_KEY, layoutDensity);
   }, [layoutDensity]);
 
+  useEffect(() => {
+    if (reduceMotion) {
+      document.documentElement.classList.add("reduce-motion");
+    } else {
+      document.documentElement.classList.remove("reduce-motion");
+    }
+    localStorage.setItem(REDUCE_MOTION_KEY, reduceMotion.toString());
+  }, [reduceMotion]);
+
+  useEffect(() => {
+    if (highContrast) {
+      document.documentElement.classList.add("high-contrast");
+    } else {
+      document.documentElement.classList.remove("high-contrast");
+    }
+    localStorage.setItem(HIGH_CONTRAST_KEY, highContrast.toString());
+  }, [highContrast]);
+
+  useEffect(() => {
+    document.documentElement.dataset.lineSpacing = lineSpacing;
+    localStorage.setItem(LINE_SPACING_KEY, lineSpacing);
+  }, [lineSpacing]);
+
   const handleFontSizeChange = (delta: number) => {
     setFontSize((prev) => Math.max(75, Math.min(150, prev + delta)));
+  };
+
+  const resetAll = () => {
+    setFontSize(100);
+    setLayoutDensity("comfortable");
+    setTheme("system");
+    setReduceMotion(false);
+    setHighContrast(false);
+    setLineSpacing("normal");
   };
 
   return (
@@ -59,8 +134,20 @@ export function ViewOptionsMenu() {
           <Eye className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel>View Options</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+
+        {/* Sidebar Toggle */}
+        <DropdownMenuItem onClick={toggleSidebar}>
+          {sidebarState === "expanded" ? (
+            <PanelLeftClose className="mr-2 h-4 w-4" />
+          ) : (
+            <PanelLeft className="mr-2 h-4 w-4" />
+          )}
+          <span>{sidebarState === "expanded" ? "Collapse Sidebar" : "Expand Sidebar"}</span>
+        </DropdownMenuItem>
+
         <DropdownMenuSeparator />
 
         {/* Theme Selection */}
@@ -169,15 +256,63 @@ export function ViewOptionsMenu() {
           </DropdownMenuSubContent>
         </DropdownMenuSub>
 
+        {/* Line Spacing */}
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <AlignJustify className="mr-2 h-4 w-4" />
+            <span>Line Spacing</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem onClick={() => setLineSpacing("normal")}>
+              Normal
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setLineSpacing("relaxed")}>
+              Relaxed
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setLineSpacing("loose")}>
+              Loose
+            </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+
+        <DropdownMenuSeparator />
+
+        {/* Accessibility Options */}
+        <DropdownMenuLabel className="text-xs text-muted-foreground">Accessibility</DropdownMenuLabel>
+
+        <div className="px-2 py-1.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">Reduce Motion</span>
+            </div>
+            <Switch
+              checked={reduceMotion}
+              onCheckedChange={setReduceMotion}
+              className="scale-75"
+            />
+          </div>
+        </div>
+
+        <div className="px-2 py-1.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Contrast className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">High Contrast</span>
+            </div>
+            <Switch
+              checked={highContrast}
+              onCheckedChange={setHighContrast}
+              className="scale-75"
+            />
+          </div>
+        </div>
+
         <DropdownMenuSeparator />
 
         {/* Reset All */}
         <DropdownMenuItem
-          onClick={() => {
-            setFontSize(100);
-            setLayoutDensity("comfortable");
-            setTheme("system");
-          }}
+          onClick={resetAll}
           className="text-muted-foreground"
         >
           Reset to defaults

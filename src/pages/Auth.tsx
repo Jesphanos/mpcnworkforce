@@ -239,25 +239,25 @@ export default function Auth() {
   const roleContext = selectedLoginRole ? ROLE_CONTEXT[selectedLoginRole] : null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 auth-gradient">
       <div className="w-full max-w-md animate-fade-in">
         <div className="flex flex-col items-center mb-8">
-          <div className="h-16 w-16 rounded-xl gradient-primary flex items-center justify-center mb-4">
-            <Building2 className="h-8 w-8 text-primary-foreground" />
+          <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center mb-4 shadow-lg shadow-primary/25">
+            <Building2 className="h-10 w-10 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">MPCN Workforce Hub</h1>
-          <p className="text-muted-foreground">Role-Based Access Control</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">MPCN Workforce Hub</h1>
+          <p className="text-muted-foreground mt-1">Secure Role-Based Access</p>
         </div>
 
-        <Card className="border-border shadow-lg">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">
+        <Card className="border-border/50 shadow-xl auth-card-glow bg-card/95 backdrop-blur-sm">
+          <CardHeader className="space-y-1 pb-4">
+            <CardTitle className="text-xl font-semibold">
               {mode === "login" && showRoleSelection && "Select Your Role"}
               {mode === "login" && !showRoleSelection && (roleContext?.title || "Welcome back")}
               {mode === "signup" && "Create an account"}
               {mode === "forgot" && "Reset password"}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground">
               {mode === "login" && showRoleSelection && "Choose the role that matches your MPCN position"}
               {mode === "login" && !showRoleSelection && (roleContext?.description || "Enter your credentials")}
               {mode === "signup" && "Fill in your details to get started"}
@@ -314,7 +314,7 @@ export default function Auth() {
                         />
                         <Button 
                           type="button" 
-                          className="w-full"
+                          className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md shadow-primary/20"
                           disabled={!selectedLoginRole}
                           onClick={() => setShowRoleSelection(false)}
                         >
@@ -394,7 +394,11 @@ export default function Auth() {
                                   required
                                 />
                               </div>
-                              <Button type="submit" className="w-full" disabled={isLoading}>
+                              <Button 
+                                type="submit" 
+                                className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md shadow-primary/20" 
+                                disabled={isLoading}
+                              >
                                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Sign In
                               </Button>
@@ -610,7 +614,11 @@ export default function Auth() {
                         )}
                       </ul>
                     </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md shadow-primary/20" 
+                      disabled={isLoading}
+                    >
                       {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Create Account
                     </Button>

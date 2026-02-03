@@ -1,8 +1,23 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 import { Loader2 } from "lucide-react";
 
 type AppRole = "employee" | "trader" | "team_lead" | "department_head" | "report_admin" | "finance_hr_admin" | "investment_admin" | "user_admin" | "general_overseer";
+
+// Map pathname to route name for feature access check
+const ROUTE_MAP: Record<string, string> = {
+  "/trading": "trading",
+  "/investments": "investments",
+  "/reports": "reports",
+  "/tasks": "tasks",
+  "/team": "team",
+  "/finance-hr": "finance_hr",
+  "/governance": "governance",
+  "/users": "users",
+  "/activity": "activity",
+  "/learn": "learn",
+};
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,10 +26,11 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRoles, allowInvestors }: ProtectedRouteProps) {
-  const { user, profile, loading, hasRole } = useAuth();
+  const { user, profile, loading, hasRole, role } = useAuth();
+  const { isRouteDisabled, isLoading: featureLoading } = useFeatureAccess();
   const location = useLocation();
 
-  if (loading) {
+  if (loading || featureLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -24,6 +40,14 @@ export function ProtectedRoute({ children, allowedRoles, allowInvestors }: Prote
 
   if (!user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Check feature access (General Overseer bypasses all restrictions)
+  if (role !== "general_overseer") {
+    const routeName = ROUTE_MAP[location.pathname];
+    if (routeName && isRouteDisabled(routeName)) {
+      return <Navigate to="/access-denied" replace />;
+    }
   }
 
   if (allowedRoles && allowedRoles.length > 0) {

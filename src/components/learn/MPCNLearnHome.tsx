@@ -74,7 +74,7 @@ export function MPCNLearnHome() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-hidden">
       {/* Charter Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -195,7 +195,7 @@ export function MPCNLearnHome() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="max-h-[400px]">
+                  <ScrollArea className="max-h-[350px]">
                     <div className="space-y-2">
                       {modules.map((module, index) => {
                         const moduleProgress = getModuleProgress(module.id);
