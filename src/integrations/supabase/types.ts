@@ -104,6 +104,53 @@ export type Database = {
         }
         Relationships: []
       }
+      comments: {
+        Row: {
+          content: string
+          created_at: string
+          edited_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          is_edited: boolean | null
+          parent_comment_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          edited_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          is_edited?: boolean | null
+          parent_comment_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          edited_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          is_edited?: boolean | null
+          parent_comment_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       complaints: {
         Row: {
           assigned_to: string | null
@@ -2076,6 +2123,45 @@ export type Database = {
           name?: string
           updated_at?: string
           version?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          dashboard_layout: Json | null
+          high_contrast: boolean | null
+          id: string
+          line_spacing: string | null
+          recent_searches: string[] | null
+          reduce_motion: boolean | null
+          sidebar_collapsed: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dashboard_layout?: Json | null
+          high_contrast?: boolean | null
+          id?: string
+          line_spacing?: string | null
+          recent_searches?: string[] | null
+          reduce_motion?: boolean | null
+          sidebar_collapsed?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dashboard_layout?: Json | null
+          high_contrast?: boolean | null
+          id?: string
+          line_spacing?: string | null
+          recent_searches?: string[] | null
+          reduce_motion?: boolean | null
+          sidebar_collapsed?: boolean | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
