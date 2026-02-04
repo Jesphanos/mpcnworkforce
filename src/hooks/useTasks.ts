@@ -141,13 +141,39 @@ export function useCreateTask() {
       if (error) throw error;
       return data;
     },
+    // Optimistic update
+    onMutate: async (newTask) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+      const previousTasks = queryClient.getQueryData(["tasks", user?.id]);
+      
+      // Optimistically add the task
+      const optimisticTask = {
+        id: `temp-${Date.now()}`,
+        ...newTask,
+        user_id: newTask.assigned_to || user?.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        final_status: "pending",
+        calculated_earnings: 0,
+      };
+      
+      queryClient.setQueryData(["tasks", user?.id], (old: Task[] | undefined) => 
+        old ? [optimisticTask as Task, ...old] : [optimisticTask as Task]
+      );
+      
+      return { previousTasks };
+    },
+    onError: (error, _, context) => {
+      // Rollback on error
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["tasks", user?.id], context.previousTasks);
+      }
+      toast.error("Failed to create task: " + error.message);
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["team-tasks"] });
       toast.success(variables.assigned_to ? "Task assigned successfully" : "Task created successfully");
-    },
-    onError: (error) => {
-      toast.error("Failed to create task: " + error.message);
     },
   });
 }
