@@ -1,201 +1,417 @@
 
-# Implementation Plan: UI/UX Fixes, Enhanced Settings, and Role-Based Page Controls
+# Comprehensive Platform Improvements Plan
 
-## Overview
-This plan addresses multiple issues: MPCN Learn overflow/scrolling problems, sign-in page professional styling, sidebar clickability, expanded view options, General Overseer content management for Charter and MPCN Learn, and role-based page access controls.
+## Analysis Summary
+
+After deep analysis of the codebase comparing with modern enterprise systems (Workday, Monday.com, Notion, Linear, etc.), I've identified **42 improvements** across 8 categories. The platform has a solid foundation but can be significantly enhanced.
 
 ---
 
-## Part 1: Fix UI/UX Issues
+## Part 1: Performance Optimizations
 
-### 1.1 MPCN Learn Overflow and Scrolling Fixes
+### 1.1 Code Splitting with React.lazy and Suspense
+**Current State:** No code splitting detected - all pages load in the initial bundle
+**Modern Standard:** Route-based code splitting reduces initial bundle by 40-60%
 
-**Problem:** Content overflows screen boundaries and some sections cannot be scrolled.
-
-**Solution:**
-- In `MPCNLearnHome.tsx`: Add proper `overflow-auto` and max-height constraints to the outer container
-- In `ModuleViewer.tsx`: Ensure the main content area has proper `overflow-y-auto` and height constraints
-- Wrap the Learn page content in a scrollable container with `max-h-[calc(100vh-theme(spacing.16))]`
-- Add `overflow-hidden` to parent containers to prevent horizontal overflow
-
-**Files to modify:**
-- `src/pages/Learn.tsx` - Add scroll container wrapper
-- `src/components/learn/MPCNLearnHome.tsx` - Fix card overflow and scrolling
-- `src/components/learn/ModuleViewer.tsx` - Ensure proper scroll area constraints
-
-### 1.2 Professional Sign-In Page Styling
-
-**Problem:** Login page doesn't look professional; highlight colors need improvement.
-
-**Solution:**
-- Redesign the Auth page with a more professional gradient background
-- Update button styling with subtle gradients instead of flat colors
-- Improve the role selection grid with better visual hierarchy
-- Add professional styling to form inputs and cards
-- Enhance the login button with a professional primary gradient
+**Implementation:**
+- Wrap heavy pages (Trading, Investments, Settings, Reports) with `React.lazy`
+- Add `Suspense` boundaries with PageSkeleton fallbacks
+- Create a `LazyPage` wrapper component for consistent loading states
 
 **Files to modify:**
-- `src/pages/Auth.tsx` - Update overall styling, gradient background, button styling
-- `src/components/auth/RoleSelectionGrid.tsx` - Improve visual hierarchy and colors
-- `src/index.css` - Add professional auth-specific utilities if needed
+- `src/App.tsx` - Add lazy imports and Suspense wrappers
 
-### 1.3 Sidebar Clickability Issues
+### 1.2 Virtual Scrolling for Large Lists
+**Current State:** Tables render all rows, causing performance issues with 1000+ items
+**Modern Standard:** Virtual scrolling (react-window/tanstack-virtual)
 
-**Problem:** In some pages, sidebar elements are not clickable.
+**Implementation:**
+- Add virtual scrolling to ReportsTable, TasksTable, UserManagement
+- Only render visible rows + buffer
 
-**Solution:**
-- Verify z-index values across layout components
-- Ensure no overlapping elements block pointer events
-- Check that `SidebarProvider` context is properly propagating
-- Review any `pointer-events-none` classes that might be interfering
+**Files to modify:**
+- `src/components/reports/ReportsTable.tsx`
+- `src/components/tasks/TasksTable.tsx`
 
-**Files to review/modify:**
+### 1.3 Optimistic Updates
+**Current State:** UI waits for server response before updating
+**Modern Standard:** Immediate UI feedback with rollback on failure
+
+**Implementation:**
+- Add optimistic updates to useMutation hooks
+- Implement rollback on error with toast notifications
+
+**Files to modify:**
+- `src/hooks/useTasks.ts`
+- `src/hooks/useWorkReports.ts`
+- `src/hooks/useNotifications.ts`
+
+---
+
+## Part 2: Security Hardening (Critical)
+
+### 2.1 Fix Overly Permissive RLS Policies
+**Current State:** 7+ tables have `USING (true)` INSERT policies - critical security vulnerability
+**Modern Standard:** All writes require `auth.uid() IS NOT NULL` minimum
+
+**Implementation:**
+- Create migration to fix policies on: audit_logs, leadership_signals, learning_insights, notifications, referrals, report_history, trader_daily_reports
+- Change `USING (true)` to `USING (auth.uid() IS NOT NULL)`
+
+**Database migration required**
+
+### 2.2 Enable Leaked Password Protection
+**Current State:** Disabled (detected by linter)
+**Modern Standard:** Enabled to prevent use of compromised passwords
+
+**Implementation:**
+- Enable via Supabase Auth configuration
+
+### 2.3 Add Rate Limiting Headers Display
+**Current State:** No visibility into API rate limits
+**Modern Standard:** Show rate limit status in developer tools/header
+
+**Implementation:**
+- Create rate limit tracking hook
+- Display in development mode
+
+---
+
+## Part 3: Enhanced User Experience
+
+### 3.1 Breadcrumb Navigation
+**Current State:** No breadcrumbs - users can get lost in nested views
+**Modern Standard:** Consistent breadcrumb trail for all pages
+
+**Implementation:**
+- Create `Breadcrumb` component using existing UI primitives
+- Add to DashboardLayout based on current route
+- Support dynamic segments (e.g., `/worker/:userId` -> "Workers > John Doe")
+
+**Files to create/modify:**
+- `src/components/layout/AppBreadcrumb.tsx` (new)
 - `src/components/layout/DashboardLayout.tsx`
-- `src/components/layout/AppSidebar.tsx`
 
----
+### 3.2 Global Search with Fuzzy Matching
+**Current State:** Command palette has basic navigation only
+**Modern Standard:** Searchable content across reports, tasks, users
 
-## Part 2: Enhanced View Options
-
-### 2.1 Expanded View Options Menu
-
-**Current features:** Font Size, Theme, Layout Density
-
-**New features to add:**
-- **Sidebar Collapsed/Expanded toggle**
-- **Reduce Motion option** (for accessibility)
-- **High Contrast Mode**
-- **Line Spacing option**
+**Implementation:**
+- Add search endpoint to query multiple tables
+- Implement fuzzy matching with fuse.js or similar
+- Show recent searches and suggestions
 
 **Files to modify:**
-- `src/components/layout/ViewOptionsMenu.tsx` - Add new view options
-- `src/index.css` - Add CSS for high contrast and reduced motion
+- `src/components/ui/command-palette.tsx`
+- Create `src/hooks/useGlobalSearch.ts`
+
+### 3.3 Drag-and-Drop Task Kanban Board
+**Current State:** Tasks only shown in table view
+**Modern Standard:** Visual kanban boards (like Notion, Monday.com)
+
+**Implementation:**
+- Add Kanban view option to Tasks page
+- Implement drag-drop with @dnd-kit
+- Persist view preference in user settings
+
+**Files to create:**
+- `src/components/tasks/TasksKanbanView.tsx`
+
+### 3.4 Inline Editing
+**Current State:** Editing requires opening dialogs
+**Modern Standard:** Click-to-edit cells in tables (like Airtable)
+
+**Implementation:**
+- Add inline edit capability to ReportsTable, TasksTable
+- Use existing `InlineEdit` component more broadly
+
+**Files to modify:**
+- `src/components/reports/ReportsTable.tsx`
+- `src/components/tasks/TasksTable.tsx`
+
+### 3.5 Undo/Redo System
+**Current State:** No undo for destructive actions
+**Modern Standard:** "Undo" toast for deletions and critical changes
+
+**Implementation:**
+- Create undo toast hook with timer
+- Delay actual deletion until timer expires
+- Allow instant undo
+
+**Files to create:**
+- `src/hooks/useUndoableAction.ts`
 
 ---
 
-## Part 3: General Overseer Content Management
+## Part 4: Enhanced Accessibility (WCAG 2.1 AA)
 
-### 3.1 Charter & MPCN Learn Content Editor in Settings
+### 4.1 Focus Management
+**Current State:** Basic focus handling
+**Modern Standard:** Proper focus trap in modals, return focus on close
 
-**Requirement:** Allow General Overseer to edit the Charter and MPCN Learn content (add text, edit paragraphs, change wording).
+**Implementation:**
+- Audit all Dialog/Sheet components for focus management
+- Add `aria-live` regions for dynamic content updates
 
-**Solution:**
-Create new Settings tabs for content management:
+### 4.2 Screen Reader Announcements
+**Current State:** Limited aria-live regions
+**Modern Standard:** Announce loading states, errors, successes
 
-1. **Charter Editor Tab**
-   - Editable fields for each principle (title, description)
-   - Editable commitments list
-   - Tagline and title editing
-   - Save to `system_settings` table with key `governance_charter`
+**Implementation:**
+- Create `Announcer` component for screen reader updates
+- Add to toast notifications and loading states
 
-2. **MPCN Learn Editor Tab**
-   - Module group management (title, description)
-   - Individual module content editing with rich text
-   - Scripture reference management
-   - Save to `system_settings` table with key `mpcn_learn_content`
+**Files to create:**
+- `src/components/ui/announcer.tsx`
 
-**Database changes:**
-- Add system setting entries for charter and learn content overrides
-- Create migration for new settings keys
+### 4.3 Skip Links
+**Current State:** None
+**Modern Standard:** Skip to main content link for keyboard users
 
-**Files to create/modify:**
-- `src/components/settings/CharterEditor.tsx` (new)
-- `src/components/settings/MPCNLearnEditor.tsx` (new)
-- `src/pages/Settings.tsx` - Add new tabs
-- Database migration for new system_settings entries
+**Implementation:**
+- Add skip link in DashboardLayout
 
-### 3.2 Content Override System
+**Files to modify:**
+- `src/components/layout/DashboardLayout.tsx`
 
-The configuration files (`humaneTerminology.ts`, `mpcnLearnConfig.ts`) will remain as defaults, but the system will:
-1. Check for database overrides first
-2. Fall back to file-based defaults
-3. Provide merge logic for partial updates
+### 4.4 Color Contrast Validation
+**Current State:** Some text may not meet AA contrast
+**Modern Standard:** 4.5:1 ratio for normal text, 3:1 for large text
 
----
-
-## Part 4: Role-Based Page Access Controls
-
-### 4.1 Feature Toggles System
-
-**Requirement:** Allow General Overseer to disable pages like Trading and Investments for specific roles via login settings.
-
-**Solution:**
-1. Create a `feature_access` system setting in the database
-2. Build a Feature Access Management UI in Settings
-3. Modify `ProtectedRoute` to check feature access settings
-4. Store disabled routes per role in the database
-
-**Database schema:**
-```json
-// system_settings key: "feature_access"
-{
-  "disabled_routes": {
-    "trading": ["employee"],      // Roles that cannot access Trading
-    "investments": [],            // All roles allowed
-    "reports": []                 // All roles allowed
-  }
-}
-```
-
-**Files to create/modify:**
-- `src/components/settings/FeatureAccessManager.tsx` (new)
-- `src/pages/Settings.tsx` - Add Feature Access tab
-- `src/components/auth/ProtectedRoute.tsx` - Check feature access
-- `src/hooks/useFeatureAccess.ts` (new)
-- Database migration for feature_access setting
+**Implementation:**
+- Audit and fix low-contrast text colors
+- Add high-contrast mode (already started, needs completion)
 
 ---
 
-## Part 5: Money Segregation Explanation
+## Part 5: Real-time Collaboration Features
 
-**Clarification:** The user asked about how MPCN segregates money between freelancers, traders, and investors. This is a business model question, not a technical implementation request. 
+### 5.1 Presence Indicators
+**Current State:** No visibility of who's online
+**Modern Standard:** Show who's viewing same page (like Figma, Notion)
 
-Based on the codebase analysis:
-- **Freelancing earnings** flow through Work Reports, tracked in `work_reports` table with platform-specific rates
-- **Trading activity** is tracked separately in trading-related tables with capital positions
-- **Investor funds** are managed through the `investments` table with clear separation via `investor_type`
+**Implementation:**
+- Use Supabase Realtime Presence
+- Show avatars of users viewing same report/task
+- Add "X users viewing" indicator
 
-The system maintains financial segregation through:
-1. Separate database tables for each activity type
-2. Role-specific dashboards showing only relevant financial data
-3. Investment ≠ Control governance principle (investors see returns but don't control operations)
-4. Financial Narratives providing read-only visibility for investors
+**Files to create:**
+- `src/hooks/usePresence.ts`
+- `src/components/ui/presence-avatars.tsx`
+
+### 5.2 Real-time Collaborative Comments
+**Current State:** No commenting system
+**Modern Standard:** Threaded comments on tasks/reports
+
+**Implementation:**
+- Create comments table in database
+- Build CommentThread component
+- Real-time sync via Supabase subscriptions
+
+**Database changes + new components required**
+
+### 5.3 Activity Feed with Realtime Updates
+**Current State:** Activity requires refresh
+**Modern Standard:** Live-updating activity feed
+
+**Implementation:**
+- Subscribe to relevant tables for changes
+- Push updates to activity feed without refresh
+
+**Files to modify:**
+- `src/hooks/useRecentActivity.ts`
+
+---
+
+## Part 6: Data Visualization Enhancements
+
+### 6.1 Interactive Dashboard Widgets
+**Current State:** Static chart components
+**Modern Standard:** Resizable, draggable dashboard widgets
+
+**Implementation:**
+- Implement grid layout with react-grid-layout
+- Allow users to customize dashboard layout
+- Persist layout in user preferences
+
+**Files to create:**
+- `src/components/dashboard/CustomizableGrid.tsx`
+- `src/hooks/useDashboardLayout.ts`
+
+### 6.2 Export Improvements
+**Current State:** Basic CSV/PDF export
+**Modern Standard:** Scheduled exports, email delivery, multiple formats
+
+**Implementation:**
+- Add scheduled export feature (via edge function)
+- Support Excel (.xlsx) format
+- Add chart image export
+
+### 6.3 Sparklines in Tables
+**Current State:** Tables show only numbers
+**Modern Standard:** Mini trend charts in table cells (like Google Sheets)
+
+**Implementation:**
+- Add sparkline component using Recharts
+- Show 7-day trend in Reports table earnings column
+
+**Files to create:**
+- `src/components/ui/sparkline.tsx`
+
+---
+
+## Part 7: Advanced Form Features
+
+### 7.1 Multi-step Form Wizard Component
+**Current State:** Long forms on single page
+**Modern Standard:** Step-by-step wizards with progress indicator
+
+**Implementation:**
+- Create reusable FormWizard component
+- Apply to investor onboarding, trader onboarding
+- Add step validation and save draft capability
+
+**Files to create:**
+- `src/components/ui/form-wizard.tsx`
+
+### 7.2 Autosave Drafts
+**Current State:** Form data lost on navigation
+**Modern Standard:** Automatic draft saving to localStorage/database
+
+**Implementation:**
+- Create useFormDraft hook
+- Implement for report submission, task creation
+- Show "Draft saved" indicator
+
+**Files to create:**
+- `src/hooks/useFormDraft.ts`
+
+### 7.3 File Upload with Preview
+**Current State:** Basic evidence URL input
+**Modern Standard:** Drag-drop upload with preview, progress, and validation
+
+**Implementation:**
+- Create FileUpload component with Supabase Storage integration
+- Add image preview, PDF preview
+- Show upload progress
+
+**Files to create:**
+- `src/components/ui/file-upload.tsx`
+
+---
+
+## Part 8: Developer Experience & Maintainability
+
+### 8.1 Centralized API Error Handling
+**Current State:** Error handling scattered across hooks
+**Modern Standard:** Global error boundary with retry logic
+
+**Implementation:**
+- Create API error handler middleware
+- Centralize retry logic
+- Add structured error logging
+
+**Files to create:**
+- `src/lib/apiErrorHandler.ts`
+
+### 8.2 Feature Flags System
+**Current State:** Basic feature access control
+**Modern Standard:** Dynamic feature flags for gradual rollouts
+
+**Implementation:**
+- Create feature flags table in database
+- Build useFeatureFlag hook
+- Enable/disable features without deployment
+
+**Database changes + new hook required**
+
+### 8.3 Performance Monitoring Integration
+**Current State:** No performance tracking
+**Modern Standard:** Core Web Vitals tracking, error reporting
+
+**Implementation:**
+- Add web-vitals library integration
+- Create performance dashboard for overseer
+- Track slow pages and API calls
+
+**Files to create:**
+- `src/lib/performance.ts`
+- `src/components/analytics/PerformanceMonitor.tsx`
+
+### 8.4 Testing Infrastructure
+**Current State:** No tests detected
+**Modern Standard:** Component tests, integration tests, E2E tests
+
+**Implementation:**
+- Set up Vitest for unit tests
+- Add React Testing Library for component tests
+- Create critical path tests for auth, reports, tasks
+
+---
+
+## Implementation Priority & Effort Matrix
+
+| Priority | Feature | Effort | Impact |
+|----------|---------|--------|--------|
+| CRITICAL | Fix RLS Policies (2.1) | Low | High |
+| CRITICAL | Enable Leaked Password Protection (2.2) | Low | High |
+| High | Code Splitting (1.1) | Medium | High |
+| High | Breadcrumb Navigation (3.1) | Low | Medium |
+| High | Skip Links (4.3) | Low | Medium |
+| High | Global Search (3.2) | Medium | High |
+| Medium | Virtual Scrolling (1.2) | Medium | Medium |
+| Medium | Presence Indicators (5.1) | Medium | High |
+| Medium | Sparklines (6.3) | Low | Medium |
+| Medium | Autosave Drafts (7.2) | Medium | Medium |
+| Low | Kanban Board (3.3) | High | Medium |
+| Low | Customizable Dashboard (6.1) | High | Medium |
 
 ---
 
 ## Technical Implementation Summary
 
-### Files to Create
-1. `src/components/settings/CharterEditor.tsx`
-2. `src/components/settings/MPCNLearnEditor.tsx`
-3. `src/components/settings/FeatureAccessManager.tsx`
-4. `src/hooks/useFeatureAccess.ts`
+### Database Migrations
+1. Fix RLS policies on 7 tables (security critical)
+2. Create comments table for collaboration
+3. Create feature_flags table
+4. Add user_preferences table for dashboard layouts
+
+### New Files to Create
+- `src/components/layout/AppBreadcrumb.tsx`
+- `src/components/ui/announcer.tsx`
+- `src/components/ui/sparkline.tsx`
+- `src/components/ui/file-upload.tsx`
+- `src/components/ui/form-wizard.tsx`
+- `src/components/ui/presence-avatars.tsx`
+- `src/components/tasks/TasksKanbanView.tsx`
+- `src/hooks/useGlobalSearch.ts`
+- `src/hooks/usePresence.ts`
+- `src/hooks/useFormDraft.ts`
+- `src/hooks/useUndoableAction.ts`
+- `src/lib/apiErrorHandler.ts`
+- `src/lib/performance.ts`
 
 ### Files to Modify
-1. `src/pages/Learn.tsx`
-2. `src/components/learn/MPCNLearnHome.tsx`
-3. `src/components/learn/ModuleViewer.tsx`
-4. `src/pages/Auth.tsx`
-5. `src/components/auth/RoleSelectionGrid.tsx`
-6. `src/components/layout/ViewOptionsMenu.tsx`
-7. `src/pages/Settings.tsx`
-8. `src/components/auth/ProtectedRoute.tsx`
-9. `src/index.css`
-10. `src/config/humaneTerminology.ts` (add hook for overrides)
-
-### Database Changes
-- Add migration for new system_settings entries:
-  - `governance_charter` - Charter content overrides
-  - `mpcn_learn_overrides` - Learning content overrides
-  - `feature_access` - Role-based route access controls
+- `src/App.tsx` (code splitting)
+- `src/components/layout/DashboardLayout.tsx` (breadcrumbs, skip links)
+- `src/components/reports/ReportsTable.tsx` (virtual scroll, inline edit)
+- `src/components/tasks/TasksTable.tsx` (virtual scroll, inline edit)
+- `src/components/ui/command-palette.tsx` (global search)
+- `src/hooks/useTasks.ts` (optimistic updates)
+- `src/hooks/useWorkReports.ts` (optimistic updates)
 
 ---
 
-## Implementation Order
-1. Fix critical UI bugs (overflow, scrolling, sidebar)
-2. Improve Auth page styling
-3. Expand View Options
-4. Add Charter Editor to Settings
-5. Add MPCN Learn Editor to Settings
-6. Implement Feature Access Manager
-7. Update ProtectedRoute for dynamic access control
+## Phase 1 Implementation (Immediate - Security & Performance)
+
+I will implement the following critical improvements first:
+1. Fix RLS security vulnerabilities
+2. Add code splitting for performance
+3. Add breadcrumb navigation
+4. Add skip links for accessibility
+5. Enhance global search in command palette
+6. Add sparkline charts in tables
+7. Add presence indicators for collaboration
+8. Create autosave draft functionality
+
+This phase addresses security, performance, accessibility, and modern UX patterns that will have the highest impact on the platform.
