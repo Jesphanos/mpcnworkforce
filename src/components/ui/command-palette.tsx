@@ -22,8 +22,6 @@ import {
   Activity,
   CandlestickChart,
   LogOut,
-  Moon,
-  Sun,
   Search,
   Plus,
   Bell,
@@ -32,10 +30,14 @@ import {
   BarChart3,
   Keyboard,
   AlertTriangle,
+  Clock,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCapabilities } from "@/hooks/useCapabilities";
+import { useGlobalSearch, useRecentSearches } from "@/hooks/useGlobalSearch";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 interface CommandPaletteProps {
   open?: boolean;
@@ -44,12 +46,27 @@ interface CommandPaletteProps {
 
 export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPaletteProps) {
   const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
   const navigate = useNavigate();
   const { signOut, role, profile } = useAuth();
   const { isAdmin, isOverseer, isTeamLead, isInvestor, isTrader, can } = useCapabilities();
+  
+  // Global search integration
+  const { search, results, isSearching, hasResults } = useGlobalSearch();
+  const { recentSearches, addRecentSearch } = useRecentSearches();
 
   const isOpen = controlledOpen ?? open;
   const setIsOpen = onOpenChange ?? setOpen;
+  
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (inputValue.length >= 2) {
+        search(inputValue);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [inputValue, search]);
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -99,10 +116,21 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
     return () => document.removeEventListener("keydown", down);
   }, [isOpen, setIsOpen, navigate, isTrader]);
 
-  const runCommand = useCallback((command: () => void) => {
+  const runCommand = useCallback((command: () => void, searchTerm?: string) => {
     setIsOpen(false);
+    setInputValue("");
+    if (searchTerm) {
+      addRecentSearch(searchTerm);
+    }
     command();
-  }, [setIsOpen]);
+  }, [setIsOpen, addRecentSearch]);
+  
+  const typeIcons: Record<string, typeof FileText> = {
+    user: User,
+    task: FileText,
+    report: FileText,
+    investment: TrendingUp,
+  };
 
   const navigationItems = [
     { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard", always: true, shortcut: "D" },
@@ -134,11 +162,78 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
     { label: "Keyboard Shortcuts", icon: Keyboard, action: () => toast.info("Shortcuts: T=Trading, J=Journal, N=New Trade, D=Dashboard, P=Profile"), always: true },
   ];
 
+  // Reset input when dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      setInputValue("");
+    }
+  }, [isOpen]);
+
   return (
     <CommandDialog open={isOpen} onOpenChange={setIsOpen}>
-      <CommandInput placeholder="Type a command or search..." />
+      <CommandInput 
+        placeholder="Search or type a command..." 
+        value={inputValue}
+        onValueChange={setInputValue}
+      />
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandEmpty>
+          {isSearching ? (
+            <div className="flex items-center justify-center gap-2 py-4">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Searching...</span>
+            </div>
+          ) : (
+            "No results found."
+          )}
+        </CommandEmpty>
+        
+        {/* Search Results */}
+        {hasResults && inputValue.length >= 2 && (
+          <CommandGroup heading="Search Results">
+            {results.map((result) => {
+              const Icon = typeIcons[result.type] || FileText;
+              return (
+                <CommandItem
+                  key={`${result.type}-${result.id}`}
+                  onSelect={() => runCommand(() => navigate(result.path), inputValue)}
+                >
+                  <Icon className="mr-2 h-4 w-4" />
+                  <div className="flex flex-col">
+                    <span>{result.title}</span>
+                    {result.subtitle && (
+                      <span className="text-xs text-muted-foreground">{result.subtitle}</span>
+                    )}
+                  </div>
+                  <Badge variant="outline" className="ml-auto text-xs">
+                    {result.type}
+                  </Badge>
+                </CommandItem>
+              );
+            })}
+          </CommandGroup>
+        )}
+        
+        {/* Recent Searches */}
+        {recentSearches.length > 0 && inputValue.length < 2 && (
+          <>
+            <CommandGroup heading="Recent Searches">
+              {recentSearches.slice(0, 3).map((term, i) => (
+                <CommandItem
+                  key={`recent-${i}`}
+                  onSelect={() => {
+                    setInputValue(term);
+                    search(term);
+                  }}
+                >
+                  <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                  {term}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            <CommandSeparator />
+          </>
+        )}
         
         <CommandGroup heading="Navigation">
           {navigationItems

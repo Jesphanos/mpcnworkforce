@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,176 +8,193 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { RealtimeNotificationsProvider } from "@/components/providers/RealtimeNotificationsProvider";
+import { AnnouncerProvider } from "@/components/ui/announcer";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
+
+// Eagerly loaded pages (critical path)
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/Profile";
-import UserManagement from "./pages/UserManagement";
-import Reports from "./pages/Reports";
-import FinanceHR from "./pages/FinanceHR";
-import Investments from "./pages/Investments";
-import InvestorProfile from "./pages/InvestorProfile";
-import Trading from "./pages/Trading";
-import Tasks from "./pages/Tasks";
-import TeamDashboard from "./pages/TeamDashboard";
-import ActivityHistory from "./pages/ActivityHistory";
-import Settings from "./pages/Settings";
-import Governance from "./pages/Governance";
-import Department from "./pages/Department";
 import NotFound from "./pages/NotFound";
 import AccessDenied from "./pages/AccessDenied";
-import WorkerProfile from "./pages/WorkerProfile";
-import Learn from "./pages/Learn";
+
+// Lazy loaded pages (code splitting for performance)
+const Profile = lazy(() => import("./pages/Profile"));
+const UserManagement = lazy(() => import("./pages/UserManagement"));
+const Reports = lazy(() => import("./pages/Reports"));
+const FinanceHR = lazy(() => import("./pages/FinanceHR"));
+const Investments = lazy(() => import("./pages/Investments"));
+const InvestorProfile = lazy(() => import("./pages/InvestorProfile"));
+const Trading = lazy(() => import("./pages/Trading"));
+const Tasks = lazy(() => import("./pages/Tasks"));
+const TeamDashboard = lazy(() => import("./pages/TeamDashboard"));
+const ActivityHistory = lazy(() => import("./pages/ActivityHistory"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Governance = lazy(() => import("./pages/Governance"));
+const Department = lazy(() => import("./pages/Department"));
+const WorkerProfile = lazy(() => import("./pages/WorkerProfile"));
+const Learn = lazy(() => import("./pages/Learn"));
 
 const queryClient = new QueryClient();
+
+// Wrapper for lazy-loaded pages
+function LazyPage({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      {children}
+    </Suspense>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <RealtimeNotificationsProvider>
-              <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/users"
-              element={
-                <ProtectedRoute allowedRoles={["user_admin", "general_overseer"]}>
-                  <UserManagement />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/reports"
-              element={
-                <ProtectedRoute allowedRoles={["employee", "team_lead", "report_admin", "general_overseer"]}>
-                  <Reports />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/finance-hr"
-              element={
-                <ProtectedRoute allowedRoles={["finance_hr_admin", "general_overseer"]}>
-                  <FinanceHR />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/investments"
-              element={
-                <ProtectedRoute allowedRoles={["investment_admin", "general_overseer"]} allowInvestors>
-                  <Investments />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/investor-profile"
-              element={
-                <ProtectedRoute>
-                  <InvestorProfile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/trading"
-              element={
-                <ProtectedRoute>
-                  <Trading />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/tasks"
-              element={
-                <ProtectedRoute allowedRoles={["team_lead", "report_admin", "general_overseer"]}>
-                  <Tasks />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/team"
-              element={
-                <ProtectedRoute allowedRoles={["team_lead", "report_admin", "general_overseer"]}>
-                  <TeamDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/activity"
-              element={
-                <ProtectedRoute>
-                  <ActivityHistory />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute allowedRoles={["general_overseer"]}>
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
-              <Route
-                path="/governance"
-                element={
-                  <ProtectedRoute allowedRoles={["report_admin", "user_admin", "general_overseer"]}>
-                    <Governance />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/department"
-                element={
-                  <ProtectedRoute allowedRoles={["department_head", "user_admin", "general_overseer"]}>
-                    <Department />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/worker/:userId"
-                element={
-                  <ProtectedRoute allowedRoles={["team_lead", "report_admin", "user_admin", "general_overseer"]}>
-                    <WorkerProfile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/learn"
-                element={
-                  <ProtectedRoute>
-                    <Learn />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/access-denied" element={<AccessDenied />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </RealtimeNotificationsProvider>
-        </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AnnouncerProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <RealtimeNotificationsProvider>
+                <Routes>
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <LazyPage><Profile /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/users"
+                    element={
+                      <ProtectedRoute allowedRoles={["user_admin", "general_overseer"]}>
+                        <LazyPage><UserManagement /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/reports"
+                    element={
+                      <ProtectedRoute allowedRoles={["employee", "team_lead", "report_admin", "general_overseer"]}>
+                        <LazyPage><Reports /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/finance-hr"
+                    element={
+                      <ProtectedRoute allowedRoles={["finance_hr_admin", "general_overseer"]}>
+                        <LazyPage><FinanceHR /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/investments"
+                    element={
+                      <ProtectedRoute allowedRoles={["investment_admin", "general_overseer"]} allowInvestors>
+                        <LazyPage><Investments /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/investor-profile"
+                    element={
+                      <ProtectedRoute>
+                        <LazyPage><InvestorProfile /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/trading"
+                    element={
+                      <ProtectedRoute>
+                        <LazyPage><Trading /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tasks"
+                    element={
+                      <ProtectedRoute allowedRoles={["team_lead", "report_admin", "general_overseer"]}>
+                        <LazyPage><Tasks /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/team"
+                    element={
+                      <ProtectedRoute allowedRoles={["team_lead", "report_admin", "general_overseer"]}>
+                        <LazyPage><TeamDashboard /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/activity"
+                    element={
+                      <ProtectedRoute>
+                        <LazyPage><ActivityHistory /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute allowedRoles={["general_overseer"]}>
+                        <LazyPage><Settings /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/governance"
+                    element={
+                      <ProtectedRoute allowedRoles={["report_admin", "user_admin", "general_overseer"]}>
+                        <LazyPage><Governance /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/department"
+                    element={
+                      <ProtectedRoute allowedRoles={["department_head", "user_admin", "general_overseer"]}>
+                        <LazyPage><Department /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/worker/:userId"
+                    element={
+                      <ProtectedRoute allowedRoles={["team_lead", "report_admin", "user_admin", "general_overseer"]}>
+                        <LazyPage><WorkerProfile /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/learn"
+                    element={
+                      <ProtectedRoute>
+                        <LazyPage><Learn /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/access-denied" element={<AccessDenied />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </RealtimeNotificationsProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AnnouncerProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

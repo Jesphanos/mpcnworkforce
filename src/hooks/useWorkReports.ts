@@ -75,12 +75,36 @@ export function useCreateWorkReport() {
       if (error) throw error;
       return data;
     },
+    // Optimistic update
+    onMutate: async (newReport) => {
+      await queryClient.cancelQueries({ queryKey: ["work-reports", user?.id] });
+      const previousReports = queryClient.getQueryData(["work-reports", user?.id]);
+      
+      const optimisticReport = {
+        id: `temp-${Date.now()}`,
+        user_id: user?.id,
+        ...newReport,
+        status: "pending" as const,
+        final_status: "pending",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      
+      queryClient.setQueryData(["work-reports", user?.id], (old: WorkReport[] | undefined) =>
+        old ? [optimisticReport as WorkReport, ...old] : [optimisticReport as WorkReport]
+      );
+      
+      return { previousReports };
+    },
+    onError: (error, _, context) => {
+      if (context?.previousReports) {
+        queryClient.setQueryData(["work-reports", user?.id], context.previousReports);
+      }
+      toast.error("Failed to submit report: " + error.message);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["work-reports"] });
       toast.success("Report submitted successfully");
-    },
-    onError: (error) => {
-      toast.error("Failed to submit report: " + error.message);
     },
   });
 }
