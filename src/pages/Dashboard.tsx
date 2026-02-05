@@ -45,8 +45,8 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">{getRoleLabel(role)} Overview</p>
+            <h1 className="text-2xl font-bold text-foreground">Overview</h1>
+            <p className="text-muted-foreground">{getRoleLabel(role)} • MPCN</p>
           </div>
           <div className="flex items-center gap-2">
             <DateRangeFilter dateRange={dateRange} onDateRangeChange={setDateRange} />

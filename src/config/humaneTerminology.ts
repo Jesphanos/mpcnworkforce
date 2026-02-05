@@ -155,26 +155,26 @@ export function getActionLabel(action: string): string {
 
 // Culture & Governance principles for the charter
 export const MPCN_PRINCIPLES = {
-  title: "MPCN Culture & Governance Charter",
-  tagline: "Firm in structure, human in execution.",
+  title: "MPCN Governance Charter",
+  tagline: "Structured collaboration. Accountable growth.",
   
   principles: [
     {
       id: "accountability",
       title: "Accountability Without Humiliation",
-      description: "Every action is traceable, but feedback is delivered with respect. Mistakes are opportunities for growth, not grounds for shame.",
+      description: "Every action is traceable and documented. Feedback is delivered with respect. Mistakes are learning opportunities, not grounds for shame.",
       icon: "Shield",
     },
     {
       id: "transparency",
       title: "Transparent Decision Making",
-      description: "All governance decisions include clear reasoning. When decisions are adjusted, the intent and rationale are always visible.",
+      description: "All governance decisions include clear reasoning. When decisions are adjusted, the intent and rationale are always visible to those affected.",
       icon: "Eye",
     },
     {
       id: "growth",
-      title: "Growth-Oriented Feedback",
-      description: "Revisions are a normal part of quality work. Improvement is tracked and recognized, not just initial performance.",
+      title: "Growth-Oriented Standards",
+      description: "Revisions are a normal part of quality work. Improvement is tracked and recognized alongside performance.",
       icon: "TrendingUp",
     },
     {
@@ -185,23 +185,23 @@ export const MPCN_PRINCIPLES = {
     },
     {
       id: "fairness",
-      title: "Fair & Consistent Standards",
+      title: "Consistent Standards",
       description: "The same rules apply to everyone. Authority comes with greater accountability, not fewer obligations.",
       icon: "Scale",
     },
     {
       id: "recognition",
-      title: "Recognition Over Competition",
-      description: "Consistent quality and stewardship are quietly logged and appreciated. We reward reliability, not just exceptional moments.",
+      title: "Recognition Through Contribution",
+      description: "Consistent quality and stewardship are documented and valued. We reward reliability and sustained excellence.",
       icon: "Award",
     },
   ],
   
   commitments: [
-    "All rejections include constructive feedback",
-    "Override decisions always explain the reasoning",
-    "Performance metrics include growth trajectory",
-    "Private guidance before public escalation",
+    "All revision requests include constructive feedback",
+    "Adjustment decisions include documented reasoning",
+    "Performance metrics include improvement trajectory",
+    "Private guidance precedes any escalation",
     "Financial adjustments include clear explanations",
   ],
 } as const;

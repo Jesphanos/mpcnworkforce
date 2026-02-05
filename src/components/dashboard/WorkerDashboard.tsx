@@ -91,11 +91,11 @@ export function WorkerDashboard({ dateRange }: WorkerDashboardProps) {
 
   return (
     <div className="space-y-6">
-      {/* Growth-oriented welcome banner */}
+      {/* Institutional context banner */}
       <RoleAuthorityBanner
         variant="info"
-        title="Your Personal Workspace"
-        description="Focus on your tasks and reports. Your progress is tracked to support your growth — not to judge you."
+        title="Your Workspace"
+        description="Tasks, reports, and your progress within the organization. Your work contributes to something larger."
       />
 
       {/* Stats Grid - Personal metrics only */}

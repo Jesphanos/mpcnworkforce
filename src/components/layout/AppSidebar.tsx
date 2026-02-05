@@ -292,12 +292,12 @@ export function AppSidebar() {
     <Sidebar className="border-r-0">
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg gradient-primary flex items-center justify-center">
-            <Building2 className="h-5 w-5 text-sidebar-primary-foreground" />
+          <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
+            <Building2 className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="font-semibold text-sidebar-foreground">MPCN Workforce</h2>
-            <p className="text-xs text-sidebar-foreground/60">Management System</p>
+            <h2 className="font-semibold text-sidebar-foreground">MPCN</h2>
+            <p className="text-xs text-sidebar-foreground/60">Coordinated Network</p>
           </div>
         </div>
       </SidebarHeader>

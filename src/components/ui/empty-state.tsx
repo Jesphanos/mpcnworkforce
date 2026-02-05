@@ -90,13 +90,13 @@ export function EmptyState({
   );
 }
 
-// Pre-configured empty states for common scenarios
+// Pre-configured empty states for common scenarios — institutional language
 export function NoReportsEmptyState({ onAction }: { onAction?: () => void }) {
   return (
     <EmptyState
       icon={FileText}
-      title="No reports yet"
-      description="Start tracking your work by submitting your first report."
+      title="No reports submitted"
+      description="Document your completed work here. Reports are reviewed and contribute to your record."
       actionLabel="Submit Report"
       onAction={onAction}
     />
@@ -107,8 +107,8 @@ export function NoTeamMembersEmptyState() {
   return (
     <EmptyState
       icon={Users}
-      title="No team members"
-      description="Your team is empty. Team members will appear here once assigned."
+      title="No team members assigned"
+      description="Team members will appear here once assigned by an administrator."
     />
   );
 }
@@ -117,8 +117,8 @@ export function NoTasksEmptyState({ onAction }: { onAction?: () => void }) {
   return (
     <EmptyState
       icon={Calendar}
-      title="No tasks assigned"
-      description="You don't have any tasks at the moment. Tasks assigned to you will appear here."
+      title="No assigned tasks"
+      description="Check with your team lead for new assignments. Assigned tasks will appear here."
       actionLabel={onAction ? "View Available Tasks" : undefined}
       onAction={onAction}
     />
@@ -129,8 +129,8 @@ export function NoNotificationsEmptyState() {
   return (
     <EmptyState
       icon={Bell}
-      title="All caught up!"
-      description="You have no new notifications. We'll let you know when something needs your attention."
+      title="No notifications"
+      description="You'll be notified when something requires your attention."
       variant="compact"
     />
   );
@@ -141,7 +141,7 @@ export function NoSearchResultsEmptyState({ query }: { query: string }) {
     <EmptyState
       icon={Search}
       title="No results found"
-      description={`We couldn't find anything matching "${query}". Try a different search term.`}
+      description={`No matches for "${query}". Try a different search term.`}
     />
   );
 }
@@ -151,7 +151,7 @@ export function NoMessagesEmptyState() {
     <EmptyState
       icon={MessageCircle}
       title="No messages"
-      description="Start a conversation with your team or supervisor."
+      description="Communicate with your team or supervisor here."
     />
   );
 }
@@ -160,8 +160,18 @@ export function NoActivityEmptyState() {
   return (
     <EmptyState
       icon={TrendingUp}
-      title="No activity yet"
+      title="No recent activity"
       description="Your activity history will appear here as you use the platform."
+    />
+  );
+}
+
+export function NoTeamAssignmentEmptyState() {
+  return (
+    <EmptyState
+      icon={Users}
+      title="No team assignment"
+      description="You have not been assigned to a team yet. Contact your administrator."
     />
   );
 }

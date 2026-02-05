@@ -241,27 +241,28 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 auth-gradient">
       <div className="w-full max-w-md animate-fade-in">
+        {/* Institutional Header */}
         <div className="flex flex-col items-center mb-8">
-          <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center mb-4 shadow-lg shadow-primary/25">
-            <Building2 className="h-10 w-10 text-primary-foreground" />
+          <div className="h-16 w-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+            <Building2 className="h-8 w-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">MPCN Workforce Hub</h1>
-          <p className="text-muted-foreground mt-1">Secure Role-Based Access</p>
+          <h1 className="mt-4 text-2xl font-bold text-foreground tracking-tight">MPCN</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Structured collaboration. Accountable growth.</p>
         </div>
 
         <Card className="border-border/50 shadow-xl auth-card-glow bg-card/95 backdrop-blur-sm">
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-xl font-semibold">
               {mode === "login" && showRoleSelection && "Select Your Role"}
-              {mode === "login" && !showRoleSelection && (roleContext?.title || "Welcome back")}
-              {mode === "signup" && "Create an account"}
-              {mode === "forgot" && "Reset password"}
+              {mode === "login" && !showRoleSelection && (roleContext?.title || "Sign In")}
+              {mode === "signup" && "Request Access"}
+              {mode === "forgot" && "Reset Password"}
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              {mode === "login" && showRoleSelection && "Choose the role that matches your MPCN position"}
-              {mode === "login" && !showRoleSelection && (roleContext?.description || "Enter your credentials")}
-              {mode === "signup" && "Fill in your details to get started"}
-              {mode === "forgot" && "We'll send you a reset link"}
+              {mode === "login" && showRoleSelection && "Choose the role that matches your assigned position"}
+              {mode === "login" && !showRoleSelection && (roleContext?.description || "Enter your credentials to continue")}
+              {mode === "signup" && "Complete your details to join the organization"}
+              {mode === "forgot" && "Enter your email to receive reset instructions"}
             </CardDescription>
           </CardHeader>
           <CardContent>

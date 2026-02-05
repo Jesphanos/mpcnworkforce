@@ -26,16 +26,16 @@ export function GovernanceCharter() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-background">
+      <Card className="border-primary/20 bg-card">
         <CardHeader className="text-center pb-4">
           <div className="flex justify-center mb-4">
-            <div className="p-3 rounded-full bg-primary/10">
-              <Heart className="h-8 w-8 text-primary" />
+            <div className="p-3 rounded-xl bg-primary">
+              <Shield className="h-8 w-8 text-primary-foreground" />
             </div>
           </div>
           <CardTitle className="text-2xl">{MPCN_PRINCIPLES.title}</CardTitle>
-          <CardDescription className="text-base italic">
-            "{MPCN_PRINCIPLES.tagline}"
+          <CardDescription className="text-base">
+            {MPCN_PRINCIPLES.tagline}
           </CardDescription>
         </CardHeader>
       </Card>

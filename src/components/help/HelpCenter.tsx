@@ -23,62 +23,74 @@ const faqItems: FAQItem[] = [
   {
     category: "Getting Started",
     question: "How do I submit my first work report?",
-    answer: "Navigate to the Reports page from the sidebar. Click 'Submit Report' and fill in your work details including platform, hours worked, task description, and any relevant links. Your report will be submitted for review by your team lead."
+    answer: "Navigate to Reports from the sidebar. Select 'Submit Report' and provide your work details including platform, hours, task description, and relevant documentation. Your report enters the review workflow for approval."
   },
   {
     category: "Getting Started",
-    question: "How do I update my profile and skills?",
-    answer: "Go to your Profile page by clicking your avatar in the sidebar footer. From there, you can edit your name, add skills, update your timezone, and link external freelancing accounts."
+    question: "How do I update my profile?",
+    answer: "Access your Profile via the sidebar. From there you can edit your details, add skills, set your timezone, and link external accounts."
   },
   {
     category: "Reports",
     question: "What happens after I submit a report?",
-    answer: "Your report enters the review workflow. First, your team lead reviews it. If approved, it may go to admin review depending on the platform. You'll receive notifications at each status change."
+    answer: "Your report enters the multi-stage review workflow. Team leads review first, followed by admin review where applicable. You receive notifications at each status change."
   },
   {
     category: "Reports",
-    question: "Can I edit a submitted report?",
-    answer: "You can only edit reports that are still in 'pending' status. Once a report has been reviewed or approved, you'll need to contact your team lead to make changes."
+    question: "Can I modify a submitted report?",
+    answer: "Reports in 'pending' status can be edited. Once reviewed, contact your team lead for any necessary changes."
+  },
+  {
+    category: "Reports",
+    question: "What does 'Needs Revision' mean?",
+    answer: "This indicates your submission requires adjustments based on reviewer feedback. Review the comments, make the necessary changes, and resubmit. Revisions are a normal part of quality assurance."
   },
   {
     category: "Teams",
-    question: "How do I see my team members?",
-    answer: "Team members are visible on the Team Dashboard if you have access. Your team lead manages team composition and can provide visibility into team performance."
+    question: "How do I view my team?",
+    answer: "Team visibility is available through the Team section if you have appropriate access. Your team lead manages team composition."
   },
   {
     category: "Payments",
-    question: "How are my earnings calculated?",
-    answer: "Earnings are calculated based on approved work reports, platform base rates, performance bonuses, and any applicable deductions. The Finance team processes payments according to salary periods."
+    question: "How are earnings calculated?",
+    answer: "Earnings are calculated from approved work reports based on platform rates, performance factors, and applicable adjustments. The Finance team processes payments according to defined salary periods."
   },
   {
     category: "Payments",
-    question: "When do I get paid?",
-    answer: "Payments are processed at the end of each salary period. The Finance team will close the period and calculate final earnings based on your approved reports."
+    question: "When are payments processed?",
+    answer: "Payments are processed at the close of each salary period. Final earnings are calculated based on approved reports within that period."
   },
   {
     category: "Security",
     question: "How do I enable two-factor authentication?",
-    answer: "Go to Profile → Security tab. You can set up 2FA using an authenticator app or SMS verification for enhanced account security."
+    answer: "Navigate to Profile → Security. You can configure 2FA using an authenticator app or SMS verification."
+  },
+  {
+    category: "Governance",
+    question: "What is the Governance Charter?",
+    answer: "The Governance Charter defines MPCN's operational principles including accountability, transparency, and decision-making standards. It's accessible via Settings."
   },
   {
     category: "Investments",
     question: "How do I become an investor?",
-    answer: "If you're eligible, you'll see a 'Become an Investor' card on your profile page. Complete the investor onboarding wizard to set up your investor profile and understand the terms."
+    answer: "Eligible members will see an investor onboarding option in their profile. Complete the verification process to understand terms and establish your investor profile."
   },
   {
-    category: "Trading",
-    question: "How do I access the trading terminal?",
-    answer: "If you have trader permissions, the Trading section will appear in your sidebar. Complete the trader onboarding process to access the full trading terminal."
+    category: "Learning",
+    question: "How does MPCN Learn work?",
+    answer: "MPCN Learn provides structured educational modules covering foundations, organizational context, and role-specific training. Progress is tracked and contributes to your development record."
   },
 ];
 
 const helpCategories = [
-  { name: "Getting Started", icon: Book, color: "text-blue-500" },
-  { name: "Reports", icon: FileText, color: "text-green-500" },
-  { name: "Teams", icon: Users, color: "text-purple-500" },
-  { name: "Payments", icon: CreditCard, color: "text-yellow-500" },
-  { name: "Security", icon: Shield, color: "text-red-500" },
-  { name: "Investments", icon: TrendingUp, color: "text-emerald-500" },
+  { name: "Getting Started", icon: Book, color: "text-primary" },
+  { name: "Reports", icon: FileText, color: "text-primary" },
+  { name: "Teams", icon: Users, color: "text-primary" },
+  { name: "Payments", icon: CreditCard, color: "text-primary" },
+  { name: "Security", icon: Shield, color: "text-primary" },
+  { name: "Governance", icon: Shield, color: "text-primary" },
+  { name: "Investments", icon: TrendingUp, color: "text-primary" },
+  { name: "Learning", icon: Book, color: "text-primary" },
 ];
 
 export function HelpCenter() {
@@ -112,10 +124,10 @@ export function HelpCenter() {
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <HelpCircle className="h-5 w-5 text-primary" />
-            Help Center
+            Help & Documentation
           </SheetTitle>
           <SheetDescription>
-            Find answers to common questions or explore guides
+            Answers to common questions about MPCN operations
           </SheetDescription>
         </SheetHeader>
 
