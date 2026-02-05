@@ -35,31 +35,31 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     {
       id: "welcome",
       title: "Welcome to MPCN",
-      description: "Let's get you started with your new workspace",
-      icon: Sparkles,
+      description: "Your orientation to the organization",
+      icon: Building,
       content: (
         <div className="space-y-6 text-center">
-          <div className="w-20 h-20 rounded-full bg-primary/10 mx-auto flex items-center justify-center">
-            <Sparkles className="h-10 w-10 text-primary" />
+          <div className="w-16 h-16 rounded-2xl bg-primary mx-auto flex items-center justify-center shadow-lg">
+            <Building className="h-8 w-8 text-primary-foreground" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold">Welcome, {profile?.full_name || "Team Member"}!</h3>
+            <h3 className="text-xl font-bold">{profile?.full_name || "Team Member"}</h3>
             <p className="text-muted-foreground mt-2">
-              We're excited to have you on board. This quick tour will help you get familiar with the platform.
+              You are now part of a structured organization. This brief orientation will help you understand your place within it.
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-4 pt-4">
-            <div className="p-4 rounded-lg bg-muted/50 text-center">
-              <FileText className="h-6 w-6 mx-auto mb-2 text-primary" />
-              <span className="text-sm font-medium">Track Work</span>
+          <div className="grid grid-cols-3 gap-3 pt-4">
+            <div className="p-3 rounded-lg border bg-card text-center">
+              <FileText className="h-5 w-5 mx-auto mb-2 text-primary" />
+              <span className="text-xs font-medium">Document Work</span>
             </div>
-            <div className="p-4 rounded-lg bg-muted/50 text-center">
-              <TrendingUp className="h-6 w-6 mx-auto mb-2 text-primary" />
-              <span className="text-sm font-medium">Grow Skills</span>
+            <div className="p-3 rounded-lg border bg-card text-center">
+              <Users className="h-5 w-5 mx-auto mb-2 text-primary" />
+              <span className="text-xs font-medium">Collaborate</span>
             </div>
-            <div className="p-4 rounded-lg bg-muted/50 text-center">
-              <Users className="h-6 w-6 mx-auto mb-2 text-primary" />
-              <span className="text-sm font-medium">Collaborate</span>
+            <div className="p-3 rounded-lg border bg-card text-center">
+              <TrendingUp className="h-5 w-5 mx-auto mb-2 text-primary" />
+              <span className="text-xs font-medium">Grow</span>
             </div>
           </div>
         </div>
@@ -216,13 +216,13 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     <>
       <Celebration
         show={showCelebration}
-        title="You're All Set!"
-        message="Welcome to the team. Let's get to work!"
+        title="Orientation Complete"
+        message="You are ready to begin. Your work contributes to something larger."
         type="completion"
         onComplete={onComplete}
       />
 
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
