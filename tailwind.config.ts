@@ -69,6 +69,15 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // MPCN Brand Colors
+        network: {
+          DEFAULT: "hsl(var(--network))",
+          foreground: "hsl(var(--network-foreground))",
+        },
+        collaboration: {
+          DEFAULT: "hsl(var(--collaboration))",
+          foreground: "hsl(var(--collaboration-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -92,12 +101,17 @@ export default {
           from: { transform: "translateX(-100%)" },
           to: { transform: "translateX(0)" },
         },
+        "grow-up": {
+          from: { transform: "scaleY(0)", opacity: "0" },
+          to: { transform: "scaleY(1)", opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
         "slide-in": "slide-in 0.3s ease-out",
+        "grow-up": "grow-up 0.4s ease-out",
       },
     },
   },

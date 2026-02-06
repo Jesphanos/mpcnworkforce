@@ -20,20 +20,26 @@ export const PLATFORM_IDENTITY = {
   name: "MPCN",
   
   /** Full institutional name */
-  fullName: "MPCN Coordinated Network",
+  fullName: "MakeProfit Collaborative Network",
   
   /** One-line institutional description */
-  tagline: "Structured collaboration. Accountable growth.",
+  tagline: "Collaborative Network",
   
   /** Extended description for landing/about pages */
-  description: "MPCN is a coordinated economic organization where skilled professionals collaborate under unified governance. We combine structured workflows, disciplined capital management, and transparent accountability to create sustainable value for all participants.",
+  description: "MPCN is a collaborative economic network where skilled professionals make profit together through structured workflows, disciplined capital management, and transparent accountability. Growth through unity.",
+  
+  /** Brand colors (for reference) */
+  colors: {
+    growth: "hsl(145, 63%, 42%)", // Green - growth, provision
+    trust: "hsl(207, 90%, 54%)",  // Blue - trust, unity
+  },
   
   /** What MPCN is (for clarity) */
   definition: [
-    "A structured professional network with clear governance",
-    "An organization where every role has defined responsibilities",
+    "A collaborative network for shared prosperity",
+    "An organization where professionals grow together",
     "A system where accountability protects all participants",
-    "A framework for coordinated value creation",
+    "A framework for making profit through coordination",
   ],
   
   /** What MPCN is NOT (for differentiation) */

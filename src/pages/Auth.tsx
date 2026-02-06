@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Loader2, 
-  Building2, 
   TrendingUp, 
   Briefcase, 
   ArrowLeft, 
@@ -27,6 +26,7 @@ import { RoleSelectionGrid, LoginRoleType } from "@/components/auth/RoleSelectio
 import { PhoneLoginForm } from "@/components/auth/PhoneLoginForm";
 import { MpcnIdLoginForm } from "@/components/auth/MpcnIdLoginForm";
 import { supabase } from "@/integrations/supabase/client";
+import mpcnLogo from "@/assets/mpcn-logo.png";
 
 type AccountType = "employee" | "investor" | "both" | "trader";
 type LoginMethod = "email" | "phone" | "mpcn_id";
@@ -241,13 +241,14 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 auth-gradient">
       <div className="w-full max-w-md animate-fade-in">
-        {/* Institutional Header */}
+        {/* MPCN Logo Header */}
         <div className="flex flex-col items-center mb-8">
-          <div className="h-16 w-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-            <Building2 className="h-8 w-8 text-primary-foreground" />
-          </div>
-          <h1 className="mt-4 text-2xl font-bold text-foreground tracking-tight">MPCN</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Structured collaboration. Accountable growth.</p>
+          <img 
+            src={mpcnLogo} 
+            alt="MPCN - Collaborative Network" 
+            className="h-24 w-auto drop-shadow-md"
+          />
+          <p className="mt-3 text-sm text-muted-foreground font-medium">Collaborative Network</p>
         </div>
 
         <Card className="border-border/50 shadow-xl auth-card-glow bg-card/95 backdrop-blur-sm">
