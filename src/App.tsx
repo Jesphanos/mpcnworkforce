@@ -45,6 +45,8 @@ function LazyPage({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
@@ -52,6 +54,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <InstallPrompt />
           <BrowserRouter>
             <AuthProvider>
               <RealtimeNotificationsProvider>

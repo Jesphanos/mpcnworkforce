@@ -32,11 +32,13 @@ import {
   CandlestickChart,
   Landmark,
   GraduationCap,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useCapabilities } from "@/hooks/useCapabilities";
+import { InstallButton } from "@/components/pwa/InstallButton";
 
 type AppRole = 
   | "employee" 
@@ -483,6 +485,12 @@ export function AppSidebar() {
             </Badge>
           </div>
         </div>
+        
+        {/* Install App Button */}
+        <div className="mb-2 text-sidebar-foreground/80">
+          <InstallButton variant="sidebar" />
+        </div>
+
         <Button
           variant="ghost"
           size="sm"
