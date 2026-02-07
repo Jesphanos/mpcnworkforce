@@ -47,10 +47,10 @@ export function MetricCard({
   };
 
   const highlightClasses = {
-    warning: "ring-2 ring-warning",
-    success: "ring-2 ring-success",
-    info: "ring-2 ring-info",
-    destructive: "ring-2 ring-destructive",
+    warning: "ring-2 ring-warning/50 bg-warning/5",
+    success: "ring-2 ring-success/50 bg-success/5",
+    info: "ring-2 ring-info/50 bg-info/5",
+    destructive: "ring-2 ring-destructive/50 bg-destructive/5",
   };
 
   const iconColorClasses = {
@@ -60,11 +60,17 @@ export function MetricCard({
     destructive: "text-destructive",
   };
 
+  const iconBgClasses = {
+    warning: "bg-warning/10",
+    success: "bg-success/10",
+    info: "bg-info/10",
+    destructive: "bg-destructive/10",
+  };
+
   return (
     <Card
+      variant={navigateTo ? "interactive" : "elevated"}
       className={cn(
-        "hover:shadow-md transition-all",
-        navigateTo && "cursor-pointer hover:scale-[1.02]",
         highlight && highlightClasses[highlightColor],
         className
       )}
@@ -76,21 +82,26 @@ export function MetricCard({
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
-        <Icon
-          className={cn(
-            "h-5 w-5",
-            highlight ? iconColorClasses[highlightColor] : "text-muted-foreground"
-          )}
-        />
+        <div className={cn(
+          "p-2 rounded-lg transition-colors",
+          highlight ? iconBgClasses[highlightColor] : "bg-muted/50"
+        )}>
+          <Icon
+            className={cn(
+              "h-4 w-4",
+              highlight ? iconColorClasses[highlightColor] : "text-muted-foreground"
+            )}
+          />
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <Skeleton className="h-8 w-16" />
+          <Skeleton className="h-8 w-20" />
         ) : (
-          <div className="text-2xl font-bold">{value}</div>
+          <div className="text-2xl font-bold tracking-tight">{value}</div>
         )}
         {description && (
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="text-xs text-muted-foreground mt-1">{description}</p>
         )}
       </CardContent>
     </Card>

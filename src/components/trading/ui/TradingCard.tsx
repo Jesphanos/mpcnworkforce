@@ -6,7 +6,7 @@ interface TradingCardProps {
   children: ReactNode;
   className?: string;
   glowColor?: "positive" | "negative" | "neutral" | "accent";
-  variant?: "default" | "glass" | "terminal";
+  variant?: "default" | "glass" | "terminal" | "institutional";
   animate?: boolean;
 }
 
@@ -27,9 +27,10 @@ export function TradingCard({
   const baseClasses = "rounded-xl border transition-all duration-300";
   
   const variantClasses = {
-    default: "bg-card border-border",
+    default: "bg-card border-border shadow-sm hover:shadow-md",
     glass: "glassmorphism",
     terminal: "trading-card bg-trading-card border-border/30",
+    institutional: "bg-card border-border shadow-md hover:shadow-lg hover:-translate-y-0.5 ring-1 ring-border/50",
   };
 
   const Component = animate ? motion.div : "div";
@@ -38,6 +39,7 @@ export function TradingCard({
         initial: { opacity: 0, y: 10 },
         animate: { opacity: 1, y: 0 },
         transition: { duration: 0.3 },
+        whileHover: { scale: 1.01, y: -2 },
       }
     : {};
 
