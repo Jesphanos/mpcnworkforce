@@ -33,6 +33,7 @@ const Governance = lazy(() => import("./pages/Governance"));
 const Department = lazy(() => import("./pages/Department"));
 const WorkerProfile = lazy(() => import("./pages/WorkerProfile"));
 const Learn = lazy(() => import("./pages/Learn"));
+const Messages = lazy(() => import("./pages/Messages"));
 
 const queryClient = new QueryClient();
 
@@ -186,6 +187,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <LazyPage><Learn /></LazyPage>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/messages"
+                    element={
+                      <ProtectedRoute>
+                        <LazyPage><Messages /></LazyPage>
                       </ProtectedRoute>
                     }
                   />

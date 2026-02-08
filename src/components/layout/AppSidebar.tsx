@@ -33,12 +33,14 @@ import {
   Landmark,
   GraduationCap,
   Download,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useCapabilities } from "@/hooks/useCapabilities";
 import { InstallButton } from "@/components/pwa/InstallButton";
+import { MessagingButton } from "@/components/messaging/MessagingButton";
 
 type AppRole = 
   | "employee" 
@@ -245,6 +247,11 @@ const traderMenu: MenuItem[] = [
   { title: "Trading Terminal", url: "/trading", icon: CandlestickChart },
 ];
 
+// Communication menu (available for all roles)
+const communicationMenu: MenuItem[] = [
+  { title: "Messages", url: "/messages", icon: MessageCircle },
+];
+
 // Development menu (available for all roles)
 const developmentMenu: MenuItem[] = [
   { title: "MPCN Learn", url: "/learn", icon: GraduationCap },
@@ -442,6 +449,31 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
+        {/* Communication Section (Available for all roles) */}
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs uppercase tracking-wider">
+            Communication
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {communicationMenu.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+                      activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         {/* Development Section (Available for all roles) */}
         <SidebarGroup className="mt-4">
           <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs uppercase tracking-wider">
@@ -484,6 +516,11 @@ export function AppSidebar() {
               {getRoleLabel(role)}
             </Badge>
           </div>
+        </div>
+        
+        {/* Messages Button */}
+        <div className="mb-2 text-sidebar-foreground/80">
+          <MessagingButton variant="sidebar" />
         </div>
         
         {/* Install App Button */}
