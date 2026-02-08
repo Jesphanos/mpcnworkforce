@@ -104,6 +104,95 @@ export type Database = {
         }
         Relationships: []
       }
+      channel_participants: {
+        Row: {
+          channel_id: string
+          id: string
+          joined_at: string | null
+          last_read_at: string | null
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          id?: string
+          joined_at?: string | null
+          last_read_at?: string | null
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          id?: string
+          joined_at?: string | null
+          last_read_at?: string | null
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_participants_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channels: {
+        Row: {
+          channel_type: Database["public"]["Enums"]["channel_type"]
+          created_at: string | null
+          created_by: string
+          department_id: string | null
+          description: string | null
+          id: string
+          is_archived: boolean | null
+          name: string
+          team_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          channel_type: Database["public"]["Enums"]["channel_type"]
+          created_at?: string | null
+          created_by: string
+          department_id?: string | null
+          description?: string | null
+          id?: string
+          is_archived?: boolean | null
+          name: string
+          team_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          channel_type?: Database["public"]["Enums"]["channel_type"]
+          created_at?: string | null
+          created_by?: string
+          department_id?: string | null
+          description?: string | null
+          id?: string
+          is_archived?: boolean | null
+          name?: string
+          team_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channels_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channels_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           content: string
@@ -775,6 +864,101 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      message_read_receipts: {
+        Row: {
+          id: string
+          message_id: string
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_read_receipts_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          attachment_type: string | null
+          attachment_url: string | null
+          channel_id: string
+          content: string
+          created_at: string | null
+          edited_at: string | null
+          id: string
+          is_edited: boolean | null
+          is_pinned: boolean | null
+          pinned_at: string | null
+          pinned_by: string | null
+          reply_to_id: string | null
+          sender_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          attachment_type?: string | null
+          attachment_url?: string | null
+          channel_id: string
+          content: string
+          created_at?: string | null
+          edited_at?: string | null
+          id?: string
+          is_edited?: boolean | null
+          is_pinned?: boolean | null
+          pinned_at?: string | null
+          pinned_by?: string | null
+          reply_to_id?: string | null
+          sender_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          attachment_type?: string | null
+          attachment_url?: string | null
+          channel_id?: string
+          content?: string
+          created_at?: string | null
+          edited_at?: string | null
+          id?: string
+          is_edited?: boolean | null
+          is_pinned?: boolean | null
+          pinned_at?: string | null
+          pinned_by?: string | null
+          reply_to_id?: string | null
+          sender_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mpcn_financials: {
         Row: {
@@ -2499,6 +2683,7 @@ export type Database = {
         | "trader"
         | "department_head"
       attention_level: "informational" | "support_needed" | "review_required"
+      channel_type: "team" | "department" | "announcement" | "direct"
       financial_period_status: "draft" | "finalized" | "corrected"
       investment_risk_level: "low" | "medium" | "high"
       investment_scope: "general_fund" | "project_specific" | "team_specific"
@@ -2679,6 +2864,7 @@ export const Constants = {
         "department_head",
       ],
       attention_level: ["informational", "support_needed", "review_required"],
+      channel_type: ["team", "department", "announcement", "direct"],
       financial_period_status: ["draft", "finalized", "corrected"],
       investment_risk_level: ["low", "medium", "high"],
       investment_scope: ["general_fund", "project_specific", "team_specific"],
